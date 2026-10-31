@@ -1,0 +1,53 @@
+{
+  "name": "rene-roscher-skills",
+  "description": "Engineering skills for coding agents: evidence before claims, safe actions, multi-tenant SaaS, Laravel, web and delivery hardening.",
+  "owner": {
+    "name": "Rene Roscher",
+    "url": "https://github.com/Rene-Roscher"
+  },
+  "allowCrossMarketplaceDependenciesOn": ["claude-plugins-official"],
+  "plugins": [
+    {
+      "name": "core",
+      "source": "./plugins/core",
+      "description": "Evidence before claims, verification before done, safe actions, feature planning and delivery, bug investigation. Stack-agnostic.",
+      "category": "engineering",
+      "tags": ["evidence", "verification", "safety", "planning"]
+    },
+    {
+      "name": "saas",
+      "source": "./plugins/saas",
+      "description": "Multi-tenant B2B SaaS: external IDs, tenant isolation, RBAC, build vs buy, EU B2B billing, GDPR engineering, service boundaries.",
+      "category": "architecture",
+      "tags": ["saas", "multi-tenancy", "rbac", "billing", "gdpr"]
+    },
+    {
+      "name": "laravel",
+      "source": "./plugins/laravel",
+      "description": "Laravel architecture and production runtime decisions for long-lived workers, PostgreSQL and Valkey.",
+      "category": "framework",
+      "tags": ["laravel", "php", "octane", "postgresql", "valkey"]
+    },
+    {
+      "name": "web",
+      "source": "./plugins/web",
+      "description": "Public pages as their own Nuxt deployment, dashboards as client-rendered Inertia, and headless browser verification.",
+      "category": "frontend",
+      "tags": ["nuxt", "inertia", "vue", "playwright"]
+    },
+    {
+      "name": "delivery",
+      "source": "./plugins/delivery",
+      "description": "GitHub Actions supply-chain hardening and container image baselines.",
+      "category": "ci-cd",
+      "tags": ["github-actions", "supply-chain", "containers"]
+    },
+    {
+      "name": "docs-tools",
+      "source": "./plugins/docs-tools",
+      "description": "Optional plugin that installs the Context7 documentation MCP server.",
+      "category": "documentation",
+      "tags": ["documentation", "mcp", "context7"]
+    }
+  ]
+}

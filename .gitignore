@@ -1,0 +1,10 @@
+# Eval output (written by every `claude plugin eval` run)
+plugins/*/evals/results/
+eval-out/
+
+# Private denylist terms for tools/lint.py
+.denylist.local
+
+# Python
+__pycache__/
+.venv/
