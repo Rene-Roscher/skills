@@ -1,0 +1,54 @@
+{
+  "extraKnownMarketplaces": {
+    "rene-roscher-skills": {
+      "source": {
+        "source": "github",
+        "repo": "Rene-Roscher/skills",
+        "ref": "core--v0.1.0"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "core@rene-roscher-skills": true,
+    "saas@rene-roscher-skills": true,
+    "laravel@rene-roscher-skills": true
+  },
+  "permissions": {
+    "deny": [
+      "Read(.env)",
+      "Read(.env.*)",
+      "Read(!.env.example)",
+      "Read(**/*.pem)",
+      "Read(**/*.key)",
+      "Read(**/*.p12)",
+      "Read(**/*.pfx)",
+      "Read(**/id_rsa)",
+      "Read(**/id_ed25519)",
+      "Read(**/credentials.json)"
+    ],
+    "ask": [
+      "Bash(git push *)",
+      "Bash(git reset --hard *)",
+      "Bash(git clean *)",
+      "Bash(git branch -D *)",
+      "Bash(git filter-branch *)",
+      "Bash(rm -rf *)",
+      "Bash(rm -r *)",
+      "Bash(gh pr merge *)",
+      "Bash(gh release *)",
+      "Bash(gh repo delete *)",
+      "Bash(docker system prune *)",
+      "Bash(docker volume rm *)",
+      "Bash(kubectl delete *)",
+      "Bash(kubectl apply *)",
+      "Bash(helm uninstall *)",
+      "Bash(terraform apply *)",
+      "Bash(terraform destroy *)",
+      "Bash(tofu apply *)",
+      "Bash(tofu destroy *)",
+      "Bash(php artisan migrate:fresh *)",
+      "Bash(php artisan migrate:reset *)",
+      "Bash(php artisan db:wipe *)"
+    ]
+  }
+}
