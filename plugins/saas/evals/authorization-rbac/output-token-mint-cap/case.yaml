@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: output-token-mint-cap
+context:
+  scaffold_script: fixture.sh
