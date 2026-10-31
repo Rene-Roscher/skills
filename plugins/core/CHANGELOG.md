@@ -8,3 +8,4 @@ All notable changes to the `core` plugin are recorded here. The format follows
 ### Added
 
 - Skills `evidence-before-claims`, `verify-before-done`, `safe-actions`, `feature-planning`, `feature-delivery` and `bug-investigation`.
+- Skill `commit-hygiene` with a commit-msg hook, a CI range check and a pull request body check.

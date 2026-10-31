@@ -1,0 +1,164 @@
+#!/bin/sh
+# self-test: prove commit-msg, check-range and check-pr-body accept good input
+# and reject agent traces. Runs in a temporary directory, needs only git and
+# a POSIX shell, makes no network calls.
+#
+#   sh self-test            prints one line per case, exits 1 on any mismatch
+set -eu
+
+here=$(cd "$(dirname "$0")" && pwd)
+work=$(mktemp -d)
+trap 'rm -rf "$work"' EXIT HUP INT TERM
+cd "$work"
+git init -q repo
+cd repo
+git config user.name 'Jane Doe'
+git config user.email 'jane@example.com'
+git config commit.gpgSign false
+
+# Trailer tokens and footers are assembled from pieces so this file does not
+# itself carry the strings it tests for.
+CO='Co-Authored-B''y'
+co='Co-authored-b''y'
+AT='noreply@''anthropic.com'
+GEN='Generat''ed with'
+ROBOT=$(printf '\360\237\244\226')
+SPARK=$(printf '\342\234\250')
+
+fails=0
+n=0
+msg() { # msg EXPECT NAME TEXT : run the hook on TEXT, compare with EXPECT
+  n=$((n + 1))
+  printf '%s\n' "$3" >"$work/msg"
+  if sh "$here/commit-msg" "$work/msg" 2>"$work/err"; then got=accept; else got=reject; fi
+  if [ "$got" = "$1" ]; then
+    printf 'ok   %-7s %s\n' "$got" "$2"
+  else
+    printf 'FAIL %-7s %s (expected %s): %s\n' "$got" "$2" "$1" "$(tr '\n' ' ' <"$work/err")"
+    fails=$((fails + 1))
+  fi
+}
+
+msg accept 'conventional subject with a why body' "fix(billing): round VAT per line, not per invoice
+
+The invoice total was off by one cent against the sum of its lines
+when several lines rounded the same way.
+
+Refs: acme/invoices#412"
+msg accept 'umlauts counted as characters' 'fix: Umlaute in Rechnungsnummern korrekt übernehmen'
+msg accept 'human co-author' "feat(export): add CSV export of the filtered table
+
+$co: Jane Doe <jane@example.com>"
+msg accept 'fixup subject' 'fixup! fix: round VAT per line'
+msg accept 'agent trailer only in a comment line' "fix: round VAT per line
+# $CO: Claude <$AT>"
+msg accept 'agent trailer below the scissors line' "fix: round VAT per line
+# ------------------------ >8 ------------------------
+$CO: Claude <$AT>"
+msg accept 'word ending in ai' 'docs: thank the team
+
+Made with care for chai lovers.'
+msg accept 'host:port:path is no gitmoji' 'fix: parse host:port:path triples'
+msg accept 'revert' 'Revert "feat: add export"
+
+This reverts the export commit.'
+msg reject 'Claude Code default trailer' "fix: round VAT per line
+
+$CO: Claude Opus <$AT>"
+msg reject 'Codex trailer' "fix: round VAT per line
+
+$co: Codex <noreply@""openai.com>"
+msg reject 'Copilot trailer' "fix: round VAT per line
+
+$co: Copilot <copilot@""github.com>"
+msg reject 'aider trailer' "fix: round VAT per line
+
+$co: aider (gpt-5) <aider@""aider.chat>"
+msg reject 'made with Cursor' 'fix: round VAT per line
+
+Made with Cursor'
+msg reject 'generated-with footer' "fix: round VAT per line
+
+$ROBOT $GEN [Claude Code](https://claude.com/claude-code)"
+msg reject 'session trailer' 'fix: round VAT per line
+
+Claude-Session: https://claude.ai/code/session_abc'
+msg reject 'agent logs trailer' 'fix: round VAT per line
+
+Agent-Logs-Url: https://example.com/logs/1'
+msg reject 'disclosure trailer without opt-out' 'fix: round VAT per line
+
+Assisted-by: LLM coccinelle'
+git config hooks.commitmsg.allowAiDisclosure true
+msg accept 'disclosure trailer with opt-out' 'fix: round VAT per line
+
+Assisted-by: LLM coccinelle'
+git config --unset hooks.commitmsg.allowAiDisclosure
+msg reject 'emoji in the subject' "feat: add export $SPARK"
+msg reject 'emoji in the body' "feat: add export
+
+Ship it $ROBOT"
+msg reject 'gitmoji shortcode' ':sparkles: add export'
+msg reject 'trailing period' 'Fix the build.'
+msg reject 'past tense' 'Added caching to the session store'
+msg reject 'third person after prefix' 'feat(api): Adds pagination'
+msg reject 'filler word' 'feat: enhance the user experience'
+msg reject 'vague changes' 'chore: various fixes'
+msg reject 'this commit' 'This commit introduces a cache layer'
+msg reject 'long subject' 'feat(reports): add a CSV export of the filtered invoice table including all columns'
+msg reject 'empty message' '# only a comment'
+
+# check-range: a commit made with --no-verify and an agent author are caught.
+range() { # range EXPECT NAME
+  n=$((n + 1))
+  if HOOK="$here/commit-msg" sh "$here/check-range" "$base" HEAD 2>"$work/err"; then got=accept; else got=reject; fi
+  if [ "$got" = "$1" ]; then
+    printf 'ok   %-7s %s\n' "$got" "$2"
+  else
+    printf 'FAIL %-7s %s (expected %s): %s\n' "$got" "$2" "$1" "$(tr '\n' ' ' <"$work/err")"
+    fails=$((fails + 1))
+  fi
+}
+git commit -q --allow-empty -m 'chore: start the ledger'
+base=$(git rev-parse HEAD)
+git commit -q --allow-empty -m 'fix(ledger): keep entries in booking order'
+range accept 'clean range'
+git commit -q --allow-empty --no-verify -m "fix: sort entries
+
+$CO: Claude <$AT>"
+range reject 'agent trailer committed with --no-verify'
+git reset -q --hard "$base"
+git -c user.name='T (aider)' commit -q --allow-empty -m 'fix: sort entries by date'
+range reject 'agent author name'
+git reset -q --hard "$base"
+git commit -q --allow-empty -m 'fixup! chore: start the ledger'
+range reject 'autosquash commit left in the range'
+
+# check-pr-body
+body() { # body EXPECT NAME TEXT
+  n=$((n + 1))
+  if PR_BODY=$3 sh "$here/check-pr-body" 2>"$work/err"; then got=accept; else got=reject; fi
+  if [ "$got" = "$1" ]; then
+    printf 'ok   %-7s %s\n' "$got" "$2"
+  else
+    printf 'FAIL %-7s %s (expected %s): %s\n' "$got" "$2" "$1" "$(tr '\n' ' ' <"$work/err")"
+    fails=$((fails + 1))
+  fi
+}
+body accept 'plain description' 'Keep the search query when switching tabs.
+
+Switching tabs reset the query, so people typed it twice.
+
+Tested: switched tabs with and without a query in two browsers.'
+body reject 'Claude Code default PR line' "Fix rounding.
+
+$ROBOT $GEN [Claude Code](https://claude.com/claude-code)"
+body reject 'Codex PR line' "Fix rounding.
+
+$GEN [Codex](https://openai.com/codex/)."
+body reject 'session link' 'Fix rounding.
+
+https://claude.ai/code/session_abc'
+
+printf '%d cases, %d failed\n' "$n" "$fails"
+[ "$fails" -eq 0 ]

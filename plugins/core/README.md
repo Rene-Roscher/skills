@@ -18,6 +18,7 @@ optional [docs-tools](../docs-tools/README.md) plugin installs Context7.
 | `feature-planning` | a feature needs a plan that an owner approves before code is written |
 | `feature-delivery` | an approved plan is being built and has to end with evidence for each done item |
 | `bug-investigation` | a defect has to go from report to a failing regression test and a root-cause fix |
+| `commit-hygiene` | you write commits, rewrite branch history or write a pull request description, or set up commit checks |
 
 Claude Code loads a skill when the task matches its description. You can also call one directly, for example
 `/core:evidence-before-claims`.

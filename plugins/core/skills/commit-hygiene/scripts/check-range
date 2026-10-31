@@ -1,0 +1,42 @@
+#!/bin/sh
+# check-range: run the commit-msg checks over every non-merge commit in a range
+# and flag author or committer identities that belong to an agent. For CI,
+# because local hooks are not cloned and `--no-verify` skips them.
+#
+#   check-range BASE [HEAD]        e.g. check-range origin/main HEAD
+#   HOOK=path/to/commit-msg        default: commit-msg next to this script
+#
+# Exit 0 = every commit passes, 1 = at least one finding, 2 = usage error.
+set -eu
+
+LC_ALL=C
+export LC_ALL
+
+base=${1:?usage: check-range BASE [HEAD]}
+head=${2:-HEAD}
+hook=${HOOK:-$(dirname "$0")/commit-msg}
+[ -f "$hook" ] || { printf 'check-range: hook not found: %s\n' "$hook" >&2; exit 2; }
+
+tmp=$(mktemp)
+trap 'rm -f "$tmp" "$tmp.err"' EXIT HUP INT TERM
+
+ident='(claude|anthropic|openai|codex|chatgpt|copilot|cursor|aider|gemini|devin|windsurf|codeium|tabnine|jules)'
+fail=0
+for c in $(git rev-list --no-merges "$base..$head"); do
+  git log -1 --format=%B "$c" >"$tmp"
+  if ! sh "$hook" "$tmp" 2>"$tmp.err"; then
+    printf '%s: %s\n' "$(git log -1 --format='%h %s' "$c")" "$(grep -v '(warning)' "$tmp.err" | tr '\n' ' ')" >&2
+    fail=1
+  fi
+  who=$(git log -1 --format='%an <%ae> / %cn <%ce>' "$c")
+  if printf '%s\n' "$who" | grep -Eiq -e "$ident"; then
+    printf '%s: author or committer looks like an agent: %s\n' "$(git log -1 --format=%h "$c")" "$who" >&2
+    fail=1
+  fi
+  # fixup!/squash!/amend! commits are fine while working, not at merge time.
+  if git log -1 --format=%s "$c" | grep -Eq '^(fixup|squash|amend)! '; then
+    printf '%s: autosquash commit left in the range\n' "$(git log -1 --format='%h %s' "$c")" >&2
+    fail=1
+  fi
+done
+exit "$fail"

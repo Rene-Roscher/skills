@@ -1,0 +1,29 @@
+#!/bin/sh
+# check-pr-body: reject agent attribution, session links and emoji in a pull
+# request description. The body comes from the environment:
+#
+#   PR_BODY="$(gh pr view 123 --json body -q .body)" sh check-pr-body
+#
+# In GitHub Actions pass the body through `env:`, never by interpolating the
+# expression into `run:`. Exit 0 = clean, 1 = at least one finding.
+set -eu
+
+LC_ALL=C
+export LC_ALL
+
+body=${PR_BODY-}
+[ -n "$body" ] || exit 0
+
+ai='(claude|anthropic|openai|codex|chatgpt|copilot|cursor|aider|gemini|devin|windsurf|codeium|tabnine|jules)'
+fail=0
+hit() { # hit ERE MESSAGE
+  if printf '%s\n' "$body" | grep -Eiq -e "$1"; then
+    printf 'pr-body: %s\n' "$2" >&2
+    fail=1
+  fi
+}
+hit "(generated|made|created|written|built|authored|crafted) (with|by|using|via)[^[:alnum:]](.{0,40}[^[:alnum:]])?($ai|ai|llm)([^[:alnum:]]|\$)" 'credit line naming an AI tool'
+hit "^[a-z][a-z-]*-by:.*$ai" 'AI identity in a *-by: line'
+hit '(claude\.ai/|claude\.com/claude-code|chatgpt\.com|chat\.openai\.com|openai\.com/codex|cursor\.com/)' 'agent session or product link'
+hit "$(printf '\360\237')|$(printf '\342')[$(printf '\230')-$(printf '\237')$(printf '\254')-$(printf '\257')]|$(printf '\357\270\217')" 'emoji'
+exit "$fail"

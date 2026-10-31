@@ -1,0 +1,139 @@
+#!/bin/sh
+# commit-msg hook: reject agent attribution and machine-sounding commit messages.
+#
+# Install per repository (hooks are not cloned, so every clone runs this once):
+#   mkdir -p .githooks && cp commit-msg .githooks/ && chmod +x .githooks/commit-msg
+#   git config core.hooksPath .githooks
+#
+# Also usable as a checker: sh commit-msg path/to/message-file
+# `git commit --no-verify` skips the hook, so CI runs the same checks through
+# check-range. Exit 0 = accept, exit 1 = reject. Warnings never fail.
+#
+# Per-repository opt-outs (git config):
+#   hooks.commitmsg.allowAiDisclosure true   the project requires a disclosure trailer
+#   hooks.commitmsg.maxSubject 72            hard subject limit in characters
+set -eu
+
+LC_ALL=C
+export LC_ALL
+
+msg_file=${1:?usage: commit-msg MESSAGE-FILE}
+
+cc=$(git config --get core.commentChar 2>/dev/null || true)
+case $cc in '' | auto) cc='#' ;; esac
+max_subject=$(git config --get hooks.commitmsg.maxSubject 2>/dev/null || true)
+case $max_subject in '' | *[!0-9]*) max_subject=72 ;; esac
+allow_disclosure=$(git config --bool --get hooks.commitmsg.allowAiDisclosure 2>/dev/null || true)
+
+# Drop comment lines and everything below the scissors line of `commit -v`;
+# Git strips both after the hook has run.
+clean=$(awk -v c="$cc" '
+  index($0, c " ------------------------ >8 ------------------------") == 1 { exit }
+  index($0, c) == 1 { next }
+  { print }
+' "$msg_file")
+
+subject=$(printf '%s\n' "$clean" | awk 'NF { print; exit }')
+
+fail=0
+err() {
+  printf 'commit-msg: %s\n' "$1" >&2
+  fail=1
+}
+warn() {
+  printf 'commit-msg (warning): %s\n' "$1" >&2
+}
+has() { # has ERE: case-insensitive match anywhere in the message
+  printf '%s\n' "$clean" | grep -Eiq -e "$1"
+}
+
+if [ -z "$subject" ]; then
+  err 'empty message'
+  exit 1
+fi
+
+# Agent and tool names, and the addresses the tools write into trailers.
+ai='(claude|anthropic|openai|codex|chatgpt|copilot|cursor|aider|gemini|devin|windsurf|codeium|tabnine|jules)'
+ai_mail='(noreply@anthropic\.com|noreply@openai\.com|copilot@github\.com|cursoragent@cursor\.com|aider@aider\.chat)'
+
+if [ "$allow_disclosure" != true ]; then
+  # 1. AI identity in any person trailer (co-author, sign-off, assisted, ...).
+  if has "^[a-z][a-z-]*-by:.*($ai|$ai_mail)"; then
+    err 'AI identity in a *-by: trailer'
+  fi
+  if has '^(assisted|generated)-by:'; then
+    err 'AI disclosure trailer (Assisted-by, Generated-by)'
+  fi
+  # 2. Credit lines of the "made with [tool]" kind.
+  if has "(generated|made|created|written|built|authored|crafted) (with|by|using|via)[^[:alnum:]](.{0,40}[^[:alnum:]])?($ai|ai|llm)([^[:alnum:]]|\$)"; then
+    err 'credit line naming an AI tool ("made with [tool]")'
+  fi
+fi
+
+# 3. Agent session trailers and links to transcripts or agent product pages.
+if has '^(claude-session|agent-logs-url):'; then
+  err 'agent session trailer (Claude-Session, Agent-Logs-Url)'
+fi
+if has '(claude\.ai/|claude\.com/claude-code|chatgpt\.com|chat\.openai\.com|openai\.com/codex|cursor\.com/)'; then
+  err 'link to an agent session or agent product page'
+fi
+
+# 4. Emoji anywhere, matched as UTF-8 bytes: U+1F000-1FAFF (F0 9F ..),
+#    U+2600-27BF (E2 98-9F ..), U+2B00-2BFF (E2 AC-AF ..), VS16 (EF B8 8F).
+emoji="$(printf '\360\237')|$(printf '\342')[$(printf '\230')-$(printf '\237')$(printf '\254')-$(printf '\257')]|$(printf '\357\270\217')"
+if printf '%s\n' "$clean" | grep -Eq -e "$emoji"; then
+  err 'emoji in the message'
+fi
+# Gitmoji shortcode as a standalone token, so host:port:path passes.
+if printf '%s\n' "$subject" | grep -Eq -e '(^|[[:space:]]):[a-z0-9_+-]+:([[:space:]]|$)'; then
+  err 'gitmoji shortcode in the subject'
+fi
+
+# 5. Subject shape. Count characters, not bytes: drop UTF-8 continuation bytes.
+len=$(printf '%s' "$subject" | tr -d '\200-\277' | wc -c | tr -d ' ')
+if [ "$len" -gt "$max_subject" ]; then
+  err "subject is $len characters (limit $max_subject)"
+elif [ "$len" -gt 50 ]; then
+  warn "subject is $len characters (aim for 50)"
+fi
+case $subject in *.) err 'subject ends with a period' ;; esac
+
+# Look at the first word after an optional Conventional Commits prefix.
+desc=$(printf '%s\n' "$subject" | sed -E 's/^[a-zA-Z]+(\([^)]*\))?!?: //')
+first=$(printf '%s\n' "$desc" | awk '{ print tolower($1) }')
+case $first in
+  added | adds | fixed | fixes | updated | updates | removed | removes | changed | changes | \
+    implemented | implements | created | creates | improved | improves | refactored | refactors | \
+    enhanced | enhances | introduced | introduces | adding | fixing | updating | implementing)
+    err "subject starts with \"$first\"; use the imperative (add, fix, ...)" ;;
+esac
+
+# 6. Words that say nothing, in the subject. Stems keep the list short; every
+#    extra word is a false positive waiting to happen.
+filler='(comprehensiv(e|ely)|enhanc(e|es|ed|ing|ement)|robus(t|tly|tness)|streamlin(e|es|ed|ing)|seamles(s|sly)|leverag(e|es|ed|ing)|utiliz(e|es|ed|ing)|delv(e|es|ing)|various|misc(ellaneous)?|(minor|small|some|several) (fixes|changes|updates|tweaks|improvements)|this (commit|pr|patch|change)|refine(ment|ments|d)? (logic|code)|improve(d|s)? (code|overall) quality)'
+word_re="(^|[^[:alnum:]])$filler([^[:alnum:]]|\$)"
+if printf '%s\n' "$subject" | grep -Eiq -e "$word_re"; then
+  hit=$(printf '%s\n' "$subject" | awk -v re="$filler" '{ if (match(tolower($0), re)) print substr($0, RSTART, RLENGTH) }')
+  err "filler word in the subject: \"$hit\""
+fi
+
+# 7. Body hints (warnings only).
+body=$(printf '%s\n' "$clean" | awk 'NF && !s { s = 1; next } s')
+if [ -n "$body" ]; then
+  bullets=$(printf '%s\n' "$body" | grep -Ec '^[[:space:]]*([-*]|[0-9]+\.)[[:space:]]' || true)
+  if [ "$bullets" -ge 4 ]; then
+    warn "$bullets bullet lines in the body; say why, do not restate the diff"
+  fi
+  if printf '%s\n' "$body" | grep -Eiq -e "$word_re"; then
+    warn 'filler word in the body'
+  fi
+  if printf '%s\n' "$body" | grep -Eq '^#{1,6} |\*\*[^*]+\*\*'; then
+    warn 'Markdown headings or bold in the body'
+  fi
+  if printf '%s\n' "$body" | grep -v -E '^[A-Za-z-]+: |https?://' | tr -d '\200-\277' |
+    awk 'length > 72 { f = 1 } END { exit !f }'; then
+    warn 'body line longer than 72 characters'
+  fi
+fi
+
+exit "$fail"
