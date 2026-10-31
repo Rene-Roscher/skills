@@ -1,0 +1,23 @@
+{
+  "name": "delivery",
+  "displayName": "Delivery: CI and container hardening",
+  "version": "0.1.0",
+  "description": "GitHub Actions supply-chain hardening and container image baselines.",
+  "author": {
+    "name": "Rene Roscher",
+    "url": "https://github.com/Rene-Roscher"
+  },
+  "homepage": "https://github.com/Rene-Roscher/skills/tree/main/plugins/delivery",
+  "repository": "https://github.com/Rene-Roscher/skills",
+  "license": "Apache-2.0",
+  "keywords": [
+    "github-actions",
+    "supply-chain",
+    "containers",
+    "docker",
+    "ci"
+  ],
+  "dependencies": [
+    "core"
+  ]
+}
