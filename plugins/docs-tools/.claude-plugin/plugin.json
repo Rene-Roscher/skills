@@ -1,0 +1,24 @@
+{
+  "name": "docs-tools",
+  "displayName": "Docs tools: Context7 MCP server",
+  "version": "0.1.0",
+  "description": "Optional plugin that installs the Context7 documentation MCP server.",
+  "author": {
+    "name": "Rene Roscher",
+    "url": "https://github.com/Rene-Roscher"
+  },
+  "homepage": "https://github.com/Rene-Roscher/skills/tree/main/plugins/docs-tools",
+  "repository": "https://github.com/Rene-Roscher/skills",
+  "license": "Apache-2.0",
+  "keywords": [
+    "documentation",
+    "mcp",
+    "context7"
+  ],
+  "dependencies": [
+    {
+      "name": "context7",
+      "marketplace": "claude-plugins-official"
+    }
+  ]
+}
