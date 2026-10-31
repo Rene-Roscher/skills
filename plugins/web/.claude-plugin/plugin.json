@@ -1,0 +1,24 @@
+{
+  "name": "web",
+  "displayName": "Web: public pages, dashboards and browser checks",
+  "version": "0.1.0",
+  "description": "Public pages as their own Nuxt deployment, dashboards as client-rendered Inertia, and headless browser verification.",
+  "author": {
+    "name": "Rene Roscher",
+    "url": "https://github.com/Rene-Roscher"
+  },
+  "homepage": "https://github.com/Rene-Roscher/skills/tree/main/plugins/web",
+  "repository": "https://github.com/Rene-Roscher/skills",
+  "license": "Apache-2.0",
+  "keywords": [
+    "nuxt",
+    "inertia",
+    "vue",
+    "playwright",
+    "csp",
+    "i18n"
+  ],
+  "dependencies": [
+    "core"
+  ]
+}
