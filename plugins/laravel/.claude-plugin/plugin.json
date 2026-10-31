@@ -1,0 +1,28 @@
+{
+  "name": "laravel",
+  "displayName": "Laravel: architecture and production runtime",
+  "version": "0.1.0",
+  "description": "Laravel architecture and production runtime decisions for long-lived workers, PostgreSQL and Valkey.",
+  "author": {
+    "name": "Rene Roscher",
+    "url": "https://github.com/Rene-Roscher"
+  },
+  "homepage": "https://github.com/Rene-Roscher/skills/tree/main/plugins/laravel",
+  "repository": "https://github.com/Rene-Roscher/skills",
+  "license": "Apache-2.0",
+  "keywords": [
+    "laravel",
+    "php",
+    "octane",
+    "postgresql",
+    "valkey",
+    "phpredis"
+  ],
+  "dependencies": [
+    "core",
+    {
+      "name": "laravel-boost",
+      "marketplace": "claude-plugins-official"
+    }
+  ]
+}

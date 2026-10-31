@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: adversarial-invented-pest-expectation
+context:
+  scaffold_script: fixture.sh
