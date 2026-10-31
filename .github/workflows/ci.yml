@@ -1,0 +1,152 @@
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CLAUDE_CODE_VERSION: "2.1.316"
+  DISABLE_AUTOUPDATER: "1"
+  DISABLE_UPDATES: "1"
+
+jobs:
+  validate:
+    name: claude plugin validate
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "22"
+          package-manager-cache: false
+      - name: Install Claude Code (exact version)
+        # The version is pinned in CLAUDE_CODE_VERSION and bumped by hand.
+        run: npm install -g "@anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}" # zizmor: ignore[adhoc-packages]
+      - name: Validate marketplace
+        run: claude plugin validate --strict .
+      - name: Validate every plugin
+        run: |
+          set -eu
+          n=0
+          for dir in plugins/*/; do
+            claude plugin validate --strict "$dir"
+            n=$((n + 1))
+          done
+          test "$n" -gt 0
+
+  lint:
+    name: repository lint
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Lint files and commit messages
+        env:
+          # Empty on pull requests from forks; the lint then warns that private terms were skipped.
+          SKILLS_DENYLIST: ${{ secrets.SKILLS_DENYLIST }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          set -eu
+          if [ -n "${BASE_SHA}" ]; then
+            python3 tools/lint.py --commits "${BASE_SHA}..HEAD"
+          else
+            python3 tools/lint.py
+          fi
+
+  skills-ref:
+    name: skills-ref cross-check (core, saas)
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    timeout-minutes: 10
+    env:
+      # skills-ref is a reference implementation, so it is a cross-check next to validate and lint.
+      SKILLS_REF: "skills-ref @ git+https://github.com/agentskills/agentskills@f130f348f502d9804278a617f86929846896d2e9#subdirectory=skills-ref"
+      UV_EXCLUDE_NEWER: "2026-10-31T00:00:00Z"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          version: "0.13.6"
+          enable-cache: false
+      - name: Validate portable skills
+        run: |
+          set -eu
+          n=0
+          for d in plugins/core/skills/*/ plugins/saas/skills/*/; do
+            [ -f "${d}SKILL.md" ] || continue
+            uv tool run --isolated --from "${SKILLS_REF}" skills-ref validate "$d"
+            n=$((n + 1))
+          done
+          echo "checked $n skill(s)"
+
+  zizmor:
+    name: zizmor
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: zizmorcore/zizmor-action@53290badfa369cb0bf7ad16342cb62c2fa47ac7b # v0.8.0
+        with:
+          advanced-security: false
+          version: "1.31.1"
+
+  gitleaks:
+    name: gitleaks
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Install gitleaks (pinned version and checksum)
+        env:
+          GITLEAKS_VERSION: "8.30.1"
+          GITLEAKS_SHA256: "551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb"
+        run: |
+          set -eu
+          curl -fsSLo "${RUNNER_TEMP}/gitleaks.tgz" \
+            "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          echo "${GITLEAKS_SHA256}  ${RUNNER_TEMP}/gitleaks.tgz" | sha256sum -c -
+          tar -xzf "${RUNNER_TEMP}/gitleaks.tgz" -C "${RUNNER_TEMP}" gitleaks
+      - name: Scan history
+        run: '"${RUNNER_TEMP}/gitleaks" git --redact --exit-code 1 --verbose .'
+
+  # Evals are not run in CI yet. They call a model and need a dedicated API key with a
+  # spend limit. To enable them:
+  #   1. Create an environment "evals" that deploys from main only, and "evals-pr" with a
+  #      required reviewer. Store the key there as ANTHROPIC_API_KEY, not as a repository secret.
+  #   2. Add a job that needs [validate, lint, skills-ref], runs on schedule, workflow_dispatch
+  #      or a "run-evals" label on a same-repository pull request (never pull_request_target),
+  #      and selects the environment.
+  #   3. Pin the agent and judge model IDs, set the key only in the env of the eval step, and run
+  #      claude plugin eval plugins/<plugin> --no-publish --max-cost-usd <cap> --json <report>.
+  #   4. Upload eval-out/ as an artifact with a short retention.
+  # CONTRIBUTING.md describes the local eval run.
