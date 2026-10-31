@@ -1,6 +1,6 @@
 ---
 name: tenant-isolation
-description: "Enforces tenant isolation in multi-tenant B2B SaaS on every path data can cross: web, API, background jobs, scheduled tasks, caches, exports and downloads, outbound webhooks and notifications, realtime channels and secondary stores. Covers a tenant context that fails closed and is cleared per request on long-lived workers, resolving resources through the tenant, scoping IDs referenced in input, the trade-offs between explicit scoping, ORM global scopes and PostgreSQL row-level security, system queries that must not be filtered, and cross-tenant probe tests that assert status, unchanged rows and the absence of foreign data. Use when adding a tenant-owned model, endpoint, job, cache key, export, webhook or channel, when introducing a global scope or RLS, or when asked whether customer A can see customer B, about IDOR, or about data leaking between organizations or workspaces. Not for role and permission design (authorization-rbac), ID formats (dual-key-identifiers) or plan limits."
+description: "Enforces tenant isolation in B2B SaaS on every path (web, API, jobs, caches, exports, webhooks, realtime): a fail-closed tenant context, scoped input IDs, scoping versus PostgreSQL RLS, cross-tenant probe tests. Use when adding a tenant-owned model, endpoint, job, cache key or export, or asked whether customer A can see customer B, IDOR or cross-tenant leaks. Not for roles (authorization-rbac)."
 license: Apache-2.0
 metadata:
   author: "Rene Roscher"

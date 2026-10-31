@@ -1,6 +1,6 @@
 ---
 name: bug-investigation
-description: "Takes a defect from report to regression test without guessing. Collects facts first (release, first and last seen, frequency, affected scope, environment, breadcrumbs, correlation with deploys), classifies blast radius before touching code (cross-tenant leaks, data loss and money errors first, with no unilateral production changes), runs a runtime gate, reproduces away from real recipients and money, writes the reproduction as an automated test that fails without the fix, fixes the root cause instead of suppressing the error, searches for the same cause elsewhere, and resolves the tracker issue only after the deploy is verified. When it cannot reproduce, it ranks hypotheses with code evidence and proposes instrumentation instead of a speculative fix. Use when given stack traces, error-tracker links or issue IDs, 'why does X crash', 'error in production', 'reproduce this', 'users report', or behaviour that broke after a deploy. Not for new features or performance tuning without an error."
+description: "Takes a defect from report to regression test without guessing: facts and blast radius first, safe reproduction, a test that fails without the fix, a root-cause fix, closure after a verified deploy. Use when given a stack trace, error-tracker link or issue ID, 'why does X crash', 'error in production', 'users report', or a break after a deploy. Not for new features or tuning without an error."
 license: Apache-2.0
 metadata:
   author: "Rene Roscher"

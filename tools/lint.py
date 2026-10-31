@@ -24,6 +24,7 @@ MARKETPLACE = "rene-roscher-skills"
 PORTABLE_PLUGINS = {"core", "saas"}
 NO_SKILL_PLUGINS = {"docs-tools"}
 SPEC_KEYS = ["name", "description", "license", "compatibility", "metadata", "allowed-tools"]
+LISTING_WARN = 500  # L21: listing text above this many characters is a warning
 CLAUDE_KEYS = ["paths", "when_to_use", "disable-model-invocation", "user-invocable"]
 EVAL_KINDS = {"trigger", "near-miss", "output", "adversarial"}
 NAME_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
@@ -395,6 +396,13 @@ class Linter:
         else:
             if len(desc) > 1024:
                 self.err(rel, dn, "L04", f"description has {len(desc)} characters (max 1024)")
+            # Claude Code lists description plus when_to_use for every skill within a
+            # budget of 1% of the context window and drops the least-used entries first.
+            when = data.get("when_to_use")
+            listed = len(desc) + (len(when) if isinstance(when, str) else 0)
+            if listed > LISTING_WARN:
+                self.warn(rel, dn, "L21", f"skill listing text has {listed} characters (description plus "
+                          f"when_to_use); aim for 400, at most {LISTING_WARN}")
             if "<" in desc or ">" in desc:
                 self.err(rel, dn, "L04", "angle brackets in description; use [placeholder]")
             if "Use when" not in desc:

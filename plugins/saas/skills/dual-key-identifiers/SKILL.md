@@ -1,6 +1,6 @@
 ---
 name: dual-key-identifiers
-description: "Designs and audits record identifiers in multi-tenant SaaS: a bigint key for joins and foreign keys plus a separate opaque public ID for everything a client sees (URLs, API bodies, page props, cursors, redirects, exports, webhooks, mails, realtime channels). Defaults to NanoID (21 characters, alphabet 0-9a-zA-Z, from a CSPRNG) and records any other format in an ADR. Covers secure generation, the unique index, route binding by public ID, serializers that never emit internal IDs, one 404 for foreign and missing IDs, and a response-scanning check that fails the build on a leak. Use when adding a table, model, migration, serializer or API resource, route, pagination, export or webhook payload, when choosing between UUID, ULID and NanoID, or when someone asks about auto-increment IDs in URLs, IDOR or enumeration. Not for who may access a resource (authorization-rbac), scoping queries to a tenant (tenant-isolation), or primary-key tuning with no external exposure."
+description: "Designs and audits record IDs in multi-tenant SaaS: a bigint key for joins plus an opaque public ID (NanoID by default) for everything clients see, one 404 for foreign and missing IDs, a build check against leaks. Use when adding a table, model, route, serializer, export or webhook, choosing UUID, ULID or NanoID, or asked about auto-increment IDs or IDOR. Not for access rules (authorization-rbac)."
 license: Apache-2.0
 metadata:
   author: "Rene Roscher"

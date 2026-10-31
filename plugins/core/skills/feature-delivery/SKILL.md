@@ -1,6 +1,6 @@
 ---
 name: feature-delivery
-description: "Implements an approved feature plan and closes it with evidence. Checks the entry gate (an approved plan exists), applies a deviation rule (record small deviations, stop and ask when a plan assumption on data model, permissions, money, blast radius or an external contract breaks), builds in a safe order with interfaces fixed before delegating, keeps one write path for UI and API, and works through a categorized definition of done in which each item is met with evidence or rejected with a reason. Ends with an honest report that separates tested from verified and names failing tests with their output. Use when the user says 'implement the plan', 'build it now', 'go ahead', 'execute plan X', 'start on the approved design', resumes work on a planned feature, or asks to build a feature directly so the entry gate can check for a plan. Not for writing or reviewing the plan, for bug investigation, or for one-line fixes outside a planned feature."
+description: "Implements an approved feature plan and closes it with evidence: an entry gate on the plan, stop and ask when a plan assumption breaks, one write path for UI and API, a definition of done met with evidence, tested kept apart from verified. Use when told 'implement the plan', 'build it now', 'go ahead', or asked to build a feature directly. Not for writing the plan, bugs or one-line fixes."
 license: Apache-2.0
 metadata:
   author: "Rene Roscher"

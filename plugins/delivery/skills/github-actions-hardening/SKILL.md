@@ -1,6 +1,6 @@
 ---
 name: github-actions-hardening
-description: "Hardens GitHub Actions workflows against supply-chain and privilege abuse: action references pinned to commit SHAs or the workflow lockfile and kept current by an updater, a least-privilege GITHUB_TOKEN per job, OIDC with narrow trust policies instead of stored keys, injection-safe expressions, safe use of pull_request_target and workflow_run, release and deploy jobs gated on tests in the same run, gates that cannot pass by accident, self-hosted runner trust boundaries, release-safe concurrency, and zizmor plus actionlint as blocking checks. Use when creating, editing or reviewing .github/workflows files, action.yml, dependabot.yml or a Renovate config, when adding a release, publish or deploy pipeline, when a workflow needs cloud credentials or secrets, when choosing runners, or when asked to harden CI, pin actions or fix zizmor findings. Not for GitLab CI, Jenkins or other CI systems, Dockerfile contents (container-images), or changing repository and organization settings directly."
+description: "Hardens GitHub Actions against supply-chain and privilege abuse: SHA-pinned actions, least-privilege GITHUB_TOKEN, OIDC over stored keys, injection-safe expressions, pull_request_target, self-hosted runners, zizmor. Use when editing .github/workflows, action.yml or dependabot.yml, adding a release or deploy pipeline, or asked to harden CI or pin actions. Not for other CI systems or Dockerfiles."
 license: Apache-2.0
 metadata:
   author: "Rene Roscher"

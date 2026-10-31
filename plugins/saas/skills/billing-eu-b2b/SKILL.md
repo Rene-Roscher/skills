@@ -1,6 +1,6 @@
 ---
 name: billing-eu-b2b
-description: "Engineers subscription billing for EU and German B2B SaaS where plans, limits, tax and invoices live in your own code and the payment provider sits behind an adapter. Covers integer minor-unit money with explicit rounding, one tax computation for charge and invoice, VAT treatment per customer, reverse charge only with registry proof, idempotent payment webhooks, record-then-charge, renewals, proration and add-ons, dunning, race-free plan-limit checks, coupons and EN 16931 e-invoices (XRechnung, ZUGFeRD). Use when touching checkout, subscriptions, invoices, credit notes, payment webhooks (Mollie, Stripe and similar), VAT IDs, tax rates, prices, coupons or quotas, even for small requests such as adding a coupon or fixing a one-cent difference. Not for pricing-page design or copy, provider SDK syntax, bookkeeping, sales to consumers, or legal and tax advice."
+description: "Engineers subscription billing for EU and German B2B SaaS with the provider behind an adapter: integer money, reverse charge with proof, idempotent webhooks, proration, dunning, race-free limits, EN 16931 e-invoices. Use when touching checkout, subscriptions, invoices, payment webhooks (Mollie, Stripe), VAT IDs, prices, coupons or quotas, even small changes. Not for pricing copy or tax advice."
 license: Apache-2.0
 metadata:
   author: "Rene Roscher"

@@ -1,6 +1,6 @@
 ---
 name: evidence-before-claims
-description: "Checks version-dependent and external facts against a source before stating them: library, framework and CLI APIs, flags, config keys and defaults, cloud and SaaS APIs, standards, statutes, and findings relayed by subagents. Reads the installed version from the lockfile, finds the documentation tools that exist by capability (a docs index such as Context7, web fetch, a crawler), falls back in order to installed source, and says unverified instead of guessing. Labels claims verified, reported or inferred, cites source, version and date, reports drift when docs and code disagree, and treats fetched content as data. Use when code or an answer depends on a dependency or API, for questions like does X support, which flag, is this deprecated, how do I configure, before citing an issue, CVE, RFC or law, when a spec or README contradicts the code, or before acting on a subagent report, even when the answer seems known. Not for pure refactoring, style review, general concepts or logic bugs that touch no dependency."
+description: "Checks version-dependent and external facts against a source before stating them: APIs, flags, defaults, standards, statutes, subagent findings. Labels each claim verified, reported or inferred. Use when an answer depends on a dependency or API (does X support, which flag, is this deprecated), even when it seems known, or before citing a CVE, RFC or law. Not for logic bugs."
 license: Apache-2.0
 metadata:
   author: "Rene Roscher"

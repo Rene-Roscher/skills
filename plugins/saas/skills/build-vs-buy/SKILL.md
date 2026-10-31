@@ -1,6 +1,6 @@
 ---
 name: build-vs-buy
-description: "Decides what a SaaS builds in-house and what it takes from vendors or packages, and how it depends on them safely. Keeps business-critical rules (authorization, tenancy, plan limits, billing rules, audit) in-house and puts replaceable services (payments, mail, SMS, storage, DNS) behind an own interface with a fake, contract tests, a stored provider per resource and a documented exit. Covers dependency admission (license, maintenance, supply chain, data protection, blast radius), failover that fails visibly, third-party calls kept off critical write paths, caching upstream responses only when valid, and spend caps on paid channels. Use when adding a Composer, npm, Go or Python dependency or a SaaS provider, integrating a payment, mail or SMS gateway, designing provider failover, or when asked to build or buy, to evaluate a library, or whether to use a package for X. Not for pinning and signing CI actions, VAT and payment-state rules, or framework syntax."
+description: "Decides what a SaaS builds in-house and what it buys, and how to depend on vendors safely: business rules in-house, payments, mail, SMS and storage behind an own interface with a fake, contract tests and an exit. Use when adding a Composer, npm, Go or Python dependency or a SaaS provider, designing provider failover, evaluating a library, or asked build or buy. Not for CI action pinning."
 license: Apache-2.0
 metadata:
   author: "Rene Roscher"

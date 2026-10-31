@@ -1,6 +1,6 @@
 ---
 name: web-architecture
-description: "Decides where web surfaces live and how they render, and sets the frontend safety rules that follow: public marketing, pricing, docs and company pages in their own deployment and failure domain (Nuxt by default) with prerendering and CDN caching; authenticated dashboards as client-rendered Inertia and Vue pages without SSR; no shared caching of authenticated output; generated typed routes instead of string URLs; typed page props; vue-i18n messages that compile, match across locales and resolve; a CSP without script 'unsafe-inline'; and v-html only on sanitized content. Use when planning a landing, pricing or docs site, choosing SSR, CSR or prerendering, editing nuxt.config routeRules, Inertia SSR settings, security headers or locale JSON files, or reviewing .vue files that use v-html or hardcoded URLs. Not for visual design or styling, browser test mechanics (browser-verification), or backend layering (laravel-architecture)."
+description: "Decides where web surfaces live and how they render: marketing and docs prerendered in their own deployment (Nuxt by default), dashboards as client-rendered Inertia and Vue, no shared cache of logged-in output, compiling vue-i18n, strict CSP, sanitized v-html. Use when planning a landing or docs site, choosing SSR or CSR, or editing nuxt.config, CSP headers or locale files. Not for visual design."
 license: Apache-2.0
 compatibility: "Vue 3, Inertia 2 or later, Nuxt 3 or 4, vue-i18n 9 or later. Config syntax comes from the vendor docs for the installed versions."
 metadata:

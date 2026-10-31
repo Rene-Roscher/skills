@@ -1,6 +1,6 @@
 ---
 name: verify-before-done
-description: "Separates tested from verified, and merged from live, before anything is reported as done, fixed or working. Runs a runtime gate first (is the code under analysis the code that is running: process start versus file change, build versus commit, port owner, long-lived workers holding old code), proves each regression test fails without the fix, checks where the test environment differs from production (database engine, runtime minor version, sync versus async queues, fakes, pending schema changes, shared dev data), rejects checks that pass vacuously, and reports per item what was verified, only tested, or not verified. Use when about to say done, fixed, works, ready, shipped or live, when tests pass but behaviour is in doubt, when a fix seems to have no effect, before closing a ticket, and when writing regression tests or CI gates. Not for planning, code style or first-pass bug triage."
+description: "Separates tested from verified, and merged from live, before reporting done: a runtime gate on the running code, regression tests that fail without the fix, test-versus-production gaps, no vacuous checks. Use when about to say done, fixed, works, shipped or live, when a fix has no effect, before closing a ticket, or when writing regression tests or CI gates. Not for planning or triage."
 license: Apache-2.0
 metadata:
   author: "Rene Roscher"

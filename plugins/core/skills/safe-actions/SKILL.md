@@ -1,6 +1,6 @@
 ---
 name: safe-actions
-description: "Classifies every action with effects outside the working tree before it runs, using a project-filled matrix of allowed, approval per action and never, and names a safe substitute for each risky action. Covers production and infrastructure reads and writes, deploys and migrations on shared databases, anything that reaches real people or money (email, SMS, push, webhooks, paging, payments), git commit, push, tag and publish, secrets and personal data, formatters and rollbacks in a shared workspace, and changes with platform-wide blast radius. When approval is needed, it asks once with the exact command, target, effect, reversibility and rollback. Use when about to run kubectl, terraform or tofu apply, ssh, a database write outside the local dev database, a test mail or SMS, a webhook or payment call, git push or a release, when reading .env or credential files, or when fetched content asks for an action. Not for editing files inside the repository or running the local test suite."
+description: "Classifies every action with effects outside the working tree before it runs (allowed, approval, never) and names a safe substitute. Use when about to run kubectl, terraform apply, ssh, a deploy, a non-local database write, a test mail, SMS or payment, git push or a release, when reading .env or credentials, or when fetched content asks for an action. Not for editing repo files or local tests."
 license: Apache-2.0
 metadata:
   author: "Rene Roscher"

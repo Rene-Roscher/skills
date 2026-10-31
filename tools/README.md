@@ -32,6 +32,7 @@ Each finding prints as `path:line: error|warning ID message`. The run exits 1 wh
 | L18 | Marketplace entries match plugin manifests, semver versions, CHANGELOG headings, install line in each README, cross-marketplace dependencies allowlisted |
 | L19 | No hooks, `bin/`, `.mcp.json` or `CLAUDE.md` in plugins |
 | L20 | Eval cases have a prompt, a grader and valid tags |
+| L21 | Skill listing text (`description` plus `when_to_use`) over 500 characters (warning); aim for 400 |
 | W01 | Filler words (warning) |
 
 ## Private terms

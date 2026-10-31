@@ -1,6 +1,6 @@
 ---
 name: container-images
-description: "Builds container images that are small, reproducible and safe to run: multi-stage builds onto minimal or distroless bases pinned by digest with an updater, a numeric non-root user, read-only root filesystem compatibility, no secrets in build args, ENV, layers or provenance (BuildKit secret mounts instead), .env files and VCS data kept out of the build context, checksum-verified downloads, lockfile-only installs, exec-form entrypoints, a smoke test of the image that ships, scanning, and signing by digest that deployment verifies before the image runs. Use when writing or reviewing a Dockerfile, Containerfile, .dockerignore, compose or bake file, or a docker/build-push-action step, or when asked to containerize an app, shrink an image, run as non-root, go distroless, pass a build-time token, act on scanner findings or sign images. Not for Kubernetes manifests and pod securityContext, workflow permissions and triggers (github-actions-hardening), or local dev-stack orchestration."
+description: "Builds small, reproducible, safe container images: multi-stage, distroless bases pinned by digest, non-root, no secrets in layers, smoke test, scan, sign. Use when writing or reviewing a Dockerfile, .dockerignore, compose or bake file, or asked to containerize, shrink an image, go distroless or pass a build-time token. Not for Kubernetes manifests or CI permissions (github-actions-hardening)."
 license: Apache-2.0
 metadata:
   author: "Rene Roscher"

@@ -1,6 +1,6 @@
 ---
 name: gdpr-engineering
-description: "Builds GDPR (DSGVO) compliance into feature work for EU SaaS: decides the controller or processor role per data set, detects changes that require updating the VVT (record of processing), the AVV (DPA) and its subprocessor annex, the TOM, the privacy notice or a DPIA, and enforces deletion, retention, export and log hygiene in code with tests. Use when a change adds a personal-data column or free-text field, a third-party service, SDK, notification channel or outbound host, a retention period or cleanup job, data leaving the EU/EEA, health or other Art. 9 data, user-generated or public content, marketing or lifecycle email, cookies or tracking, avatars or embeds, error-tracker or logging setup, account or tenant deletion, or data export, or when someone asks whether something is GDPR-compliant. Not for drafting contracts or legal advice (it produces review-ready drafts), generic security audits, or non-EU privacy regimes."
+description: "Builds GDPR (DSGVO) compliance into EU SaaS features: controller or processor role, when to update the VVT, AVV, subprocessor list, TOM, privacy notice or DPIA, deletion, retention and export in code. Use when a change adds personal data, a third-party service or SDK, a retention period, data leaving the EU, Art. 9 data, tracking or email, or asked if X is GDPR-compliant. Not for legal advice."
 license: Apache-2.0
 metadata:
   author: "Rene Roscher"

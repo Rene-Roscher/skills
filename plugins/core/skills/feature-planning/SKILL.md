@@ -1,6 +1,6 @@
 ---
 name: feature-planning
-description: "Plans a feature end to end before any code exists and stops at a plan gate until the owner approves. Frames the problem without a solution (personas, today's workaround, success moment and metric, non-goals, moment of highest stress), then covers UX states, data model with each index tied to its query, reuse of existing mechanisms, API and automation parity, events and caching, permissions, limits and audit, tenant isolation per surface, legal triggers, a performance budget in numbers, a failure-mode table, test plan, rollout and rollback, steps with checkable done criteria, and numbered open decisions with a recommended default. Use when a new feature or product-visible change is requested, even a small one: let's build, add a, plan, how should we implement, design, spec out, write a design doc. Not for bug fixes, refactors without behaviour change, or executing an already approved plan."
+description: "Plans a feature end to end before any code and stops at a plan gate until the owner approves: problem, UX states, data model, permissions, tenant isolation, legal triggers, performance budget, failure modes, rollout, open decisions. Use when a new feature or product-visible change is requested, even a small one: let's build, add a, plan, design, spec out. Not for bug fixes or approved plans."
 license: Apache-2.0
 metadata:
   author: "Rene Roscher"

@@ -1,6 +1,6 @@
 ---
 name: browser-verification
-description: "Proves UI changes in a real headless browser before anything is reported as done: a preflight that checks the served build instead of the source tree, deterministic waits instead of sleeps, data-testid selectors for copy-driven elements, element screenshots as evidence, overflow, contrast, target size and fit measured as numbers against thresholds, no JavaScript errors, failed requests or CSP violations, exact request and toast counts, and isolated seeded fixtures. Use when asked to verify, screenshot or visually check a page, confirm a frontend fix works, check contrast, overflow, dark mode or responsive layout, write tests/Browser or *.spec.ts files, or before reporting any UI task as finished. Not for unit or feature tests that need no browser, for designing the UI, for performance or load testing, or for driving the user's own browser or logged-in accounts."
+description: "Proves UI changes in a real headless browser before reporting done: served-build preflight, deterministic waits, element screenshots, overflow, contrast and target size as numbers, no console errors. Use when asked to verify, screenshot or visually check a page, confirm a frontend fix, check dark mode or responsive layout, or write browser tests. Not for UI design or the user's own browser."
 license: Apache-2.0
 compatibility: "Playwright Test 1.61 or later, or the Pest 4 browser plugin. Python 3 for the bundled measurement checker. Any server-rendered or single-page frontend."
 metadata:

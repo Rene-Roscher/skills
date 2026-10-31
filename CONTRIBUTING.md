@@ -36,8 +36,11 @@ metadata:
   `disable-model-invocation` or `user-invocable`.
 - `name` is lowercase letters, digits and single hyphens, at most 64 characters, equal to the directory name, and
   never contains `claude` or `anthropic`.
-- `description` is one double-quoted line of 1 to 1024 characters, in the third person. It says what the skill
-  does and when to use it, key use case first, and ends with the near-miss boundary. No angle brackets: they
+- `description` is one double-quoted line in the third person. It says what the skill does and when to use it,
+  key use case and strongest trigger words first, then "Use when", and ends with a short near-miss boundary where
+  one is likely. Aim for 400 characters. Above 500 the lint warns (L21, counting `when_to_use` too), above 1024
+  it fails (L04). Claude Code lists every skill description within a budget of 1% of the context window and drops
+  the descriptions of the least-used skills first when the listing overflows. No angle brackets: they
   render as entities. Use `[placeholder]`.
 - Block-style YAML only. No `[a, b]` or `{a: 1}`, no `---` inside a value, no multi-line scalars. `metadata`
   values are strings and carry no `version`.

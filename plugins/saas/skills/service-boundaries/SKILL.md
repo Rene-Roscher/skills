@@ -1,6 +1,6 @@
 ---
 name: service-boundaries
-description: "Decides whether and how to move work out of a PHP/Laravel monolith into Go, Rust or Node services, using measured numbers instead of language folklore, and designs the boundary: dumb workers with a smart control plane, pull-only connectivity, versioned wire contracts with compatibility tests, cross-service encryption with a dedicated key per service (laravel-go/node/rust-encryption) and liveness/readiness semantics. Use when someone proposes a microservice, worker, sidecar or probe, or wants to rewrite part of the app in Go, Rust or Node; when PHP seems too slow for WebSockets, long-lived connections, many concurrent outbound calls, CPU-heavy work or raw networking; when encrypted payloads or APP_KEY are shared between services; when designing worker registration, heartbeats or config sync; or when writing CONTRACT.md, protobuf or JSON schemas between repos. Not for splitting code inside one Laravel app, Kubernetes manifests, or language syntax questions."
+description: "Decides whether to move work from a PHP/Laravel monolith into Go, Rust or Node on measured numbers, and designs the boundary: dumb workers, smart control plane, pull-only links, versioned contracts, per-service keys. Use when someone proposes a microservice, worker or rewrite, PHP seems too slow, APP_KEY is shared between services, or writing CONTRACT.md. Not for splitting code in one app."
 license: Apache-2.0
 metadata:
   author: "Rene Roscher"

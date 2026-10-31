@@ -1,6 +1,6 @@
 ---
 name: authorization-rbac
-description: "Designs and reviews in-house, server-side authorization for multi-tenant SaaS: one typed permission catalog as the single source, custom roles per tenant unioned into effective permissions, an owner who always holds every right, deactivated members who hold none, centralised policy pre-checks, and API tokens and integrations that carry an explicit permission subset. Enforces the no-escalation rule on every grant path (role edits, role assignment, invitations, SSO default roles, token and connection minting): a request above the actor's own permissions is rejected with a validation error, never silently trimmed. Use when touching policies, gates, permissions, roles, invitations, API tokens, admin or staff flags, or when asked who can do X, about privilege escalation, RBAC packages, or permission checks in the frontend. Not for scoping data to a tenant (tenant-isolation), login, sessions or 2FA, ID design (dual-key-identifiers), or cloud and CI permissions."
+description: "Designs and reviews server-side authorization for multi-tenant SaaS: one typed permission catalog, custom roles per tenant, an owner with every right, scoped API tokens, and no escalation on any grant path. Use when touching policies, gates, permissions, roles, invitations, API tokens or admin flags, or asked who can do X or about escalation. Not for data scoping (tenant-isolation) or login."
 license: Apache-2.0
 metadata:
   author: "Rene Roscher"

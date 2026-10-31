@@ -1,6 +1,6 @@
 ---
 name: laravel-architecture
-description: "Structures Laravel B2B SaaS code and turns its boundaries into failing tests: external IDs (NanoID by default) kept apart from the internal bigint through one model trait, route binding and API resources, a response-level ID-leak guard, scoped validation of referenced IDs, FormRequest validation, thin controllers with one write path for UI and API, domain folders, one service per use case, final readonly DTOs, backed enums and Pest arch tests. Use when creating or reviewing a Laravel domain, model, migration, controller, service, action, DTO, enum, FormRequest, policy or API resource, when asked where code belongs, how to split a large controller or service provider, how to expose IDs safely, or how to enforce layering with arch tests. Not for framework syntax lookups, Octane, queue, cache or test-environment behaviour (laravel-production-runtime), tenant scoping rules (tenant-isolation) or frontend code."
+description: "Structures Laravel SaaS code and enforces its boundaries with tests: public IDs apart from the bigint key, FormRequests, thin controllers, one write path for UI and API, one service per use case, Pest arch tests. Use when creating or reviewing a Laravel model, migration, controller, service, policy or API resource, or asked where code belongs. Not for Octane or queues (laravel-production-runtime)."
 license: Apache-2.0
 compatibility: "Laravel 11 or later on PHP 8.2 or later. Version-bound facts were checked against Laravel 12.53.0 and Pest 4.3.2."
 metadata:
