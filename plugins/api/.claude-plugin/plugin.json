@@ -1,0 +1,22 @@
+{
+  "name": "api",
+  "displayName": "API: MCP servers",
+  "version": "0.1.0",
+  "description": "Building MCP servers that agents can use safely: tenant binding, live permissions, tool design, confirmation for side effects and evals.",
+  "author": {
+    "name": "Rene Roscher",
+    "url": "https://github.com/Rene-Roscher"
+  },
+  "homepage": "https://github.com/Rene-Roscher/skills/tree/main/plugins/api",
+  "repository": "https://github.com/Rene-Roscher/skills",
+  "license": "Apache-2.0",
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "api",
+    "agents"
+  ],
+  "dependencies": [
+    "core"
+  ]
+}

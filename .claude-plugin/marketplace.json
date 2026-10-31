@@ -48,6 +48,13 @@
       "description": "Optional plugin that installs the Context7 documentation MCP server.",
       "category": "documentation",
       "tags": ["documentation", "mcp", "context7"]
+    },
+    {
+      "name": "api",
+      "source": "./plugins/api",
+      "description": "Building MCP servers that agents can use safely: tenant binding, live permissions, tool design, confirmation for side effects and evals.",
+      "category": "integrations",
+      "tags": ["mcp", "model-context-protocol", "api", "agents"]
     }
   ]
 }
