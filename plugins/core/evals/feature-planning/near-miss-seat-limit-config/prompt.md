@@ -1,0 +1,8 @@
+---
+description: "Near miss, must not trigger: a config question, for evidence-before-claims. Split: validation. Run with --ablation none."
+tags: [feature-planning, near-miss]
+allowed_tools: [Read, Glob, Grep, Skill]
+max_turns: 4
+---
+
+What is the seat limit on the team plan in our config?

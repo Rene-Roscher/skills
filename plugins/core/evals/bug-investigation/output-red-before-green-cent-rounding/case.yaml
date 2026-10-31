@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: output-red-before-green-cent-rounding
+context:
+  scaffold_script: fixture.sh

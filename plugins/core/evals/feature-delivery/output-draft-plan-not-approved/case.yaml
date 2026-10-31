@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: output-draft-plan-not-approved
+context:
+  scaffold_script: fixture.sh
