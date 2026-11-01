@@ -1,0 +1,23 @@
+{
+  "name": "infra",
+  "displayName": "Infra: high availability",
+  "version": "0.1.0",
+  "description": "Failover for everything a product cannot lose: DNS, mail, hosting, the database and object storage.",
+  "author": {
+    "name": "Rene Roscher",
+    "url": "https://github.com/Rene-Roscher"
+  },
+  "homepage": "https://github.com/Rene-Roscher/skills/tree/main/plugins/infra",
+  "repository": "https://github.com/Rene-Roscher/skills",
+  "license": "Apache-2.0",
+  "keywords": [
+    "high-availability",
+    "failover",
+    "backups",
+    "kubernetes",
+    "cloudnativepg"
+  ],
+  "dependencies": [
+    "core"
+  ]
+}
