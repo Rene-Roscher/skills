@@ -7,5 +7,5 @@ All notable changes to the `web` plugin are recorded here. The format follows
 
 ### Added
 
-- Skills `web-architecture` and `browser-verification`.
+- Skills `web-architecture`, `browser-verification` and `design-quality`.
 - Dependency on `core`.
