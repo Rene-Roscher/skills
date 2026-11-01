@@ -50,6 +50,27 @@
       "tags": ["documentation", "mcp", "context7"]
     },
     {
+      "name": "business",
+      "source": "./plugins/business",
+      "description": "Product discovery, pricing and unit economics for B2B SaaS, and copy that reads as written by a person.",
+      "category": "business",
+      "tags": ["product", "pricing", "unit-economics", "copywriting"]
+    },
+    {
+      "name": "data",
+      "source": "./plugins/data",
+      "description": "PostgreSQL in production: queries, indexes, migrations without downtime, pooling and the traps that only show on PostgreSQL.",
+      "category": "database",
+      "tags": ["postgresql", "sql", "migrations", "indexes"]
+    },
+    {
+      "name": "infra",
+      "source": "./plugins/infra",
+      "description": "Failover for everything a product cannot lose: DNS, mail, hosting, the database and object storage.",
+      "category": "infrastructure",
+      "tags": ["high-availability", "failover", "backups", "kubernetes"]
+    },
+    {
       "name": "api",
       "source": "./plugins/api",
       "description": "Building MCP servers that agents can use safely: tenant binding, live permissions, tool design, confirmation for side effects and evals.",

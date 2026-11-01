@@ -36,11 +36,15 @@ Marketplaces, or run `claude plugin update core@rene-roscher-skills`.
 
 | Plugin | What it decides | Skills |
 |---|---|---|
-| [core](plugins/core/README.md) | How an agent checks facts, verifies work, handles risky actions, plans and investigates. Any stack. | `evidence-before-claims`, `verify-before-done`, `safe-actions`, `feature-planning`, `feature-delivery`, `bug-investigation` |
+| [core](plugins/core/README.md) | How an agent checks facts, verifies work, handles risky actions, plans, investigates, tests, writes maintainable code, keeps lessons and commits. Any stack. | `evidence-before-claims`, `verify-before-done`, `safe-actions`, `feature-planning`, `feature-delivery`, `bug-investigation`, `project-inception`, `learning-loop`, `test-strategy`, `maintainable-code`, `agent-toolbelt`, `commit-hygiene` |
 | [saas](plugins/saas/README.md) | IDs, tenant isolation, permissions, build or buy, EU B2B billing, GDPR duties, service boundaries. | `dual-key-identifiers`, `tenant-isolation`, `authorization-rbac`, `build-vs-buy`, `billing-eu-b2b`, `gdpr-engineering`, `service-boundaries` |
 | [laravel](plugins/laravel/README.md) | Laravel structure and the gaps between a green test suite and production. | `laravel-architecture`, `laravel-production-runtime` |
-| [web](plugins/web/README.md) | Where public pages and dashboards live, how they render, how UI changes are proven. | `web-architecture`, `browser-verification` |
+| [web](plugins/web/README.md) | Where public pages and dashboards live, how they render, what good UI looks like and how UI changes are proven. | `web-architecture`, `design-quality`, `browser-verification` |
 | [delivery](plugins/delivery/README.md) | GitHub Actions hardening and container image baselines. | `github-actions-hardening`, `container-images` |
+| [business](plugins/business/README.md) | Product discovery, pricing from unit costs, and copy that reads as written by a person. | `product-strategy`, `pricing-and-unit-economics`, `human-copy` |
+| [data](plugins/data/README.md) | PostgreSQL in production: queries, indexes, migrations without downtime, pooling. | `postgres-production` |
+| [infra](plugins/infra/README.md) | Failover for DNS, mail, hosting, the database and object storage, and restore drills. | `high-availability` |
+| [api](plugins/api/README.md) | Building MCP servers that agents use safely on multi-tenant products. | `mcp-server-design` |
 | [docs-tools](plugins/docs-tools/README.md) | Optional. Installs the Context7 documentation MCP server that `core` uses when present. | none |
 
 Skills are called with the plugin name as prefix, for example `/saas:tenant-isolation`. Most of the time you
