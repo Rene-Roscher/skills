@@ -37,9 +37,7 @@ Buzzwords, stock openers, significance phrases, hedges, vague authorities and ca
 `python3 scripts/copy_lint.py --lang de FILE`. Sourced German examples of commercial phrases that the
 editorial press names as typical for machine text include "auf das nächste Level", "integraler Bestandteil",
 "vielfältige Möglichkeiten" and "In der heutigen Zeit"
-(https://t3n.de/news/ki-texte-erkennen-floskeln-buzzwords-gedankenstriche-chatgpt-1745388/, verified 2026-11-01),
-and "perfekt geeignet" and "optimal abgestimmt"
-(https://www.gamestar.de/artikel/ki-texte-und-buecher-ekennen,3457410.html, verified 2026-11-01). These are
+(https://t3n.de/news/ki-texte-erkennen-floskeln-buzzwords-gedankenstriche-chatgpt-1745388/, verified 2026-11-01). These are
 editorial observations, not measurements. Phrases presumed to be calques of English tells, such as "Tauche ein"
 or "nahtlos", are Unverified as German machine-text markers; the linter flags them as empty marketing words,
 which they are in any case.
