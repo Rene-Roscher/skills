@@ -222,7 +222,7 @@ class Linter:
                 if EMAIL_OK_RE.match(m.group(1)) or full.lower() == "git@github.com":
                     continue
                 hit("L13", "email address outside example.com/.org/.net")
-            if not in_workflows:
+            if not in_workflows and rel != ".gitleaksignore":
                 if HEX40_RE.search(line):
                     hit("L13", "40-character hex string (commit hash) outside .github/workflows")
                 elif any(m.group(0) not in HEX_WORDS for m in SHORT_HASH_RE.finditer(line)):

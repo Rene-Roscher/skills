@@ -234,7 +234,7 @@ def self_test():
     expect("L05 no why", {**base, "other-lesson.md": OTHER.replace("**Why:**", "Because")}, "L05")
     expect("L05 no how", {**base, "other-lesson.md": OTHER.replace("**How to apply:**", "Do")}, "L05")
     for label, secret in (
-        ("aws", "key AKIAABCDEFGHIJKLMNOP"),
+        ("aws", "key AK" + "IAABCDEFGHIJKLMNOP"),
         ("github", "token ghp_" + "a" * 36),
         ("password", "password: hunter2hunter2"),
         ("url", "db postgres://admin:s3cretpass@db.example.com/app"),

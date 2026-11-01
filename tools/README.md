@@ -24,7 +24,7 @@ Each finding prints as `path:line: error|warning ID message`. The run exits 1 wh
 | L09 | No personal or absolute paths |
 | L10 | No download piped into a shell |
 | L11 | No instructions fetched from a URL, no dynamic-context blocks |
-| L13 | No IP addresses outside the documentation ranges, no emails outside example domains, no 40-character hex strings outside `.github/workflows/` |
+| L13 | No IP addresses outside the documentation ranges, no emails outside example domains, no 40-character hex strings outside `.github/workflows/` and `.gitleaksignore` |
 | L14 | No private terms |
 | L15 | CVE and issue claims carry a URL |
 | L16 | No build markers or template placeholders under `plugins/` |

@@ -1,0 +1,3 @@
+# Fake AWS example key in the self-test of check_lessons.py, in a commit that is already published.
+# The current file builds the value from two pieces; gitleaks still reads the old commit.
+4d949e0c91ee692f2afb9581df6505fe229354cb:plugins/core/skills/learning-loop/scripts/check_lessons.py:aws-access-token:237
