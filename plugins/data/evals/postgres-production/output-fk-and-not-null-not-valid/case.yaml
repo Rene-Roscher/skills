@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: output-fk-and-not-null-not-valid
+context:
+  scaffold_script: fixture.sh
