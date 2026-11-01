@@ -18,6 +18,11 @@ optional [docs-tools](../docs-tools/README.md) plugin installs Context7.
 | `feature-planning` | a feature needs a plan that an owner approves before code is written |
 | `feature-delivery` | an approved plan is being built and has to end with evidence for each done item |
 | `bug-investigation` | a defect has to go from report to a failing regression test and a root-cause fix |
+| `project-inception` | a project starts or has no docs: product, business and architecture specs before code, a routing table for agents |
+| `learning-loop` | you were corrected or hit a non-obvious trap and the lesson has to survive the session |
+| `test-strategy` | deciding what to test, how deep, which tests gate a release, and what to do with flaky tests |
+| `maintainable-code` | writing or reviewing code for reuse, seams, conventions and the cost of a new abstraction or dependency |
+| `agent-toolbelt` | choosing the cheapest tool to answer a question, or briefing a subagent |
 | `commit-hygiene` | you write commits, rewrite branch history or write a pull request description, or set up commit checks |
 
 Claude Code loads a skill when the task matches its description. You can also call one directly, for example
