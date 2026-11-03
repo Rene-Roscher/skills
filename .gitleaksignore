@@ -1,3 +1,7 @@
 # Fake AWS example key in the self-test of check_lessons.py, in a commit that is already published.
 # The current file builds the value from two pieces; gitleaks still reads the old commit.
 4d949e0c91ee692f2afb9581df6505fe229354cb:plugins/core/skills/learning-loop/scripts/check_lessons.py:aws-access-token:237
+
+# Fake OAuth token in the self-test of measure.py, in a commit that is already published.
+# The current file builds the value from two pieces; gitleaks still reads the old commit.
+c9b3b68c40f58b0b9b79c83385d816b3ff1bf4e4:plugins/marketing/skills/search-measurement/scripts/measure.py:generic-api-key:925
