@@ -2,7 +2,7 @@
   "name": "delivery",
   "displayName": "Delivery: CI and container hardening",
   "version": "0.1.0",
-  "description": "GitHub Actions hardening, container image baselines and signed, verifiable releases.",
+  "description": "Local Docker Compose stacks, GitHub Actions hardening, container image baselines and signed, verifiable releases.",
   "author": {
     "name": "Rene Roscher",
     "url": "https://github.com/Rene-Roscher"

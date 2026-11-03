@@ -8,6 +8,7 @@ verified and rolled out in stages.
 
 | Skill | Use it when |
 |---|---|
+| `local-dev-stack` | setting up or changing the local Docker Compose stack, its ports, Makefile targets or dev environment |
 | `github-actions-hardening` | creating, editing or reviewing `.github/workflows/*.yml`, an `action.yml` or a Dependabot config |
 | `container-images` | writing or reviewing a Dockerfile, a `.dockerignore`, a base image choice or an image build and signing step |
 | `release-supply-chain` | tagging, signing, publishing or rolling out a release of binaries, packages or images, including self-updating agents |

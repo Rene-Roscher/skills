@@ -12,7 +12,7 @@
     {
       "name": "core",
       "source": "./plugins/core",
-      "description": "Evidence before claims, verification, safe actions, project inception, planning, delivery, tests, maintainable code, lessons, tooling, commits, stack bootstrap, performance. Stack-agnostic.",
+      "description": "Goal focus, subagent delegation, evidence before claims, verification, safe actions, project inception, planning, delivery, tests, maintainable code, lessons, tooling, commits, stack bootstrap, performance. Stack-agnostic.",
       "category": "engineering",
       "tags": [
         "evidence",
@@ -24,7 +24,7 @@
     {
       "name": "saas",
       "source": "./plugins/saas",
-      "description": "Multi-tenant B2B SaaS: tenancy model, external IDs, isolation, RBAC, plan entitlements, build vs buy, EU B2B billing, GDPR, service boundaries, async jobs, egress and webhooks.",
+      "description": "Multi-tenant B2B SaaS: tenancy model, external IDs, isolation, RBAC, plan entitlements, build vs buy, EU B2B billing, GDPR, EU and German legal baseline, service boundaries, async jobs, egress and webhooks.",
       "category": "architecture",
       "tags": [
         "saas",
@@ -62,7 +62,7 @@
     {
       "name": "delivery",
       "source": "./plugins/delivery",
-      "description": "GitHub Actions hardening, container image baselines and signed, verifiable releases.",
+      "description": "Local Docker Compose stacks, GitHub Actions hardening, container image baselines and signed, verifiable releases.",
       "category": "ci-cd",
       "tags": [
         "github-actions",
@@ -84,7 +84,7 @@
     {
       "name": "business",
       "source": "./plugins/business",
-      "description": "Product discovery, pricing and unit economics for B2B SaaS, and copy that reads as written by a person.",
+      "description": "Product discovery, dated market analysis, pricing and unit economics for B2B SaaS, and copy that reads as written by a person.",
       "category": "business",
       "tags": [
         "product",

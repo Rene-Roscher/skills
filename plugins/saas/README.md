@@ -19,6 +19,7 @@ and `service-boundaries` assumes a PHP or Laravel monolith.
 | `plan-entitlements` | adding a plan limit or feature flag per plan, a per-tenant override, an add-on, or enforcing a quota |
 | `billing-eu-b2b` | touching checkout, subscriptions, invoices, VAT, reverse charge, webhooks from a payment provider or coupons |
 | `gdpr-engineering` | a change adds personal data, a third-party service, a retention period, or data leaving the EU/EEA |
+| `eu-de-legal-baseline` | a change touches EU or German law beyond GDPR: Impressum, cookies, consumer sign-up, AGB, marketing claims, accessibility, user content, NIS2, AI features, retention |
 | `service-boundaries` | someone proposes a microservice, worker or rewrite in another language, or designs the contract between services |
 | `async-reliability` | adding or reviewing a job, consumer, scheduled task or notification, or a queue, retry or kill-switch setting |
 | `egress-and-webhooks` | fetching a URL a user supplied, sending webhooks to customers, or receiving webhooks from providers |

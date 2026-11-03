@@ -2,7 +2,7 @@
   "name": "business",
   "displayName": "Business: product, pricing and copy",
   "version": "0.1.0",
-  "description": "Product discovery, pricing and unit economics for B2B SaaS, and copy that reads as written by a person.",
+  "description": "Product discovery, dated market analysis, pricing and unit economics for B2B SaaS, and copy that reads as written by a person.",
   "author": {
     "name": "Rene Roscher",
     "url": "https://github.com/Rene-Roscher"

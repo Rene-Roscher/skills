@@ -38,12 +38,12 @@
 | tenants, billing, personal data, or several services | saas |
 | composer.json requiring laravel/framework | laravel (enable at project scope) |
 | a public website, Nuxt, Vue or Inertia front end | web |
-| .github/workflows or Dockerfiles | delivery |
+| compose files, Makefile, .github/workflows or Dockerfiles | delivery |
 | go.mod, or services that share a wire format | go |
 | PostgreSQL | data |
 | *.tf, Ansible, Kubernetes manifests, a Caddyfile, backups or failover | infra |
 | a public REST API or an MCP server | api |
-| product, pricing, website or marketing copy | business |
+| product, market analysis, pricing, website or marketing copy | business |
 
 ### Project facts
 Project-specific facts (queues, ports, providers, approval lists) live in

@@ -8,3 +8,4 @@ All notable changes to the `saas` plugin are recorded here. The format follows
 ### Added
 
 - Skills `dual-key-identifiers`, `tenancy-model`, `plan-entitlements`, `tenant-isolation`, `authorization-rbac`, `build-vs-buy`, `billing-eu-b2b`, `gdpr-engineering`, `service-boundaries`, `async-reliability` and `egress-and-webhooks`.
+- Skill `eu-de-legal-baseline`.

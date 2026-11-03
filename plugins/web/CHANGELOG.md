@@ -10,3 +10,4 @@ All notable changes to the `web` plugin are recorded here. The format follows
 - Skills `web-architecture`, `browser-verification` and `design-quality`.
 - Skill `vue-inertia-frontend`.
 - Dependency on `core`.
+- Design references per surface type in `design-quality`.

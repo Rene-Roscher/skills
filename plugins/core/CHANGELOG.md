@@ -11,3 +11,4 @@ All notable changes to the `core` plugin are recorded here. The format follows
 - Skill `commit-hygiene` with a commit-msg hook, a CI range check and a pull request body check.
 - Skills `project-inception`, `learning-loop`, `test-strategy`, `maintainable-code` and `agent-toolbelt`.
 - Skills `stack-bootstrap` and `performance-gate`.
+- Skills `goal-focus` and `agent-delegation`; `test-strategy` requires every new test to be seen failing and to assert outcomes.

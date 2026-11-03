@@ -7,6 +7,7 @@ Product discovery, pricing and unit economics for B2B SaaS, and copy that reads 
 | Skill | Use it when |
 |---|---|
 | `product-strategy` | shaping a product or feature: the problem, the buyer, the market, positioning and the metric that shows it works |
+| `market-analysis` | a price, plan, positioning or business decision depends on market facts, or the stored analysis has expired |
 | `pricing-and-unit-economics` | setting or changing prices, plans and limits, or checking that a customer costs less than it pays |
 | `human-copy` | writing or reviewing website, product, changelog, mail or docs text in English or German |
 

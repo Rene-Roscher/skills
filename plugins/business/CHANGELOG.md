@@ -9,3 +9,4 @@ All notable changes to the `business` plugin are recorded here. The format follo
 
 - Skills `product-strategy`, `pricing-and-unit-economics`, `human-copy`.
 - Dependency on `core`.
+- Skill `market-analysis` with a template and a checker.
