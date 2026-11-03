@@ -8,4 +8,5 @@ All notable changes to the `infra` plugin are recorded here. The format follows
 ### Added
 
 - Skill `high-availability`.
+- Skills `infrastructure-as-code`, `kubernetes-workloads`, `edge-proxy-tls` and `observability-and-dr`.
 - Dependency on `core`.

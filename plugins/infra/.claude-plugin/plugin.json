@@ -1,8 +1,8 @@
 {
   "name": "infra",
-  "displayName": "Infra: high availability",
+  "displayName": "Infra: operations",
   "version": "0.1.0",
-  "description": "Failover for everything a product cannot lose: DNS, mail, hosting, the database and object storage.",
+  "description": "Infrastructure as code, Kubernetes workloads, edge proxy and TLS, observability and DR, and failover for DNS, mail, hosting, PostgreSQL and object storage.",
   "author": {
     "name": "Rene Roscher",
     "url": "https://github.com/Rene-Roscher"
@@ -12,10 +12,12 @@
   "license": "Apache-2.0",
   "keywords": [
     "high-availability",
-    "failover",
-    "backups",
+    "infrastructure-as-code",
+    "opentofu",
     "kubernetes",
-    "cloudnativepg"
+    "caddy",
+    "observability",
+    "disaster-recovery"
   ],
   "dependencies": [
     "core"
