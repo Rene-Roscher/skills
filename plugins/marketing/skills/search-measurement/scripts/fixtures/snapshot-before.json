@@ -1,0 +1,99 @@
+{
+ "meta": {
+  "label": "fixture-before",
+  "created_at": "2026-10-08T09:00:00+00:00",
+  "tool": "fixture",
+  "window": {
+   "start": "2026-09-07",
+   "end": "2026-10-04",
+   "days": 28,
+   "start_weekday": "Mon",
+   "whole_weeks": true,
+   "inside_lag": false
+  },
+  "data_state": "final",
+  "skipped": {}
+ },
+ "sources": {
+  "gsc": {
+   "page": {
+    "rows": [
+     {
+      "page": "https://www.example.com/pricing",
+      "clicks": 40,
+      "impressions": 1000,
+      "position": 6.0,
+      "ctr": 0.04
+     },
+     {
+      "page": "https://www.example.com/features",
+      "clicks": 100,
+      "impressions": 2000,
+      "position": 4.0,
+      "ctr": 0.05
+     },
+     {
+      "page": "https://www.example.com/blog/tiny",
+      "clicks": 1,
+      "impressions": 20,
+      "position": 30.0,
+      "ctr": 0.05
+     }
+    ]
+   },
+   "query": {
+    "rows": [
+     {
+      "query": "invoice software pricing",
+      "clicks": 30,
+      "impressions": 600,
+      "position": 5.0,
+      "ctr": 0.05
+     },
+     {
+      "query": "invoice tool cost",
+      "clicks": 10,
+      "impressions": 400,
+      "position": 7.5,
+      "ctr": 0.025
+     },
+     {
+      "query": "invoice features",
+      "clicks": 100,
+      "impressions": 2000,
+      "position": 4.0,
+      "ctr": 0.05
+     }
+    ]
+   },
+   "page_query": {
+    "rows": [
+     {
+      "page": "https://www.example.com/pricing",
+      "query": "invoice software pricing",
+      "clicks": 30,
+      "impressions": 600,
+      "position": 5.0,
+      "ctr": 0.05
+     },
+     {
+      "page": "https://www.example.com/pricing",
+      "query": "invoice tool cost",
+      "clicks": 10,
+      "impressions": 400,
+      "position": 7.5,
+      "ctr": 0.025
+     },
+     {
+      "page": "https://www.example.com/features",
+      "query": "invoice features",
+      "clicks": 100,
+      "impressions": 2000,
+      "position": 4.0,
+      "ctr": 0.05
+     }
+    ]
+   }
+  }
+ }
+}

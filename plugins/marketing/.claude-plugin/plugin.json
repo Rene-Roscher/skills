@@ -1,0 +1,24 @@
+{
+  "name": "marketing",
+  "displayName": "Marketing: search, measurement and go-to-market",
+  "version": "0.1.0",
+  "description": "Search and AI discoverability that holds up, live measurement through Search Console, Bing and Plausible with a measure, change and re-measure loop, and a B2B go-to-market from launch to sales motion.",
+  "author": {
+    "name": "Rene Roscher",
+    "url": "https://github.com/Rene-Roscher"
+  },
+  "homepage": "https://github.com/Rene-Roscher/skills/tree/main/plugins/marketing",
+  "repository": "https://github.com/Rene-Roscher/skills",
+  "license": "Apache-2.0",
+  "keywords": [
+    "seo",
+    "ai-search",
+    "search-console",
+    "analytics",
+    "go-to-market"
+  ],
+  "dependencies": [
+    "core",
+    "business"
+  ]
+}

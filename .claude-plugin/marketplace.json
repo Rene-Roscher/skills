@@ -94,6 +94,18 @@
       ]
     },
     {
+      "name": "marketing",
+      "source": "./plugins/marketing",
+      "description": "Search and AI discoverability that holds up, live measurement through Search Console, Bing and Plausible with a measure, change and re-measure loop, and a B2B go-to-market from launch to sales motion.",
+      "category": "business",
+      "tags": [
+        "seo",
+        "ai-search",
+        "analytics",
+        "go-to-market"
+      ]
+    },
+    {
       "name": "data",
       "source": "./plugins/data",
       "description": "PostgreSQL in production: queries, indexes, migrations without downtime, pooling and the traps that only show on PostgreSQL.",

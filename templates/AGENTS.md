@@ -44,6 +44,7 @@
 | *.tf, Ansible, Kubernetes manifests, a Caddyfile, backups or failover | infra |
 | a public REST API or an MCP server | api |
 | product, market analysis, pricing, website or marketing copy | business |
+| SEO, AI search, Search Console, Bing, Plausible, launch, outreach, sales motion | marketing |
 | product or social videos, remotion.config.* | media |
 
 ### Project facts

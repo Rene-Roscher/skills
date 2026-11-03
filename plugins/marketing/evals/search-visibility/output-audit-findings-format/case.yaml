@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: output-audit-findings-format
+context:
+  scaffold_script: fixture.sh
