@@ -44,6 +44,7 @@
 | *.tf, Ansible, Kubernetes manifests, a Caddyfile, backups or failover | infra |
 | a public REST API or an MCP server | api |
 | product, market analysis, pricing, website or marketing copy | business |
+| product or social videos, remotion.config.* | media |
 
 ### Project facts
 Project-specific facts (queues, ports, providers, approval lists) live in

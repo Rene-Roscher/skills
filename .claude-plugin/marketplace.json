@@ -139,6 +139,17 @@
         "golang",
         "contracts"
       ]
+    },
+    {
+      "name": "media",
+      "source": "./plugins/media",
+      "description": "Short product and explainer videos: plan and approve before rendering, then build, voice, sound, master and deliver with measured checks.",
+      "category": "productivity",
+      "tags": [
+        "video",
+        "remotion",
+        "voice-over"
+      ]
     }
   ]
 }

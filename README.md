@@ -46,6 +46,7 @@ Marketplaces, or run `claude plugin update core@rene-roscher-skills`.
 | [infra](plugins/infra/README.md) | Infrastructure as code, Kubernetes workloads, the edge proxy, observability and DR, and failover for DNS, mail, hosting, the database and object storage. | `infrastructure-as-code`, `kubernetes-workloads`, `edge-proxy-tls`, `observability-and-dr`, `high-availability` |
 | [api](plugins/api/README.md) | Public REST API contracts, and MCP servers that agents use safely on multi-tenant products. | `api-contract`, `mcp-server-design` |
 | [go](plugins/go/README.md) | Production Go services and wire contracts shared across languages. | `go-service-baseline`, `cross-service-contracts` |
+| [media](plugins/media/README.md) | Short product videos: the plan and approval gate, then build, voice, sound, master and delivery with measured checks. | `video-planning`, `video-production` |
 | [docs-tools](plugins/docs-tools/README.md) | Optional. Installs the Context7 documentation MCP server that `core` uses when present. | none |
 
 Skills are called with the plugin name as prefix, for example `/saas:tenant-isolation`. Most of the time you
