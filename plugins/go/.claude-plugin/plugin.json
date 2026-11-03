@@ -1,0 +1,22 @@
+{
+  "name": "go",
+  "displayName": "Go: services and cross-service contracts",
+  "version": "0.1.0",
+  "description": "Production Go services and the contracts between services in different languages.",
+  "author": {
+    "name": "Rene Roscher",
+    "url": "https://github.com/Rene-Roscher"
+  },
+  "homepage": "https://github.com/Rene-Roscher/skills/tree/main/plugins/go",
+  "repository": "https://github.com/Rene-Roscher/skills",
+  "license": "Apache-2.0",
+  "keywords": [
+    "go",
+    "golang",
+    "contracts",
+    "protobuf"
+  ],
+  "dependencies": [
+    "core"
+  ]
+}
