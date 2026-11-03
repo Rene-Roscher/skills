@@ -1,6 +1,6 @@
 ---
 name: test-strategy
-description: "Decides what to test and how much: risk-based coverage with critical paths (money, auth, tenant isolation, deletion, permissions) closed first, behaviour over implementation, pyramid or trophy by risk, flaky tests as bugs, coverage gates on critical modules, spike load tests. Use when planning or reviewing tests or a coverage target. Not for proving a fix works (verify-before-done)."
+description: "Decides what to test and how tests carry weight: critical paths (money, auth, tenant isolation, deletion, permissions) first, each test seen failing, assertions on outcomes not mocks, no weakened assertions, flaky tests as bugs, coverage gates on critical modules, spike load tests. Use when planning, writing or reviewing tests or a coverage target. Not for proving a fix works (verify-before-done)."
 license: Apache-2.0
 metadata:
   author: "Rene Roscher"
@@ -10,8 +10,9 @@ metadata:
 
 This skill decides which tests a change needs, at which level, and which numbers may gate a merge. It leaves test
 frameworks, runner flags and CI syntax to their vendors' docs, and it leaves the question "is this item done"
-to `verify-before-done`. The failure it prevents: a large suite and a high coverage number that still let a broken
-refund, a leaked tenant row or a missing permission check reach production.
+to `verify-before-done`. When an agent writes most of the code, the test suite is the main reviewer, so every
+test has to be able to fail for the right reason. The failure it prevents: a large suite and a high coverage
+number that still let a broken refund, a leaked tenant row or a missing permission check reach production.
 
 ## Applies when / does not apply
 
@@ -37,6 +38,40 @@ refund, a leaked tenant row or a missing permission check reach production.
   changing behaviour; no test fails. Change the behaviour; a test fails. Source:
   https://martinfowler.com/articles/practical-test-pyramid.html ("Test for observable behaviour instead",
   verified 2026-11-01).
+- [invariant] Every new test has been seen failing against broken code before it counts: run it before the
+  fix or the feature exists, or break the code under test on purpose, see it red for the expected reason, then
+  restore. This applies to every new test, not only regression tests; the red-green record for a bug fix is
+  in `verify-before-done`. Why: a test that was never red may be unable to fail, and a suite of such tests
+  approves any change. Test: revert the change the test was written for; the test fails with an assertion
+  message about the behaviour, not with an import or setup error. Source:
+  https://newsletter.kentbeck.com/p/canon-tdd (a failing test comes before the code change; verified
+  2026-11-03).
+- [invariant] Assert what the code produced, not what the test arranged. A stub that returns a value followed
+  by an assertion on that same value checks the stub. An assertion that a mock was called with the arguments
+  the test itself passed in checks the wiring of the test. Assert the state, the response, the persisted rows
+  or the emitted events instead. Assert on a call only where the call is the outcome (a charge, a sent
+  message, a published event), and then check the payload the code built. Why: interaction assertions cannot
+  show that the system works, only that functions were called. Test: replace the body of the function under
+  test with a pass-through to its collaborator; a test that still passes asserts the arrangement. Source:
+  https://abseil.io/resources/swe-book/html/ch13.html (prefer state testing; interaction testing "can't tell
+  you that the system under test is working properly"; verified 2026-11-03).
+- [invariant] Every test has an assertion the code under test can fail. No test that only checks the call
+  returns without an exception, no `assert(true)` or empty test body, no snapshot of a whole page, response or
+  object graph standing in for named expectations; a snapshot stays small and focused on the part the test is
+  about. Why: such tests raise coverage and pass for almost any implementation. Test: change the computed
+  value in the code under test (a total, a status, a field); a test fails. Source:
+  https://newsletter.kentbeck.com/p/canon-tdd ("write tests without assertions just to get code coverage" is
+  named a mistake) and https://jestjs.io/docs/snapshot-testing (keep snapshots focused and short; fight the
+  habit of regenerating snapshots instead of examining the failure), verified 2026-11-03.
+- [invariant] Never delete, loosen or skip an assertion to make a run green: no removed checks, no widened
+  tolerance, no expected value replaced with whatever the code now returns, no added skip marker, no
+  regenerated snapshot without reading the diff. If a test fails and the behaviour change was not asked for,
+  stop and report the failing test, the expected and actual values, and your reading of which side is wrong.
+  If the change was asked for, update the assertion to the new requirement and say so in the report. Why: a
+  weakened assertion turns the reviewer off for exactly the change it should catch. Test: hand the agent a
+  task whose correct fix makes an existing test fail; the diff keeps or tightens that assertion, or the reply
+  reports the conflict. Source: https://newsletter.kentbeck.com/p/canon-tdd ("delete assertions so the test
+  pretends to pass" and copying computed values into expected values are named mistakes; verified 2026-11-03).
 - [invariant] Tests are deterministic. Time comes from an injectable clock that the test freezes, randomness from
   a seed the test sets, and waiting for asynchronous work uses an explicit signal or a bounded poll with a
   deadline, never a fixed sleep. Why: a sleep is either too long and slows the suite or too short and flakes
@@ -99,7 +134,8 @@ refund, a leaked tenant row or a missing permission check reach production.
   case special if the overrides are not visible in the test. Deviate only with an ADR that names this
   trade-off. Source: none; design judgment.
 - [default] Name a test for the behaviour and the condition ("refund above paid amount is rejected"), and build
-  it as arrange, act, assert with one reason to fail. Trade-off: long names and more small tests instead of one
+  it as arrange, act, assert with one reason to fail. A name such as "works", "test process" or "handles the
+  case" says nothing when the test goes red, so it fails review. Trade-off: long names and more small tests instead of one
   large scenario. Deviate only with an ADR that names this trade-off. Source:
   https://martinfowler.com/articles/practical-test-pyramid.html (arrange, act, assert; given, when, then),
   verified 2026-11-01.
@@ -121,6 +157,7 @@ refund, a leaked tenant row or a missing permission check reach production.
 2. For each behaviour, pick the lowest level at which a test can fail for the right reason. Add an integration
    test where data is read or written across a boundary.
 3. Write the tests with builders, a frozen clock and a seeded generator. Name each after its behaviour.
+   Assert outcomes, and see each new test fail against broken code before you rely on it.
 4. Run the critical-path check: break the guard on purpose and see a test fail. Then restore it. The red-green
    proof for a regression test itself belongs to `verify-before-done`.
 5. Add contract tests at each boundary that has a fake. Add or update the few browser journeys last.
@@ -141,6 +178,8 @@ refund, a leaked tenant row or a missing permission check reach production.
 - A retry plugin that makes the build green and hides a race in the product.
 - Tests that share one database state and pass only in file order.
 - Getter and setter tests written to move a percentage. They add maintenance and no protection.
+- A stub returns 42 and the test asserts 42. The code under test could be deleted and the test would pass.
+- A failing assertion "fixed" by pasting the actual value into the expectation.
 - An in-memory database standing in for the production engine. See `verify-before-done` for the differences.
 - One huge end-to-end scenario that covers ten rules and fails for ten reasons.
 
@@ -149,6 +188,7 @@ refund, a leaked tenant row or a missing permission check reach production.
 - Every critical path touched by the change has an allowed-case and a refused-case test, and breaking the guard
   turns a test red.
 - Each test asserts behaviour and fails for one reason.
+- Each new test was seen red against broken code, and no assertion was removed or loosened to get green.
 - No test sleeps, reads the real clock or uses unseeded randomness.
 - Intermittent tests are fixed, or quarantined with an owner and a date.
 - The coverage gate names critical modules and changed lines, and any global number is informational.
@@ -176,5 +216,10 @@ refund, a leaked tenant row or a missing permission check reach production.
   2026-11-01.
 - https://hypothesis.readthedocs.io/en/latest/ and https://stryker-mutator.io/docs/: property-based and mutation
   testing definitions, verified 2026-11-01.
+- https://newsletter.kentbeck.com/p/canon-tdd: failing test before the change; tests without assertions,
+  deleted assertions and pasted actual values named as mistakes, verified 2026-11-03.
+- https://abseil.io/resources/swe-book/html/ch13.html: state testing over interaction testing, and why,
+  verified 2026-11-03.
+- https://jestjs.io/docs/snapshot-testing: focused, short snapshots reviewed as code, verified 2026-11-03.
 - https://grafana.com/docs/k6/latest/testing-guides/test-types/: load test types and what each one answers,
   verified 2026-11-01.
