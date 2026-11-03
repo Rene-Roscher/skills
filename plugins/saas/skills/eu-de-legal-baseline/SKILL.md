@@ -1,6 +1,6 @@
 ---
 name: eu-de-legal-baseline
-description: "Spots when a SaaS change touches German or EU law and routes it: Impressum, cookies, consumer sign-up, AGB, UWG claims and reviews, BFSG accessibility, DSA, Data Act switching, NIS2, CRA, AI Act, retention. Use when planning a launch, sign-up, pricing, marketing claim, user content or AI feature. Not legal advice; GDPR goes to gdpr-engineering, VAT and invoices to billing-eu-b2b."
+description: "Spots when a SaaS change touches German or EU law and routes it: Impressum, cookies, consumer sign-up, AGB, UWG claims, reviews and § 7 outreach, BFSG accessibility, DSA, Data Act switching, NIS2, CRA, AI Act, retention. Use when planning a launch, sign-up, pricing, marketing claim, outreach, user content or AI feature. Not legal advice; GDPR goes to gdpr-engineering, VAT and invoices to billing-eu-b2b."
 license: Apache-2.0
 metadata:
   author: "Rene Roscher"
@@ -29,7 +29,8 @@ right of withdrawal), Kündigungsbutton (cancellation button), AVV (data process
 - Applies: a new public surface (website, app, landing page, help centre, public status or marketing page, social
   profile); cookies, SDKs, pixels or analytics; a sign-up, checkout, plan term, renewal or cancellation flow;
   opening sign-up to individuals; prices on a page; terms text or a change to it; marketing claims, comparison
-  pages, testimonials or a review widget; consumer-facing UI that must be accessible; user content that others
+  pages, testimonials or a review widget; cold or warm outreach by email, phone or social messages, newsletters,
+  lifecycle mails and review requests; consumer-facing UI that must be accessible; user content that others
   can see; data export, exit or egress fees; growth past 50 staff or EUR 10 million turnover; shipping an agent,
   CLI, SDK or app; adding an LLM or other AI feature; deleting accounts or business records. Also when someone
   asks whether the product is "legally compliant" or "rechtssicher".
@@ -55,6 +56,7 @@ the baseline action and who takes it further. Detail and dates are in the refere
 | Prices shown to consumers | PAngV § 3 | total price incl. VAT | `billing-eu-b2b` for the rate |
 | Terms text, new clause, terms change | BGB §§ 305-310 | versioned acceptance, change process | lawyer drafts |
 | Claim, comparison page, testimonial, review widget | UWG §§ 5, 5b, 6, Anhang Nr. 23b, 23c | evidence per claim, review-check statement | lawyer for comparisons |
+| Outreach by email, phone or social message; newsletter, lifecycle or review-request mail | UWG §§ 7, 7a | consent or § 7 Abs. 3 record per recipient, objection notice | `gdpr-engineering` for the dispatcher |
 | Consumer-facing sign-up or checkout UI | BFSG §§ 1, 3, 14 | scope decision, accessible flow, accessibility info | `design-quality` |
 | Users post content others can see | DSA Art. 11, 12, 14, 16-18 | contact points, notice and action, reasons | `gdpr-engineering` (ugc-dsa reference) |
 | Export, exit, contract term, switching or egress fee | Data Act Art. 23-31 | switching terms, full export, fee phase-out | lawyer for contract terms |
@@ -146,6 +148,14 @@ the baseline action and who takes it further. Detail and dates are in the refere
   has a source and a verification field. Source: UWG § 5b Abs. 3 and Anhang,
   https://www.gesetze-im-internet.de/uwg_2004/__5b.html, https://www.gesetze-im-internet.de/uwg_2004/anhang.html
   (verified 2026-11-03).
+- [invariant] Advertising to a recipient in Germany has a recorded basis before it is sent. Email, businesses
+  included: prior express consent with a stored double opt-in, or all four conditions of § 7 Abs. 3. Calls:
+  express consent from consumers (§ 7a: documented, kept five years), at least presumed consent from businesses.
+  Every advertising message names the sender and a free way to object. Why: § 7 Abs. 2 has no B2B exception for
+  email, and a review request or upsell line can make a mail advertising. Test: a send to a German address
+  without a consent or § 7 Abs. 3 record is blocked; each advertising mail carries the objection link. Source:
+  https://www.gesetze-im-internet.de/uwg_2004/__7.html, https://www.gesetze-im-internet.de/uwg_2004/__7a.html
+  (verified 2026-11-03). Messenger and social messages: the reference; enforcement in code: `gdpr-engineering`.
 - [invariant] Record a BFSG scope decision before consumers can sign up or buy online. E-commerce services to
   consumers are in scope since 28 June 2025; B2B-only services are not; micro-enterprises offering services (fewer
   than 10 staff and at most EUR 2 million turnover or balance sheet) are exempt. In scope means an accessible flow
@@ -239,6 +249,8 @@ Each item is answered with yes, no or not applicable, a source and a date. "Not 
       limits, confirmation emails; BFSG scope decided.
 - [ ] AGB and privacy texts versioned; acceptance stored; change process approved by the lawyer.
 - [ ] Every claim on marketing pages has evidence; comparison pages reviewed; review widget states verification.
+- [ ] Outreach and advertising mail: consent or § 7 Abs. 3 record per recipient, double opt-in stored, objection
+      link in every mail, no cold email or unconsented calls to German recipients.
 - [ ] User content: contact points, notice form, statements of reasons, moderation rules in the terms.
 - [ ] Data Act: switching clauses, full export, no switching charges after 12 January 2027.
 - [ ] NIS2 scope entry dated; incident runbook has the 24 h / 72 h / 1 month clocks.
@@ -273,7 +285,7 @@ Each item is answered with yes, no or not applicable, a source and a date. "Not 
 ## References
 
 - [references/notices-terms-marketing-de.md](references/notices-terms-marketing-de.md): load for Impressum,
-  cookies and analytics, AGB incorporation and changes, marketing claims, comparisons and reviews.
+  cookies and analytics, AGB incorporation and changes, marketing claims, comparisons, reviews and outreach.
 - [references/consumer-sales-de.md](references/consumer-sales-de.md): load when consumers can sign up or buy,
   or when deciding B2B-only.
 - [references/accessibility-bfsg.md](references/accessibility-bfsg.md): load when deciding BFSG scope or
@@ -287,24 +299,12 @@ Each item is answered with yes, no or not applicable, a source and a date. "Not 
 
 ## Sources
 
-- https://www.gesetze-im-internet.de/ddg/__5.html: DDG § 5, verified 2026-11-03.
-- https://www.gesetze-im-internet.de/ttdsg/__25.html: TDDDG § 25, verified 2026-11-03.
+All verified 2026-11-03; per-fact status in [references/verification-status.md](references/verification-status.md).
+
+- German statutes, https://www.gesetze-im-internet.de/: DDG § 5; TDDDG § 25; BGB §§ 13, 14, 305, 305c, 308, 309,
+  310, 312g, 312j, 312k, 355, 356, 356a, 357a; PAngV § 3; UWG §§ 5, 5b, 6, 7, 7a and Anhang; BFSG §§ 1, 2, 3, 14,
+  38; BSIG §§ 28, 32, 33, Anlage 1; AO § 147, HGB § 257, UStG §§ 14b, 27.
 - https://www.edpb.europa.eu/system/files/documents/2024-10/edpb_guidelines_202302_technical_scope_art_53_eprivacydirective_v2_en_0.pdf:
-  EDPB Guidelines 2/2023 v2.0, verified 2026-11-03.
-- https://www.gesetze-im-internet.de/bgb/: BGB §§ 13, 14, 305, 305c, 308, 309, 310, 312g, 312j, 312k, 355, 356,
-  356a, 357a, verified 2026-11-03.
-- https://eur-lex.europa.eu/eli/dir/2023/2673/oj: Directive (EU) 2023/2673, application of the withdrawal function
-  from 19 June 2026, verified 2026-11-03.
-- https://www.gesetze-im-internet.de/pangv_2022/__3.html: PAngV § 3, verified 2026-11-03.
-- https://www.gesetze-im-internet.de/uwg_2004/: UWG §§ 5, 5b, 6 and Anhang, verified 2026-11-03.
-- https://www.gesetze-im-internet.de/bfsg/: BFSG §§ 1, 2, 3, 14, 38, verified 2026-11-03.
-- https://eur-lex.europa.eu/eli/reg/2022/2065/oj: DSA, verified 2026-11-03.
-- https://eur-lex.europa.eu/eli/reg/2023/2854/oj: Data Act, verified 2026-11-03.
-- https://www.gesetze-im-internet.de/bsig_2025/: BSIG §§ 28, 32, 33, Anlage 1, verified 2026-11-03.
-- https://eur-lex.europa.eu/eli/dir/2022/2555/oj: NIS2 Directive Art. 23, verified 2026-11-03.
-- https://eur-lex.europa.eu/eli/reg/2024/2847/oj: Cyber Resilience Act, verified 2026-11-03.
-- https://eur-lex.europa.eu/eli/reg/2024/1689/oj and https://eur-lex.europa.eu/eli/reg/2026/1744/oj: AI Act and
-  Digital Omnibus on AI, verified 2026-11-03.
-- https://www.gesetze-im-internet.de/ao_1977/__147.html, https://www.gesetze-im-internet.de/hgb/__257.html,
-  https://www.gesetze-im-internet.de/ustg_1980/__14b.html, https://www.gesetze-im-internet.de/ustg_1980/__27.html:
-  retention and e-invoice transition, verified 2026-11-03.
+  EDPB Guidelines 2/2023 v2.0.
+- EU law, https://eur-lex.europa.eu/: Directive 2023/2673 (withdrawal function from 19 June 2026), DSA 2022/2065,
+  Data Act 2023/2854, NIS2 2022/2555 Art. 23, CRA 2024/2847, AI Act 2024/1689 and Digital Omnibus 2026/1744.

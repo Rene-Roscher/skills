@@ -80,3 +80,21 @@ Review-ready draft, not legal advice. Scope: Germany. Statute text read on geset
   commissioning fake reviews, misrepresenting reviews on social media) are always unfair.
 - Asking customers for reviews by email can be advertising under UWG § 7; see `gdpr-engineering` for the email
   rules.
+
+## Outreach and advertising mail (UWG §§ 7, 7a)
+
+- § 7 Abs. 2 Nr. 2: advertising by email, fax or automated call without the addressee's prior express consent
+  is always an unreasonable nuisance. "Addressee" includes businesses: no B2B exception for email.
+- § 7 Abs. 2 Nr. 1: advertising calls need prior express consent from consumers and at least presumed consent
+  from other market participants. Whether a reason suffices for presumed consent is case law: lawyer.
+- § 7a: consent to advertising calls from consumers is documented when given and kept five years from
+  collection and after each use; produced to the authority on request.
+- § 7 Abs. 2 Nr. 3: every advertising message shows who sends it and has a valid address for objections at no
+  cost beyond basic rates.
+- § 7 Abs. 3: existing customers may get email advertising for own similar products without consent if the
+  address came from a sale, they have not objected, and they were told at collection and in every mail that
+  they can object at any time.
+- Double opt-in: store both steps with timestamps, consent text version and source; no advertising in the
+  confirmation mail. SMS, messenger and social direct messages count as email in practice (Unverified).
+- Cold outreach lists of German addresses: no email, no unconsented calls to consumers. Planning alternatives
+  belongs to `go-to-market`, if installed.

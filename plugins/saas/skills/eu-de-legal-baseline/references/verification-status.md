@@ -27,6 +27,7 @@ a date that lies within a year of today or after any amendment notice.
 | BGB § 305 Abs. 2, § 305c, § 308 Nr. 4, 5, § 310 Abs. 1 | https://www.gesetze-im-internet.de/bgb/__305.html, https://www.gesetze-im-internet.de/bgb/__310.html |
 | PAngV § 3 Abs. 1: total price to consumers | https://www.gesetze-im-internet.de/pangv_2022/__3.html |
 | UWG § 5, § 5b Abs. 3, § 6, Anhang Nr. 23b, 23c | https://www.gesetze-im-internet.de/uwg_2004/ |
+| UWG § 7 Abs. 1-3 (email, calls, sender identity, existing-customer exception), § 7a (call consent documented, five years) | https://www.gesetze-im-internet.de/uwg_2004/__7.html, https://www.gesetze-im-internet.de/uwg_2004/__7a.html |
 | BFSG § 1 Abs. 3 Nr. 5, § 2 Nr. 16, 17, 26, § 3 Abs. 3, § 14, § 38 | https://www.gesetze-im-internet.de/bfsg/ |
 | DSA Art. 11, 12, 14, 16, 17, 18; application 17 February 2024 (Art. 93) | Regulation (EU) 2022/2065, https://eur-lex.europa.eu/eli/reg/2022/2065/oj |
 | Data Act application 12 September 2025; switching charges none from 12 January 2027; Art. 25, 30, 31 | Regulation (EU) 2023/2854 Art. 25, 29, 30, 31, 50, https://eur-lex.europa.eu/eli/reg/2023/2854/oj |
@@ -54,6 +55,10 @@ a date that lies within a year of today or after any amendment notice.
 - Whether a multi-tenant SaaS is a "data processing service" (Data Act) or a "cloud computing service" (NIS2):
   definition read, no authority statement for a specific product type.
 - BSIG §§ 30, 38 (risk management, management duties): not re-read.
+- SMS, messenger and social-network direct messages as "elektronische Post" under UWG § 7: ePrivacy Directive
+  text not readable on EUR-Lex for this check.
+- Double opt-in as proof of consent and the sender's burden of proof (BGH I ZR 164/09), and review requests in
+  invoice mails as advertising (BGH VI ZR 225/17): read from secondary sources only.
 - When fine-tuning a general-purpose AI model makes a company a model provider: Commission guidance not fetched.
 
 ## How to re-verify
