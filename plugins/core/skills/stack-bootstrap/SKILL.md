@@ -36,6 +36,8 @@ Read only the files below. Each enabled plugin is backed by at least one path.
 | `composer.json` requires `laravel/framework` | `laravel`, plus `laravel-boost` from `claude-plugins-official` |
 | `go.mod` | `go` |
 | `package.json` depends on `vue`, `nuxt`, `@inertiajs/vue3` or `reka-ui` | `web` |
+| a browser UI: the `web` signal, or `package.json` depends on `react`, `svelte` or `@angular/core` | `frontend-design` from `claude-plugins-official`, plus `web-design-guidelines` |
+| `package.json` depends on `@cloudflare/kumo` | `kumo-design` |
 | `Dockerfile`, `Containerfile`, `compose*.yaml`, `.github/workflows/*.yml` | `delivery` |
 | `*.tf`, `*.tofu`, `Chart.yaml`, `kustomization.yaml`, `ansible.cfg`, `playbooks/`, `roles/*/tasks/` | `infra` |
 | PostgreSQL: `pgsql` default connection, a `postgres` image in compose, `pgx`, `lib/pq`, `pg`, `postgres` packages | `data`, plus `supabase-postgres-best-practices` |
@@ -171,3 +173,8 @@ signal; say which app produced it.
 - https://github.com/vercel-labs/skills: `npx skills add`, `--skill`, `-a`, project scope by default,
   `DISABLE_TELEMETRY`, verified 2026-11-03.
 - https://github.com/supabase/agent-skills: `supabase-postgres-best-practices` install command, verified 2026-11-03.
+- https://github.com/anthropics/claude-plugins-official: `frontend-design` plugin in the official marketplace,
+  verified 2026-11-03.
+- https://github.com/vercel-labs/agent-skills and https://vercel.com/design/guidelines: `web-design-guidelines`
+  install command, verified 2026-11-03.
+- https://github.com/cloudflare/kumo and https://kumo-ui.com/skill: `kumo-design` skill, verified 2026-11-03.

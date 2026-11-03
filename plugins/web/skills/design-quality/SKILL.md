@@ -88,6 +88,19 @@ Most important first. Examples use an invoicing app, a project tool and a bookin
   the token list. Source: frontend-design skill, "Where the brief pins down a visual direction, follow it
   exactly" (https://github.com/anthropics/skills/blob/main/skills/frontend-design/SKILL.md, verified 2026-11-01).
   `feature-delivery` carries the same rule.
+- [default] Before designing a new surface, pick two or three outside references for its surface type from
+  [references/design-references.md](references/design-references.md) (billing settings: Stripe and Vercel; a
+  data view: Grafana and Sentry; an AI chat: Anthropic, OpenAI and AI Elements), name them in the plan with the
+  principle each contributes (density, hierarchy, states, motion or copy tone), and measure the result against
+  them with the same method as the product's own artifact: element screenshots at the same viewport and theme
+  and the audit's computed values (see the first rule and
+  [references/measurement.md](references/measurement.md)). The product's own artifact stays the first
+  reference. Take principles only, never a brand's look, logo, illustrations or copy. Trade-off: one more step
+  before the first draft, and a pull toward well-known products. Deviate only with an ADR that names this
+  trade-off. Proof: the plan lists the surface type and the references; the review shows a reference screenshot
+  (live product, public docs or open-source component) beside the new work and compares at least one measured
+  value. Source: the published systems and guidelines in references/design-references.md, each verified
+  2026-11-03; reproducible with the proof above.
 - [default] Keep a closed token set: every computed font size, weight, family, spacing value, radius, shadow and
   colour is a token. An off-token value is replaced or added as a token on purpose; an optical 1 px correction
   carries a comment. Trade-off: every new value costs a token change. Deviate only with an ADR that names this
@@ -178,7 +191,9 @@ Most important first. Examples use an invoicing app, a project tool and a bookin
 ## Procedure
 
 1. Gate: name the existing artifact of the same type and capture it (element screenshot, computed tokens). If
-   none exists, name the closest one and say so. Do not design before this step.
+   none exists, name the closest one and say so. For a new surface, also name two or three outside references
+   for its surface type from [references/design-references.md](references/design-references.md). Do not
+   design before this step.
 2. Write or extract the token list (`tokens.json`, format in [references/tokens.md](references/tokens.md)). Record
    project taste (density, radii, viewports) in the project overlay profile, not in components.
 3. List the states the view needs (empty, loading, error, partial, no permission, limit reached, one item, worst
@@ -190,8 +205,8 @@ Most important first. Examples use an invoicing app, a project tool and a bookin
    marketing pages ([references/measurement.md](references/measurement.md)). Fix every `fail`; fix or justify every `warn`.
 6. Run the `browser-verification` measurement for contrast, overflow, target size and fit on the same states.
 7. Review for tells with [references/tells.md](references/tells.md) and remove one decoration.
-8. Report: reference and new element screenshots side by side, audit numbers against thresholds, kept tells with
-   reasons, and what was not verified.
+8. Report: reference and new element screenshots side by side, audit numbers against thresholds, the outside
+   references and the value compared against each, kept tells with reasons, and what was not verified.
 
 ## Traps
 
@@ -213,6 +228,8 @@ Most important first. Examples use an invoicing app, a project tool and a bookin
 
 - The reference artifact is named, and its element screenshot sits next to the new one at the same viewport and
   theme.
+- For a new surface, the plan names two or three outside references for its surface type, and the review
+  compares at least one measured value against them.
 - `design_audit.mjs` reports no `fail` against the token list in light and dark, and every `warn` is fixed or
   has a written reason.
 - The `browser-verification` measurement passes for contrast, overflow, targets and fit on every state.
@@ -223,6 +240,8 @@ Most important first. Examples use an invoicing app, a project tool and a bookin
 
 - [references/tokens.md](references/tokens.md): load when extracting or writing tokens, choosing a type or
   spacing scale, or calibrating against measured product sites.
+- [references/design-references.md](references/design-references.md): load before designing a new surface, to
+  pick the outside references for its surface type and see what each company publishes.
 - [references/tells.md](references/tells.md): load when reviewing a design for a generic look or when the audit
   reports tell warnings.
 - [references/app-ui.md](references/app-ui.md): load when building or reviewing tables, forms, states, overlays,
@@ -261,3 +280,6 @@ Most important first. Examples use an invoicing app, a project tool and a bookin
   `title`, verified 2026-11-01.
 - https://www.ftc.gov/business-guidance/resources/consumer-reviews-testimonials-rule-questions-answers: rule
   sections and effective date, verified 2026-11-01.
+- Outside references per surface (Vercel, AI Elements, Linear, Stripe, Kumo, Saga, Sentry, Proton, Anthropic,
+  OpenAI, Discord, Apple HIG, Raycast, Spectrum, and the product-only ones): URLs and repositories in
+  references/design-references.md, verified 2026-11-03.
