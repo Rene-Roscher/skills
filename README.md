@@ -36,15 +36,16 @@ Marketplaces, or run `claude plugin update core@rene-roscher-skills`.
 
 | Plugin | What it decides | Skills |
 |---|---|---|
-| [core](plugins/core/README.md) | How an agent checks facts, verifies work, handles risky actions, plans, investigates, tests, writes maintainable code, keeps lessons and commits. Any stack. | `evidence-before-claims`, `verify-before-done`, `safe-actions`, `feature-planning`, `feature-delivery`, `bug-investigation`, `project-inception`, `learning-loop`, `test-strategy`, `maintainable-code`, `agent-toolbelt`, `commit-hygiene` |
-| [saas](plugins/saas/README.md) | IDs, tenant isolation, permissions, build or buy, EU B2B billing, GDPR duties, service boundaries. | `dual-key-identifiers`, `tenant-isolation`, `authorization-rbac`, `build-vs-buy`, `billing-eu-b2b`, `gdpr-engineering`, `service-boundaries` |
+| [core](plugins/core/README.md) | How an agent checks facts, verifies work, handles risky actions, plans, investigates, tests, writes maintainable code, keeps lessons and commits. Any stack. | `evidence-before-claims`, `verify-before-done`, `safe-actions`, `feature-planning`, `feature-delivery`, `bug-investigation`, `project-inception`, `learning-loop`, `test-strategy`, `maintainable-code`, `agent-toolbelt`, `commit-hygiene`, `stack-bootstrap`, `performance-gate` |
+| [saas](plugins/saas/README.md) | Tenancy model, IDs, tenant isolation, permissions, plan limits and overrides, build or buy, EU B2B billing, GDPR duties, service boundaries, jobs, outbound requests and webhooks. | `tenancy-model`, `dual-key-identifiers`, `tenant-isolation`, `authorization-rbac`, `plan-entitlements`, `build-vs-buy`, `billing-eu-b2b`, `gdpr-engineering`, `service-boundaries`, `async-reliability`, `egress-and-webhooks` |
 | [laravel](plugins/laravel/README.md) | Laravel structure and the gaps between a green test suite and production. | `laravel-architecture`, `laravel-production-runtime` |
-| [web](plugins/web/README.md) | Where public pages and dashboards live, how they render, what good UI looks like and how UI changes are proven. | `web-architecture`, `design-quality`, `browser-verification` |
-| [delivery](plugins/delivery/README.md) | GitHub Actions hardening and container image baselines. | `github-actions-hardening`, `container-images` |
+| [web](plugins/web/README.md) | Where public pages and dashboards live, how they render, what good UI looks like and how UI changes are proven. | `web-architecture`, `vue-inertia-frontend`, `design-quality`, `browser-verification` |
+| [delivery](plugins/delivery/README.md) | GitHub Actions hardening, container image baselines and signed releases. | `github-actions-hardening`, `container-images`, `release-supply-chain` |
 | [business](plugins/business/README.md) | Product discovery, pricing from unit costs, and copy that reads as written by a person. | `product-strategy`, `pricing-and-unit-economics`, `human-copy` |
 | [data](plugins/data/README.md) | PostgreSQL in production: queries, indexes, migrations without downtime, pooling. | `postgres-production` |
-| [infra](plugins/infra/README.md) | Failover for DNS, mail, hosting, the database and object storage, and restore drills. | `high-availability` |
-| [api](plugins/api/README.md) | Building MCP servers that agents use safely on multi-tenant products. | `mcp-server-design` |
+| [infra](plugins/infra/README.md) | Infrastructure as code, Kubernetes workloads, the edge proxy, observability and DR, and failover for DNS, mail, hosting, the database and object storage. | `infrastructure-as-code`, `kubernetes-workloads`, `edge-proxy-tls`, `observability-and-dr`, `high-availability` |
+| [api](plugins/api/README.md) | Public REST API contracts, and MCP servers that agents use safely on multi-tenant products. | `api-contract`, `mcp-server-design` |
+| [go](plugins/go/README.md) | Production Go services and wire contracts shared across languages. | `go-service-baseline`, `cross-service-contracts` |
 | [docs-tools](plugins/docs-tools/README.md) | Optional. Installs the Context7 documentation MCP server that `core` uses when present. | none |
 
 Skills are called with the plugin name as prefix, for example `/saas:tenant-isolation`. Most of the time you
