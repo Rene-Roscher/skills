@@ -7,5 +7,5 @@ All notable changes to the `delivery` plugin are recorded here. The format follo
 
 ### Added
 
-- Skills `github-actions-hardening` and `container-images`.
+- Skills `github-actions-hardening`, `container-images` and `release-supply-chain`.
 - Dependency on `core`.
