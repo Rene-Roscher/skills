@@ -45,6 +45,7 @@ Read only the files below. Each enabled plugin is backed by at least one path.
 | ClickHouse: a `clickhouse` image or a ClickHouse client package | `clickhouse-best-practices` from `claude-plugins-official` |
 | an MCP SDK dependency, for example `@modelcontextprotocol/sdk` or `laravel/mcp` | `api` |
 | none (product type, not a file) | `saas` and `business`: offer them, the owner decides |
+| a public marketing or docs site: `astro.config.*`, a prerendered `nuxt.config.*`, or `robots.txt` or `sitemap.xml` in a public directory | `marketing`, plus `web-quality-skills`; offer the eight marketing skills from `coreyhaines31/marketingskills`, the owner decides |
 
 Monorepos: scan each top-level app directory. A plugin is enabled once for the repository when any app has the
 signal; say which app produced it.
@@ -178,3 +179,5 @@ signal; say which app produced it.
 - https://github.com/vercel-labs/agent-skills and https://vercel.com/design/guidelines: `web-design-guidelines`
   install command, verified 2026-11-03.
 - https://github.com/cloudflare/kumo and https://kumo-ui.com/skill: `kumo-design` skill, verified 2026-11-03.
+- https://github.com/addyosmani/web-quality-skills and https://github.com/coreyhaines31/marketingskills: skill
+  names and install commands, run in a scratch repository 2026-11-03.

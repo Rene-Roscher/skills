@@ -12,3 +12,4 @@ All notable changes to the `core` plugin are recorded here. The format follows
 - Skills `project-inception`, `learning-loop`, `test-strategy`, `maintainable-code` and `agent-toolbelt`.
 - Skills `stack-bootstrap` and `performance-gate`.
 - Skills `goal-focus` and `agent-delegation`; `test-strategy` requires every new test to be seen failing and to assert outcomes.
+- `stack-bootstrap` offers the `marketing` plugin, `web-quality-skills` and eight `marketingskills` skills for public marketing and docs sites.
