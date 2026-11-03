@@ -2,7 +2,7 @@
   "name": "api",
   "displayName": "API: MCP servers",
   "version": "0.1.0",
-  "description": "Building MCP servers that agents can use safely: tenant binding, live permissions, tool design, confirmation for side effects and evals.",
+  "description": "Public REST API contracts and MCP servers that agents can use safely.",
   "author": {
     "name": "Rene Roscher",
     "url": "https://github.com/Rene-Roscher"

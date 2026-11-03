@@ -7,5 +7,5 @@ All notable changes to the `api` plugin are recorded here. The format follows
 
 ### Added
 
-- Skill `mcp-server-design`.
+- Skills `mcp-server-design` and `api-contract`.
 - Dependency on `core`.
