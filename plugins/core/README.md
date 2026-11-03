@@ -24,6 +24,8 @@ optional [docs-tools](../docs-tools/README.md) plugin installs Context7.
 | `maintainable-code` | writing or reviewing code for reuse, seams, conventions and the cost of a new abstraction or dependency |
 | `agent-toolbelt` | choosing the cheapest tool to answer a question, or briefing a subagent |
 | `commit-hygiene` | you write commits, rewrite branch history or write a pull request description, or set up commit checks |
+| `stack-bootstrap` | a repository needs its agent plugins and curated third-party skills set up per project, or its stack changed |
+| `performance-gate` | a feature with data or traffic impact is about to be handed over, or someone asks whether it scales |
 
 Claude Code loads a skill when the task matches its description. You can also call one directly, for example
 `/core:evidence-before-claims`.

@@ -1,0 +1,10 @@
+---
+description: "Should trigger stack-bootstrap (train split). Run with --ablation none."
+tags: [stack-bootstrap, trigger]
+runs: 3
+max_turns: 4
+timeout_seconds: 180
+allowed_tools: [Read, Glob, Grep, Skill]
+---
+
+Install Laravel Boost for this project so the agent can read the schema and the logs.

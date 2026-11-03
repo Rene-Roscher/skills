@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: output-laravel-postgres-redis
+context:
+  scaffold_script: fixture.sh

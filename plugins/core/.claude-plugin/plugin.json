@@ -2,7 +2,7 @@
   "name": "core",
   "displayName": "Core: evidence and safe delivery",
   "version": "0.1.0",
-  "description": "Evidence before claims, verification before done, safe actions, feature planning and delivery, bug investigation.",
+  "description": "Evidence before claims, verification, safe actions, project inception, planning, delivery, tests, maintainable code, lessons, tooling, commits, stack bootstrap, performance. Stack-agnostic.",
   "author": {
     "name": "Rene Roscher",
     "url": "https://github.com/Rene-Roscher"

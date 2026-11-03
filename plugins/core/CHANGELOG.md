@@ -10,3 +10,4 @@ All notable changes to the `core` plugin are recorded here. The format follows
 - Skills `evidence-before-claims`, `verify-before-done`, `safe-actions`, `feature-planning`, `feature-delivery` and `bug-investigation`.
 - Skill `commit-hygiene` with a commit-msg hook, a CI range check and a pull request body check.
 - Skills `project-inception`, `learning-loop`, `test-strategy`, `maintainable-code` and `agent-toolbelt`.
+- Skills `stack-bootstrap` and `performance-gate`.
