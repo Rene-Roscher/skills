@@ -2,8 +2,9 @@
 """Flag copy patterns that make English or German text read as generic, unsourced or machine-made.
 
 Usage:
-  copy_lint.py [--lang en|de|auto] [--strict] FILE [FILE ...]
-  copy_lint.py [--lang en|de|auto] [--strict] -        (read stdin)
+  copy_lint.py [--lang en|de|auto] [--strict] [--glossary FILE] FILE [FILE ...]
+  copy_lint.py [--lang en|de|auto] [--strict] [--glossary FILE] -        (read stdin)
+  copy_lint.py --voice-check DIR        (check a product's voice files, for example docs/voice)
   copy_lint.py --self-test
 
 Every finding is a warning. Exit code is 0 unless --strict is given and at least one warning was
@@ -25,14 +26,22 @@ What it checks (code, meaning):
   EMO01  emoji at the start of a line         LEN01  more than 15 % of sentences over 25 words
   CTA01  generic link or button label         TST01  testimonial that needs a source record
   CNT01  customer or user count ("trusted by over N teams") that needs a dated source record
+  CAL01  calque or unidiomatic combination, with the corpus ratio against the natural form (EN and DE)
+  CAL02  register note: colloquial or regional, fine in chat-like copy, not in docs or legal text
+  GLO01  variant the product glossary forbids (only with --glossary)
   German only: TYP01 English quotes, TYP02 apostrophe before -s, TYP03 split compound,
   TYP04 punctuation after a label ending in ? ! ..., TYP05 number or currency format,
-  ADR01 du and Sie mixed, ADR02 capitalised Du mid-sentence, CAL01 English calque,
+  ADR01 du and Sie mixed, ADR02 capitalised Du mid-sentence,
   FVG01 nominal style, CON01 connector at sentence start (density).
+
+--voice-check DIR reports VOI01 (malformed corrections.jsonl line), VOI02 (a correction rule seen twice or
+more that is not yet promoted to the glossary or a lint rule), VOI03 (missing voice file or no approved
+examples) and VOI04 (an email address or phone number in a correction: personal data does not belong there).
 
 The word lists are calibrated against a field guide and corpus studies, not proof of authorship.
 A hit is a prompt to rewrite the sentence with a fact; the lists drift with each model generation.
-Word lists last reviewed: 2026-11-01.
+Word lists last reviewed: 2026-11-03. Calque ratios: Google Books Ngram, corpora de-2019 and en-2019,
+year 2019, measured 2026-11-03 (scripts/collocation_check.py repeats a measurement).
 
 Python 3.8 or later, standard library only, no network.
 """
@@ -40,10 +49,14 @@ Python 3.8 or later, standard library only, no network.
 from __future__ import annotations
 
 import argparse
+import json
+import os
 import re
+import shutil
 import sys
+import tempfile
 
-WORDLIST_REVIEWED = "2026-11-01"
+WORDLIST_REVIEWED = "2026-11-03"
 I = re.IGNORECASE
 
 
@@ -122,6 +135,7 @@ TEL_EN_PHRASE = [
     (rx(r"\b(?:it'?s (?:important|worth) (?:to note|noting)|it is (?:important|worth) (?:to note|noting)"
         r"|may potentially|could potentially|based on (?:the )?available information)\b"), "hedge"),
     (rx(r"\bwhether you'?re (?:a|an)\b"), "audience sweep"),
+    (rx(r"\b(?:oops|whoops|uh-oh)\b"), "joke or apology in place of the message: say what happened"),
     (rx(r"(?:^|[.!?]\s+)(?:in summary|in conclusion|overall|ultimately|in short|all in all|at the end of the day)\b"),
      "summary opener"),
 ]
@@ -143,12 +157,62 @@ TEL_DE_PHRASE = [
     (rx(r"\b(?:könnte|könnten|würde|würden|potenziell|möglicherweise)\b[^.!?]{0,80}"
         r"\b(?:in vielen Fällen|je nach|potenziell|möglicherweise|unter Umständen)\b"), "hedge stack"),
     (rx(r"(?:^|[.!?]\s+)(?:Egal,? ob|Ob)\b[^.!?]{1,80}\boder\b[^.!?]{1,80}[–—:]"), "'Egal ob ... oder' sweep"),
+    (rx(r"\b(?:Ups|Hoppla|Huch|Oops)\b"), "joke or apology in place of the message: say what happened"),
 ]
-CAL_DE = rx(r"\beinmal mehr\b")
+# Calques and unidiomatic combinations. Each entry: pattern, natural form, corpus ratio (phrase : natural
+# form, Google Books Ngram, year 2019, measured 2026-11-03). Only pairs at 1 : 3 or rarer are listed;
+# "einmal mehr" (1 : 2 against "wieder einmal") is established German and is not flagged.
+CAL_DE = [
+    (rx(r"\bEntscheidung(?:en)?\s+(?:zu\s+)?mach\w*|\bmach\w*\s+(?:\w+\s+){0,3}Entscheidung(?:en)?\b"),
+     "Entscheidung treffen", "1 : 138"),
+    (rx(r"\badressier\w*\b(?!\s+an\b)"),
+     "lösen, angehen, beantworten oder ansprechen", "Problem 1 : 130, Fragen 1 : 655, Zielgruppe 1 : 31"),
+    (rx(r"\bwir\s+sind\s+(?:so\s+|sehr\s+|super\s+|total\s+)?aufgeregt\b"), "wir freuen uns", "1 : 745"),
+    (rx(r"\bnicht\s+länger\s+(?:verfügbar|gültig|möglich|aktiv|unterstützt|erforderlich|nötig|benötigt|erreichbar)\b"),
+     "nicht mehr", "verfügbar 1 : 92, gültig 1 : 18"),
+    (rx(r"\bfür\s+(?:mehrere|einige|ein paar|wenige)\s+(?:Sekunden|Minuten|Stunden|Tage|Wochen|Monate)\b"),
+     "mehrere Minuten lang, oder die Dauer ohne 'für'", "1 : 3; Microsoft German guide lists it as an error"),
+    (rx(r"\bin\s+(?:19|20)\d\d\b(?![./-]\d)"), "2026 oder im Jahr 2026 (ohne 'in')", "1 : 4"),
+    (rx(r"\bam Ende des Tages\b"), "letzten Endes, letztlich (außer im wörtlichen Sinn)", "1 : 4"),
+    (rx(r"\bFeedback\s+(?:mit\s+\w+\s+)?(?:zu\s+)?teil\w*|\bteil\w*\s+(?:\w+\s+){0,2}Feedback\b"),
+     "Feedback geben", "phrase absent from the corpus"),
+    (rx(r"\bWert\s+(?:zu\s+)?hinzu(?:zu)?füg\w*"), "Wert schaffen, oder sagen, was es bringt", "1 : 11"),
+    (rx(r"\bgute Zeit\s+(?:zu\s+)?hab\w*|\bhab\w*\s+(?:\w+\s+){0,2}gute Zeit\b"), "Spaß haben", "1 : 70"),
+    (rx(r"\bhab(?:t|en)?\s+(?:einen\s+)?schönen Tag\b"), "Schönen Tag noch", "1 : 5"),
+    (rx(r"\bmehr als glücklich\b"), "sehr gern", "1 : 27"),
+    (rx(r"\bZeit\s+ein(?:zu)?spar\w*"), "Zeit sparen", "1 : 8"),
+]
+CAL_DE_NOTE = [
+    (rx(r"\bSinn\s+(?:zu\s+)?mach\w*|\bmach(?:t|en|te|ten)\b[^.!?]{0,25}\bSinn\b"),
+     "'Sinn machen' is colloquial per Duden (after English 'make sense'); in docs and legal text write 'ergibt Sinn' "
+     "or 'ist sinnvoll' (corpus 1 : 1, so not an error)"),
+]
+CAL_EN = [
+    (rx(r"\bsince\s+(?:\d+|one|two|three|four|five|six|seven|eight|nine|ten|several|many)\s+(?:years?|months?|weeks?|days?|hours?)\b"),
+     "for three years", "1 : 345"),
+    (rx(r"\bdiscuss(?:es|ed|ing)?\s+about\b"), "discuss the", "1 : 144"),
+    (rx(r"\bexplain(?:s|ed|ing)?\s+(?:me|us|him|her|them)\b"), "explain to me", "1 : 23"),
+    (rx(r"\bmak(?:e|es|ing)\s+(?:a\s+)?(?:photos?|pictures?|screenshots?)\b"), "take a photo", "1 : 39"),
+    (rx(r"\blook(?:ing)? forward to\s+(?:hear|see|meet|work|welcome|receive|talk)\b"), "looking forward to hearing", "1 : 40"),
+    (rx(r"\b(?:informations|feedbacks|advices|softwares)\b"), "the uncountable form (information, feedback)", "informations 1 : 1350"),
+    (rx(r"\bon the (?:picture|screenshot|photo|image)\b"), "in the picture", "1 : 7"),
+    (rx(r"\bwith regards to\b"), "with regard to, or about", "1 : 11"),
+    (rx(r"\b(?:will|you'll|you)\s+become\s+(?:an?\s+)?(?:email|e-mail|message|notification|invoice|reminder|link|code)\b"),
+     "get or receive (German 'bekommen' is not 'become')", "phrase absent from the corpus"),
+    (rx(r"\b(?:deliver(?:s|ed|ing)?|provid(?:e|es|ed|ing)|driv(?:e|es|ing))\s+(?:real\s+|more\s+)?value\b"),
+     "say what the reader gets; the idiom is 'add value'", "deliver value 1 : 7, provide value 1 : 6"),
+    (rx(r"\bon a (?:daily|weekly|monthly|regular) basis\b"), "daily, every week, regularly", "on a daily basis vs every day 1 : 11"),
+    (rx(r"\bin a timely manner\b"), "promptly, or the actual time", "1 : 9"),
+]
+CAL_EN_NOTE = [
+    (rx(r"\btak(?:e|es|ing)\s+(?:a|the)\s+decision\b"),
+     "'take a decision' is British usage; in US English or mixed audiences write 'make a decision' (corpus 1 : 19)"),
+]
 FVG_DE = rx(
     r"\bzur Verfügung (?:stellen|gestellt)\b|\bin Kenntnis setzen\b|\bzum Abschluss bringen\b|\beiner Prüfung unterziehen\b"
     r"|\bMöglichkeit (?:bieten|eröffnen)\b|\bUnterstützung bieten\b|\bEntscheidung herbeiführen\b|\bMitteilung machen\b"
     r"|\bin Erwägung ziehen\b|\bBereitstellung von\b|\bseitens\b|\bzwecks\b|\bmittels\b|\bhinsichtlich\b|\bbezüglich\b"
+    r"|\b\w+ung\b[^.!?]{0,40}?\b(?:durchgeführt|vorgenommen|erfolgt|erfolgen)\b"
 )
 CON_DE = rx(r"(?:^|[.!?]\s+)(?:Darüber hinaus|Zudem|Außerdem|Ferner|Zusätzlich|Gleichzeitig|Nicht zuletzt)\b")
 
@@ -281,7 +345,7 @@ def detect_lang(text: str) -> str:
 
 # --- the checks ---------------------------------------------------------------------------------
 
-def lint_text(text: str, lang: str):
+def lint_text(text: str, lang: str, glossary=None):
     if lang == "auto":
         lang = detect_lang(text)
     doc = Doc(text)
@@ -422,6 +486,24 @@ def lint_text(text: str, lang: str):
     if excl > 1:
         add(1, "EXC01", f"{excl} exclamation marks; at most one per marketing page, none in docs or notices")
 
+    # calques and register notes (both languages)
+    for b in doc.blocks:
+        for pat, alt, ratio in (CAL_DE if de else CAL_EN):
+            for m in pat.finditer(b["text"]):
+                add(line_of(b, m.start()), "CAL01", f"calque or unidiomatic '{m.group(0)}': natural form {alt} (corpus {ratio})")
+        for pat, note in (CAL_DE_NOTE if de else CAL_EN_NOTE):
+            for m in pat.finditer(b["text"]):
+                add(line_of(b, m.start()), "CAL02", f"register: {note}")
+
+    # product glossary
+    for row in glossary or []:
+        if row["lang"] not in ("*", lang):
+            continue
+        for b in doc.blocks:
+            for pat, variant in row["avoid"]:
+                for m in pat.finditer(b["text"]):
+                    add(line_of(b, m.start()), "GLO01", f"'{m.group(0)}' is not the house term: use '{row['preferred']}' (glossary)")
+
     # sentence length
     long_ = [(ln, len(re.findall(r"\w+", s))) for ln, s, head in sents if not head]
     counted = [x for x in long_ if x[1] >= 4]
@@ -444,8 +526,6 @@ def lint_text(text: str, lang: str):
                 add(line_of(b, m.start()), "TYP04", "punctuation directly after a label ending in ? ! …: rebuild the sentence")
             for m in re.finditer(r"€\s?\d|\d€|\b[1-9]\d{0,2},\d{3}\b(?![,\d])|€\.", t):
                 add(line_of(b, m.start()), "TYP05", f"number or currency format '{m.group(0)}': German writes '19 €' and '1.000'")
-            for m in CAL_DE.finditer(t):
-                add(line_of(b, m.start()), "CAL01", f"English calque '{m.group(0)}'")
             for m in FVG_DE.finditer(t):
                 add(line_of(b, m.start()), "FVG01", f"nominal or official style '{m.group(0)}': use a verb")
             for m in ([] if b["head"] else DU_CAP.finditer(t)):
@@ -465,43 +545,119 @@ def lint_text(text: str, lang: str):
     return lang, sorted(out)
 
 
+# --- product voice files ------------------------------------------------------------------------
+
+def load_glossary(path: str):
+    """Read a glossary table: | lang | preferred | avoid | note |. 'avoid' holds comma-separated literal
+    variants; a trailing * matches any word ending. Rows whose lang is not de, en or * are skipped."""
+    rows = []
+    with open(path, encoding="utf-8") as fh:
+        for line in fh:
+            cells = [c.strip() for c in line.strip().strip("|").split("|")]
+            if len(cells) < 3 or cells[0].lower() not in ("de", "en", "*"):
+                continue
+            avoid = []
+            for v in (x.strip().strip("`") for x in cells[2].split(",")):
+                if not v or v in ("-", "–"):
+                    continue
+                body = re.escape(v[:-1]) + r"\w*" if v.endswith("*") else re.escape(v)
+                avoid.append((re.compile(r"(?<![\w-])" + body + r"(?![\w-])", re.IGNORECASE), v))
+            if avoid:
+                rows.append({"lang": cells[0].lower(), "preferred": cells[1].strip("`"), "avoid": avoid})
+    return rows
+
+
+REQUIRED_CORRECTION_KEYS = ("date", "surface", "lang", "before", "after", "reason")
+PERSONAL = re.compile(r"[\w.+-]+@[\w-]+(?:\.[\w-]+)+|(?<!\d)(?:\+|00)\d[\d ()/-]{7,}\d")
+
+
+def voice_check(root: str):
+    """Check a voice directory. Returns a list of (file, line, code, message)."""
+    out = []
+    for name in ("voice.md", "glossary.md", "corrections.jsonl"):
+        if not os.path.isfile(os.path.join(root, name)):
+            out.append((name, 0, "VOI03", "missing; start from the skill's assets/voice/ templates"))
+    ex = os.path.join(root, "examples")
+    shipped = [f for f in (os.listdir(ex) if os.path.isdir(ex) else []) if f.endswith(".md") and not f.startswith("_")]
+    if not shipped:
+        out.append(("examples/", 0, "VOI03", "no approved examples: drafts stay marked as unreviewed voice"))
+    path = os.path.join(root, "corrections.jsonl")
+    if not os.path.isfile(path):
+        return out
+    seen = {}
+    with open(path, encoding="utf-8") as fh:
+        for n, line in enumerate(fh, 1):
+            if not line.strip():
+                continue
+            try:
+                rec = json.loads(line)
+            except ValueError as e:
+                out.append(("corrections.jsonl", n, "VOI01", f"not valid JSON: {e}"))
+                continue
+            if not isinstance(rec, dict):
+                out.append(("corrections.jsonl", n, "VOI01", "each line must be a JSON object"))
+                continue
+            if rec.get("_template"):
+                continue  # the format line shipped with the template
+            missing = [k for k in REQUIRED_CORRECTION_KEYS if not str(rec.get(k, "")).strip()]
+            if missing:
+                out.append(("corrections.jsonl", n, "VOI01", f"missing {', '.join(missing)}"))
+            if rec.get("date") and not re.match(r"^\d{4}-\d{2}-\d{2}$", str(rec["date"])):
+                out.append(("corrections.jsonl", n, "VOI01", "date must be YYYY-MM-DD"))
+            if rec.get("lang") and rec["lang"] not in ("de", "en"):
+                out.append(("corrections.jsonl", n, "VOI01", "lang must be de or en"))
+            if PERSONAL.search(" ".join(str(rec.get(k, "")) for k in ("before", "after", "reason"))):
+                out.append(("corrections.jsonl", n, "VOI04", "email address or phone number: store the pattern, not personal data"))
+            rule = str(rec.get("rule", "")).strip().lower()
+            if rule:
+                entry = seen.setdefault(rule, {"lines": [], "promoted": False})
+                entry["lines"].append(n)
+                entry["promoted"] = entry["promoted"] or bool(str(rec.get("promoted", "")).strip())
+    for rule, entry in sorted(seen.items()):
+        if len(entry["lines"]) >= 2 and not entry["promoted"]:
+            out.append(("corrections.jsonl", entry["lines"][-1], "VOI02",
+                        f"rule '{rule}' corrected {len(entry['lines'])} times and not promoted: add a glossary row or "
+                        f"a lint rule, then set 'promoted' on the entry"))
+    return out
+
+
 # --- self-test ----------------------------------------------------------------------------------
 
-GOOD_EN = """# Merge incidents
+GOOD_EN = """# Move a booking
 
-You can now merge two incidents into one. Updates from both keep their timestamps, so the timeline stays in order.
+You can now move a booking to another slot. The guest gets an email with the new time, and the old slot opens again.
 
-Checks run every 30 seconds from four locations. The on-call person gets a phone call when two locations agree the site is down. Free accounts have 60 API requests per minute, Team accounts 600.
+Reminders go out 24 hours before each appointment, by email or text message. Free accounts have 60 API requests per minute, Team accounts 600.
 
-The median alert reached the phone in 11 seconds in our 2026 audit (source: https://example.com/audit).
+The median reminder reached the guest in 11 seconds in our 2026 audit (source: https://example.com/audit).
 
 ```
 robust seamless cutting-edge
 ```
 """
 
-BAD_EN = """# Our Powerful Incident Management Platform
+BAD_EN = """# Our Powerful Booking Management Platform
 
-In today's fast-paced digital world, monitoring is not just a tool. It's peace of mind. We are the best monitoring platform on the market — seamless, robust, and effortless — and our cutting-edge solution unlocks the power of your team — ensuring a seamless experience for everyone. This release marks a pivotal milestone in our journey. Experts agree that uptime matters because customers expect reliability. Move faster without compromising security! Great!
+In today's fast-paced digital world, scheduling is not just a tool. It's peace of mind. We are the best booking platform on the market — seamless, robust, and effortless — and our cutting-edge solution unlocks the power of your team — ensuring a seamless experience for everyone. This release marks a pivotal milestone in our journey. Experts agree that reminders matter because guests forget. Move faster without compromising security! Great!
 
 It's not just alerting. It's confidence.
 """
 
-GOOD_DE = """# Statusseite für deine Kunden
+GOOD_DE = """# Rechnungen schreiben und verschicken
 
-Wir prüfen deine Website von vier Standorten aus, auf Wunsch alle 30 Sekunden. Fällt sie aus, bekommst du eine SMS oder einen Anruf. Zum Einrichten brauchst du nur die Adresse.
+Du legst eine Rechnung an, wählst den Kunden und trägst die Positionen ein. Die Rechnung geht als PDF per E-Mail raus, mit deinem Logo und deiner Bankverbindung. Zahlt der Kunde nicht, erinnern wir ihn nach 14 Tagen.
 
-Das kostet 19 € im Monat. Alle Preise netto. Laut unserer Auswertung vom Oktober 2026 kommt ein Alarm im Median nach 11 Sekunden an.
+Das kostet 19 € im Monat. Alle Preise netto. Laut unserer Auswertung vom Oktober 2026 dauert eine Rechnung im Median 90 Sekunden.
 """
 
-BAD_DE = """# Schnelle Und Zuverlässige Überwachung Für Deine Websites
+BAD_DE = """# Schnelle Und Einfache Rechnungen Für Deine Kunden
 
-In der heutigen schnelllebigen Welt ist zuverlässiges Monitoring nicht nur ein Nice-to-have — es ist ein echter Gamechanger. Egal ob Startup oder Enterprise: Unsere ganzheitliche Plattform bietet Ihnen eine nahtlose Integration in deine bestehenden Workflows. Tauche ein in eine Welt, in der Ausfälle der Vergangenheit angehören. Darüber hinaus wird durch die Bereitstellung von maßgeschneiderten Dashboards ein echter Mehrwert für Ihr Team geschaffen. Wir sind die beste Monitoring-Lösung am Markt. Die "Status Seite" zeigt Kunden's Störungen. Das kostet €19 pro Monat. Natürlich! Hier ist eine Übersicht.
+In der heutigen schnelllebigen Welt ist eine gute Buchhaltung nicht nur ein Nice-to-have — es ist ein echter Gamechanger. Egal ob Startup oder Enterprise: Unsere ganzheitliche Plattform bietet Ihnen eine nahtlose Integration in deine bestehenden Workflows. Tauche ein in eine Welt, in der offene Posten der Vergangenheit angehören. Darüber hinaus wird durch die Bereitstellung von maßgeschneiderten Vorlagen ein echter Mehrwert für Ihr Team geschaffen. Wir sind die beste Rechnungssoftware am Markt. Die "Online Rechnung" zeigt Kunden's Zahlungen. Das kostet €19 pro Monat. In 2026 haben wir viele Probleme adressiert. Natürlich! Hier ist eine Übersicht.
 """
 
 EXPECT_BAD_EN = {"OPN01", "TTL01", "NXY01", "SUP01", "TEL01", "TEL02", "TEL03", "TEL04", "DSH01", "EXC01", "CLM01"}
 EXPECT_BAD_DE = {"OPN01", "TTL01", "NXY01", "DSH01", "SUP01", "TEL04", "ADR01", "TYP01", "TYP02", "TYP03", "TYP05",
-                 "RES01", "FVG01"}
+                 "RES01", "FVG01", "CAL01"}
 
 
 def self_test() -> int:
@@ -526,29 +682,76 @@ def self_test() -> int:
         fails.append("testimonial block not flagged")
     if lint_text(BAD_EN, "auto")[0] != "en" or lint_text(BAD_DE, "auto")[0] != "de":
         fails.append("language detection failed")
-    if "SUP01" not in codes("We are the fastest status page.", "en"):
+    if "SUP01" not in codes("We are the fastest booking tool.", "en"):
         fails.append("unsourced EN superlative not flagged")
-    if "SUP01" in codes("The fastest interval we measured among five tools was 30 seconds (benchmark, 2026-10).", "en"):
+    if "SUP01" in codes("The fastest reminder we measured among five tools took 30 seconds (benchmark, 2026-10).", "en"):
         fails.append("sourced EN superlative flagged")
-    if "SUP01" not in codes("Wir sind die schnellste Statusseite.", "de"):
+    if "SUP01" not in codes("Wir sind die schnellste Buchungssoftware.", "de"):
         fails.append("unsourced DE superlative not flagged")
-    if "SUP01" not in codes("Trusted by 10,000 teams, we are the fastest status page.", "en"):
+    if "SUP01" not in codes("Trusted by 10,000 teams, we are the fastest booking tool.", "en"):
         fails.append("a bare digit must not count as a source")
     if "CNT01" not in codes("Trusted by over 10,000 teams worldwide.", "en"):
         fails.append("customer count not flagged")
     if "TST01" not in codes('"It cut our invoicing time in half." Sarah Miller, Operations Lead', "en"):
         fails.append("inline testimonial not flagged")
-    if "SUP01" in codes("Laut Umfrage 2026 ist es die schnellste Statusseite.", "de"):
+    if "SUP01" in codes("Laut Umfrage 2026 ist es die schnellste Buchungssoftware.", "de"):
         fails.append("sourced DE superlative flagged")
     if "SUP01" in codes("Follow best practices and read the first step.", "en"):
         fails.append("false positive on 'best practices' or 'first step'")
     if "DSH02" not in codes("Wer PHP nutzt — etwa für Kunden —, braucht kein JSON.", "de"):
         fails.append("dash plus comma not flagged")
+    # calques: real ones flagged, established ones left alone
+    for text in ("Wir müssen eine Entscheidung machen.", "Die Funktion ist nicht länger verfügbar.",
+                 "Wir sind so aufgeregt über das Update.", "Teile dein Feedback mit uns."):
+        if "CAL01" not in codes(text, "de"):
+            fails.append(f"DE calque not flagged: {text}")
+    for text in ("Das Projekt läuft einmal mehr nach Plan.", "Der Brief ist adressiert an die Buchhaltung.",
+                 "Wir treffen eine Entscheidung."):
+        if "CAL01" in codes(text, "de"):
+            fails.append(f"established DE phrase flagged as calque: {text}")
+    if codes("Das macht Sinn.", "de") & {"CAL01"} or "CAL02" not in codes("Das macht Sinn.", "de"):
+        fails.append("'macht Sinn' must be a register note (CAL02), not a calque")
+    for text in ("We use the tool since three years.", "You will become an email with the link.",
+                 "Please explain me the invoice.", "We look forward to hear from you."):
+        if "CAL01" not in codes(text, "en"):
+            fails.append(f"EN calque not flagged: {text}")
+    if "TEL04" not in codes("Ups! Das hat nicht geklappt.", "de") or "TEL04" not in codes("Oops, something broke.", "en"):
+        fails.append("UI joke or apology not flagged")
+    if "FVG01" not in codes("Die Speicherung konnte nicht durchgeführt werden.", "de"):
+        fails.append("noun plus 'durchgeführt' not flagged")
+    if "CAL01" in codes("We have used it for three years and take a photo of each receipt.", "en"):
+        fails.append("idiomatic EN flagged as calque")
+    # glossary and voice files
+    tmp = tempfile.mkdtemp(prefix="copy-lint-")
+    gl = os.path.join(tmp, "glossary.md")
+    with open(gl, "w", encoding="utf-8") as fh:
+        fh.write("| lang | preferred | avoid | note |\n|---|---|---|---|\n"
+                 "| de | Termin | Slot*, Zeitfenster | Buchungen |\n| en | booking | reservation | |\n")
+    g = load_glossary(gl)
+    if "GLO01" not in {c for _, c, _ in lint_text("Wähle einen freien Slot.", "de", g)[1]}:
+        fails.append("glossary variant with * not flagged")
+    if {c for _, c, _ in lint_text("Wähle einen freien Termin.", "de", g)[1]} & {"GLO01"}:
+        fails.append("preferred glossary term flagged")
+    if {c for _, c, _ in lint_text("Your reservation is confirmed.", "de", g)[1]} & {"GLO01"}:
+        fails.append("EN glossary row applied to German text")
+    with open(os.path.join(tmp, "corrections.jsonl"), "w", encoding="utf-8") as fh:
+        rec = {"date": "2026-11-03", "surface": "ui-error", "lang": "de", "before": "Ein Fehler ist aufgetreten.",
+               "after": "Die Rechnung wurde nicht gespeichert.", "reason": "say what failed", "rule": "name what failed"}
+        fh.write(json.dumps(rec, ensure_ascii=False) + "\n")
+        fh.write(json.dumps(dict(rec, before="Fehler beim Speichern", after="Projekt nicht gespeichert"), ensure_ascii=False) + "\n")
+        fh.write(json.dumps(dict(rec, before="Mail an anna@example.com fehlgeschlagen", rule=""), ensure_ascii=False) + "\n")
+        fh.write("{not json\n")
+    vc = {c for _, _, c, _ in voice_check(tmp)}
+    shutil.rmtree(tmp, ignore_errors=True)
+    for want in ("VOI01", "VOI02", "VOI03", "VOI04"):
+        if want not in vc:
+            fails.append(f"voice check did not report {want}")
     for f in fails:
         print("FAIL", f, file=sys.stderr)
     if fails:
         return 1
-    print("copy_lint self-test: ok (good EN/DE clean, bad EN/DE flagged, 10 spot checks)")
+    print("copy_lint self-test: ok (good EN/DE clean, bad EN/DE flagged, calques, glossary, voice files, "
+          "32 spot checks)")
     return 0
 
 
@@ -557,17 +760,38 @@ def self_test() -> int:
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(
         prog="copy_lint.py",
-        description="Flag unsourced superlatives, tell phrases, dash and contrast density and typography faults "
-                    "in English or German copy. Warnings only; --strict makes them fail.",
+        description="Flag unsourced superlatives, tell phrases, calques, dash and contrast density and typography "
+                    "faults in English or German copy, plus product glossary variants. Warnings only; --strict makes "
+                    "them fail.",
     )
     ap.add_argument("files", nargs="*", help="files to check; - reads stdin")
     ap.add_argument("--lang", choices=["en", "de", "auto"], default="auto", help="text language (default: auto)")
     ap.add_argument("--strict", action="store_true", help="exit 1 when any warning is printed")
+    ap.add_argument("--glossary", metavar="FILE", help="product glossary table (lang | preferred | avoid | note); "
+                    "flags forbidden variants as GLO01")
+    ap.add_argument("--voice-check", metavar="DIR", help="check a voice directory (voice.md, glossary.md, "
+                    "corrections.jsonl, examples/) and exit")
     ap.add_argument("--self-test", action="store_true", help="run the built-in good and bad texts and exit")
     args = ap.parse_args(argv)
 
     if args.self_test:
         return self_test()
+    if args.voice_check:
+        if not os.path.isdir(args.voice_check):
+            print(f"copy_lint.py: {args.voice_check} is not a directory", file=sys.stderr)
+            return 2
+        found = voice_check(args.voice_check)
+        for f, ln, code, msg in found:
+            print(f"{os.path.join(args.voice_check, f)}:{ln}: WARN {code} {msg}")
+        print(f"{len(found)} voice warning(s)", file=sys.stderr)
+        return 1 if (args.strict and found) else 0
+    glossary = None
+    if args.glossary:
+        try:
+            glossary = load_glossary(args.glossary)
+        except (OSError, UnicodeDecodeError) as e:
+            print(f"copy_lint.py: cannot read glossary {args.glossary}: {e}", file=sys.stderr)
+            return 2
     if not args.files:
         ap.print_usage(sys.stderr)
         print("copy_lint.py: no input; give a file, - for stdin, or --self-test", file=sys.stderr)
@@ -580,7 +804,7 @@ def main(argv=None) -> int:
         except (OSError, UnicodeDecodeError) as e:
             print(f"copy_lint.py: cannot read {name}: {e}", file=sys.stderr)
             return 2
-        lang, found = lint_text(text, args.lang)
+        lang, found = lint_text(text, args.lang, glossary)
         label = "stdin" if name == "-" else name
         for ln, code, msg in found:
             print(f"{label}:{ln}: WARN {code} [{lang}] {msg}")

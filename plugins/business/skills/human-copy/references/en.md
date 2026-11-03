@@ -5,6 +5,7 @@
 - Calibration
 - Where the word lists live
 - Patterns and what to do about each
+- The native pass (English)
 - Calibrated markers (last reviewed 2026-11-01)
 - Rewrite examples (constructed)
 - Genre notes: landing page, feature page, changelog, mail, docs
@@ -72,8 +73,8 @@ script; read each hit as "find the fact behind this sentence". The categories:
    scope.
 10. Vague attribution ("experts agree", "studies show", "teams tell us"). Name the source with link and date, or
     delete. A quote needs a consenting, real person (see the claims reference of this skill).
-11. Category nouns instead of the thing ("solution", "platform", "experience"). Say what it is and does: "Uptime
-    checks, phone alerts and a public status page in one account."
+11. Category nouns instead of the thing ("solution", "platform", "experience"). Say what it is and does: "Invoices,
+    payment reminders and a list of who owes what, in one account."
 12. Hedging and chat politeness ("it's important to note", "feel free to reach out", "I hope this helps"). State
     the condition precisely or remove the hedge; answer first.
 13. Copula avoidance ("serves as", "boasts", "features" for "has"). Prefer is, has, uses.
@@ -92,6 +93,31 @@ script; read each hit as "find the fact behind this sentence". The categories:
 17. Exclamation marks. At most one per marketing page; none in docs, notices or errors (Google developer style:
     "In general, avoid exclamation points", verified 2026-11-01).
 
+## The native pass (English)
+
+After the draft, reread only the English, as an editor who writes English natively and has never seen a German
+or machine draft of it. For each sentence ask: would a native writer produce this without a source text in
+front of them? If not, rewrite the sentence from the fact, do not patch words.
+
+Why a separate pass: asking for natural text up front does not work. In a 2025 study a naturalness instruction
+left the translationese rate of GPT-4 output where it was (0.50 against 0.53), while a pass in which the model
+polished its own finished output cut it from 43 % to 25 % (Li et al., https://arxiv.org/html/2503.04369,
+verified 2026-11-03 in the research). Instruction-tuned models also use nominalisations at 1.5 to 2 times and
+present participial clauses at 2 to 5 times the human rate (Reinhart et al., PNAS 2025,
+https://pmc.ncbi.nlm.nih.gov/articles/PMC11874169/), which is what the pass removes.
+
+| Pattern | Spot it | Rewrite |
+|---|---|---|
+| Corporate abstraction | a noun where a person does something: "enablement", "visibility", "alignment", "value delivery" | name who does what: "Your team sees every open invoice on one page." |
+| Nominalisation chain | "the creation of", "the management of", "provides the ability to" | the verb: "create", "manage", "lets you" |
+| Stacked hedges | two softeners in one sentence: "may potentially", "can help to reduce in some cases" | one condition stated plainly, or the fact |
+| Triplets | three adjectives or three abstract nouns in a row | keep the one you can prove; delete the rest |
+| Participle tail | ", ensuring ...", ", making it ..." at the end of a sentence | its own sentence with a subject, or delete |
+| Calque from German | "since three years", "explain me", "you will become an email" | the corpus list in the collocations reference (CAL01) |
+| Wrong register for the surface | brochure words in an error, chat words in a contract | the register table in the register reference |
+
+Then run `copy_lint.py --lang en`.
+
 ## Calibrated markers (last reviewed 2026-11-01)
 
 | Marker | Strength | Why it is not proof |
@@ -107,8 +133,9 @@ script; read each hit as "find the fact behind this sentence". The categories:
 | Transition openers (CON01) | Weak | The field guide calls transition words in isolation a weak sign and says style guides accept them. |
 | Uniform sentence length | Do not gate | No reliable separator between human and model text; split sentences over 25 words for clarity instead (GOV.UK, verified 2026-11-01). |
 
-Domain vocabulary is not a tell. For a monitoring product "reliable" and "outage" are core words. Lint the claim
-around the word: "99.9 % of checks finished inside 5 seconds in March" is a claim; "reliable monitoring" is a hope.
+Domain vocabulary is not a tell. For a booking system "reliable" and "no-show" are core words. Lint the claim
+around the word: "98 % of reminders arrived before the appointment in March" is a claim; "reliable reminders" is a
+hope.
 
 ## Rewrite examples (constructed)
 
@@ -117,43 +144,44 @@ replaced from the facts file; never ship them filled with invented numbers.
 
 Hero line
 
-- Draft: "It's not just monitoring. It's peace of mind for modern teams."
-- Rewrite: "Checks your site every {30} seconds from {four} locations and calls the on-call person when {two}
-  locations agree it is down."
-- What changed: the straw-man contrast is gone; interval, locations and trigger are stated; each number comes
+- Draft: "It's not just scheduling. It's peace of mind for modern practices."
+- Rewrite: "Patients book online, get a text reminder {24} hours before, and can move the appointment
+  themselves up to {12} hours ahead."
+- What changed: the straw-man contrast is gone; the reminder time and the rule are stated; each number comes
   from the product settings.
 
 Feature item
 
 - Draft: "Our vibrant ecosystem of integrations showcases our commitment to your success."
-- Rewrite: "Sends alerts to Slack, Microsoft Teams, email and SMS. Each integration takes one form to set up."
+- Rewrite: "Posts task changes to Slack, Microsoft Teams and email. Each integration takes one form to set up."
 - What changed: named objects replace the category noun; the second sentence tells the reader what to expect.
 
 Participle tail
 
 - Draft: "We rebuilt the dashboard, ensuring a better experience for every team."
-- Rewrite: "The dashboard now loads in {N} s instead of {M} s for accounts with {500} services."
+- Rewrite: "The dashboard now loads in {N} s instead of {M} s for accounts with {500} projects."
 - What changed: a measured before and after with the condition under which it holds.
 
 Unsourced superlative
 
-- Draft: "The fastest status page on the market."
-- Rewrite A (with proof): "Median publish time {N} s in our {month year} test of {five} tools (method: {link})."
-- Rewrite B (no proof available): "Updates appear on the page within {N} seconds of posting."
+- Draft: "The fastest invoicing tool on the market."
+- Rewrite A (with proof): "Median time from new invoice to sent PDF: {N} s in our {month year} test of {five}
+  tools (method: {link})."
+- Rewrite B (no proof available): "The customer gets the PDF within {N} seconds of sending."
 - What changed: the claim is either benchmarked with a basis the reader can check or reduced to the product's own
   measured behaviour.
 
 Changelog entry
 
-- Draft: "Improved the reliability of incident handling, further enhancing the user experience."
-- Rewrite: "Incidents can now be merged. Updates from both incidents keep their original timestamps."
-- What changed: says what the user can now do and what happens to the data.
+- Draft: "Improved the flexibility of booking management, further enhancing the guest experience."
+- Rewrite: "Bookings can now be moved to another slot. The guest gets an email with the new time."
+- What changed: says what the user can now do and what happens to the guest.
 
 Mail opener
 
 - Draft: "I hope this email finds you well! We're thrilled to share some exciting news."
-- Rewrite: "Subject: Merge duplicate incidents. First line: You can now merge two incidents into one from the
-  incident page."
+- Rewrite: "Subject: Move a booking without cancelling it. First line: You can now move a booking to another
+  slot from the calendar."
 - What changed: the subject and first line carry the news; no greeting padding.
 
 ## Genre notes
@@ -162,7 +190,7 @@ Landing page
 
 - First sentence: what it does and for whom. At least one figure with unit and baseline above the fold, taken from
   the facts file. No contrast headline, no adjective triad, no "solution" as the noun.
-- Sentence case for headings and buttons. Buttons say verb plus object ("Create status page"), not "Get started".
+- Sentence case for headings and buttons. Buttons say verb plus object ("Create invoice"), not "Get started".
   WCAG asks that link purpose be determinable from the link text where possible
   (https://www.w3.org/WAI/WCAG22/Understanding/link-purpose-in-context.html, verified 2026-11-01).
 - Show real UI, real configuration or real sample output next to claims. Source: none; design judgment.

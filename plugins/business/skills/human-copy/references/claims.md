@@ -65,7 +65,7 @@ How to handle one:
    seconds of posting."
 3. If you have neither, delete the claim. A softer superlative ("one of the best") does not fix a missing basis.
 4. For "only" and "first": check the full field at the date of writing, name the feature precisely ("the only
-   status page that {specific}"), and keep the evidence in the register. A false "first" is a false statement.
+   invoicing tool that {specific}"), and keep the evidence in the register. A false "first" is a false statement.
 5. A claim about all customers ("customers love it") needs real, representative evidence; one friendly quote does
    not support it.
 
