@@ -130,6 +130,20 @@ runtime and adds a failure domain, a contract nobody owns, and a shared applicat
   Test: an expired payload is rejected, a payload for another purpose is rejected, and a second use of the same
   `jti` is rejected (atomic consume, for example `SET NX` with a TTL).
 
+- [default] Build these payloads with an Interop Envelope (`rene-roscher/laravel-interop` in PHP; `Seal`/`Open` in
+  laravel-go-encryption, the `envelope` module in laravel-rust-encryption, `Envelope` in laravel-node-encryption):
+  a JSON document with `typ`, `v`, `iat`, optional `nbf` and `exp`, a `scope` and `data`, sealed with
+  `encryptString`. Every `seal()` must choose an expiry, and `open()` must name the expected scope, so a token
+  cannot outlive its purpose or be reused for another one. The service provider binds `Envelope` to the
+  application's encrypter; for a service relationship construct it with that relationship's key instead:
+  `new Envelope(new Encrypter($serviceKey, 'aes-256-cbc'))`. The envelope does not track single use; add a `jti`
+  to `data` and consume it atomically where replay inside the window matters.
+  Trade-off: one more package, in exchange for one format with the same verdicts in PHP, Go, Rust and Node.
+  Deviate only with an ADR that names this trade-off.
+  Test: open with the wrong scope throws `scope_mismatch`; an expired envelope throws `expired`; an envelope
+  sealed with the app key does not open with the service key.
+  Source: https://github.com/Rene-Roscher/laravel-interop (README and `src/Envelope.php`, verified 2026-11-03).
+
 - [default] Other cross-service payloads carry `exp` as well.
   Trade-off: clock skew handling for payloads where replay is harmless. Deviate only with an ADR that names this
   trade-off, or a one-line reason in the contract. Test: a payload type without `exp` fails the contract test

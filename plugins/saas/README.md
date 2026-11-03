@@ -15,9 +15,13 @@ and `service-boundaries` assumes a PHP or Laravel monolith.
 | `tenant-isolation` | data can cross a tenant boundary: web, API, jobs, schedules, caches, exports, notifications, realtime |
 | `authorization-rbac` | designing or reviewing roles, permissions, owner rights, invitations or API token scopes |
 | `build-vs-buy` | choosing between building in-house and a vendor or package, or adding a provider behind an adapter |
-| `billing-eu-b2b` | touching checkout, subscriptions, invoices, VAT, reverse charge, webhooks from a payment provider, coupons or plan limits |
+| `tenancy-model` | designing organizations, teams, projects, memberships, invitations or ownership transfer |
+| `plan-entitlements` | adding a plan limit or feature flag per plan, a per-tenant override, an add-on, or enforcing a quota |
+| `billing-eu-b2b` | touching checkout, subscriptions, invoices, VAT, reverse charge, webhooks from a payment provider or coupons |
 | `gdpr-engineering` | a change adds personal data, a third-party service, a retention period, or data leaving the EU/EEA |
 | `service-boundaries` | someone proposes a microservice, worker or rewrite in another language, or designs the contract between services |
+| `async-reliability` | adding or reviewing a job, consumer, scheduled task or notification, or a queue, retry or kill-switch setting |
+| `egress-and-webhooks` | fetching a URL a user supplied, sending webhooks to customers, or receiving webhooks from providers |
 
 Legal and tax content is a review-ready draft for the DE/EU scope, not legal or tax advice.
 

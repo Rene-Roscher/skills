@@ -1,6 +1,6 @@
 ---
 name: billing-eu-b2b
-description: "Engineers subscription billing for EU and German B2B SaaS with the provider behind an adapter: integer money, reverse charge with proof, idempotent webhooks, proration, dunning, race-free limits, EN 16931 e-invoices. Use when touching checkout, subscriptions, invoices, payment webhooks (Mollie, Stripe), VAT IDs, prices, coupons or quotas, even small changes. Not for pricing copy or tax advice."
+description: "Engineers subscription billing for EU and German B2B SaaS with the provider behind an adapter: integer money, reverse charge with proof, idempotent webhooks, proration, dunning, race-free limits, EN 16931 e-invoices. Use when touching checkout, subscriptions, invoices, payment webhooks (Mollie, Stripe), VAT IDs, prices or coupons, even small changes. Not for plan limits and overrides (plan-entitlements), pricing copy or tax advice."
 license: Apache-2.0
 metadata:
   author: "Rene Roscher"
