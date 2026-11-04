@@ -74,7 +74,7 @@ jobs:
         run: |
           set -eu
           n=0
-          for f in plugins/*/skills/*/scripts/*.py; do
+          for f in plugins/*/skills/*/scripts/*.py tools/install_skills.py; do
             grep -q -- "--self-test" "$f" || continue
             python3 -I "$f" --self-test > /dev/null
             n=$((n + 1))

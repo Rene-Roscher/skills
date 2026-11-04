@@ -134,6 +134,28 @@ and its security-audit requests. Pin a version as above instead of running whate
 sit under `plugins/*/skills/`, outside the CLI's standard locations, so it finds them through its fallback
 recursive search. Sources: the CLI's README and `docs/creating-skills.md` (verified 2026-10-31).
 
+### opencode from a checkout
+
+opencode reads `SKILL.md` folders from `.opencode/skills/`, `.agents/skills/` and `.claude/skills/` in the project
+and from `~/.config/opencode/skills/`, and ignores frontmatter fields it does not know, so `paths` does no harm
+there. `tools/install_skills.py` links the skill folders of the plugins you choose into one of those places; a
+`git pull` in the checkout then updates them:
+
+```bash
+git clone https://github.com/Rene-Roscher/skills ~/skills
+python3 ~/skills/tools/install_skills.py --list
+python3 ~/skills/tools/install_skills.py --plugins core,saas --target opencode            # global
+python3 ~/skills/tools/install_skills.py --plugins laravel,web --project . --target opencode  # this project
+python3 ~/skills/tools/install_skills.py --uninstall --target opencode
+```
+
+`--copy` makes a snapshot instead of links, `--dry-run` shows what would happen. A folder of the same name that
+the script did not create is never replaced. What does not carry over: the `guardrails` hooks (Claude Code
+only), plugin dependencies such as the Context7 server of `docs-tools`, and plugin-prefixed calls like
+`/core:goal-focus` (opencode loads a skill by its plain name). `opencode debug skill` lists what it found.
+Sources: https://opencode.ai/docs/skills/ (verified 2026-11-04); opencode 1.19.3 listed all installed `core`
+skills from `.opencode/skills/` the same day.
+
 ## What a plugin can do
 
 A plugin runs with your user's privileges. Hooks, MCP servers and executables a plugin ships run outside the
