@@ -38,8 +38,21 @@ that cannot be replaced when its price, terms or uptime change.
   vulnerabilities, provenance), blast radius (where it runs, what it can reach), personal data, and exit cost.
   Why: every dependency runs with your privileges, and an unlicensed or abandoned one cannot be fixed or
   redistributed. Test: diff the manifests between base and head; every added direct dependency has an
-  admission record with all seven answers, otherwise the change is rejected.
+  admission record with all seven answers and the output of `scripts/dep_health.py` for it, and that output
+  is `adopt` or carries the owner's recorded decision; otherwise the change is rejected.
   Source: https://github.com/ossf/scorecard/blob/main/docs/checks.md (verified 2026-10).
+- [default] Buy a package only when its reach is wide and its maintenance active. When reach is below the
+  floors (few downloads and dependents, a handful of stars, one person doing most of the work) and the
+  project needs at most about 300 lines of it, write those lines in the project, or copy them where the
+  license allows it and keep the copyright and license notice beside them. A package with little reach is
+  often unmaintained a few years later, and then its users carry it anyway. Trade-off: the team owns code a
+  package would have kept current, and the reach floors are practice numbers, not research. Deviate only
+  with an ADR that names this trade-off. Proof: `dep_health.py --self-test` passes, and the script returns
+  `build-in-house` for a low-reach package with `--scope-lines` at or below 300. Source: OpenSSF Concise
+  Guide, https://best.openssf.org/Concise-Guide-for-Evaluating-Open-Source-Software (release and activity
+  within 12 months, more than one maintainer), and the CHAOSS Contributor Absence Factor,
+  https://chaoss.community/kb/metric-contributor-absence-factor/ (both verified 2026-11); thresholds and
+  their status in the dependency admission reference.
 - [default] Keep a committed dependency register with one entry per direct dependency: purpose, license,
   owner, data it touches, exit. Trade-off: one more file to keep current, and friction on every new package.
   Deviate only with an ADR that names this trade-off. Proof: a script lists direct dependencies from the
@@ -133,12 +146,25 @@ that cannot be replaced when its price, terms or uptime change.
 
 ## Procedure
 
+### Fast path
+
+For any new package, before anything else:
+
+1. Run `python3 ${CLAUDE_SKILL_DIR}/scripts/dep_health.py [ecosystem] [name] --scope-lines [N] --text`, with
+   N the lines the project would use (without `CLAUDE_SKILL_DIR`, the script is in this skill's `scripts/`).
+2. Exit 0 (`adopt`): continue below. Exit 1: stop and show the owner the verdict and every reason; never
+   choose `adopt-with-adr` yourself. `build-in-house`: offer to write the lines, and copy only when the
+   output says copying is permitted. Exit 2: fix the name. Exit 3: nothing was checked; say so.
+
+### Steps
+
 1. Gate: classify the request. Is it a product rule or a commodity capability? Answer the six questions and
    write the ADR before writing code.
 2. Platform first: look up whether the framework or language already covers it, in the docs for the version in
    the lockfile.
-3. For a package, run the admission checklist with the audit and license commands of its ecosystem. Without
-   network or docs access, mark license and maintenance status unverified and say so in the answer.
+3. For a package, run `dep_health.py` first (fast path), then the rest of the admission checklist with the
+   audit and license commands of its ecosystem. Without network or docs access, mark license and maintenance
+   status unverified and say so in the answer.
 4. For a provider, define the interface and its types, write the fake and the contract suite, and add the
    provider column and resolver. Fixtures come from recorded responses only.
 5. Check the failure behaviour: one dispatch path, unknown capability throws, the failover chain ends in a
@@ -161,6 +187,9 @@ that cannot be replaced when its price, terms or uptime change.
   primary outage can move all mail to the secondary until a restart.
 - A provider switched in one place only. Webhooks for existing subscriptions still arrive for the old provider;
   without a stored provider per resource they hit the new adapter and fail.
+- One signal read as the verdict. A registry listed one maintainer for a framework with hundreds of
+  contributors, and a commit-share bus factor reads 1 for many healthy projects. The verdict reads the reach
+  floors together; a single miss is a note.
 - Activity metrics read as proof. Frequent commits say nothing about how security reports are handled. Read
   the security policy and the advisory history as well.
 - A subprocessor list kept by hand falls behind the providers added in code. Derive the list from code.
@@ -170,6 +199,8 @@ that cannot be replaced when its price, terms or uptime change.
 - The ADR exists, answers the six questions and contains the exit section.
 - Every new direct dependency has an admission record, and the audit and license checks ran clean or their
   findings are written down.
+- `dep_health.py` ran for every new package; its output is in the admission record, and every verdict other
+  than `adopt` has the owner's decision.
 - Provider code has an interface, a fake, a contract suite, a provider column and an architecture test.
 - Failure tests exist: unknown channel throws, all providers down fails visibly, a downstream outage leaves the
   core action intact.
@@ -180,7 +211,10 @@ that cannot be replaced when its price, terms or uptime change.
 - [references/decision-criteria.md](references/decision-criteria.md): load when deciding build or buy, or when
   writing the ADR (six questions, typical outcomes, template).
 - [references/dependency-admission.md](references/dependency-admission.md): load when adding any package or
-  provider (checklist, admission record, audit and license commands per ecosystem).
+  provider, or when a `dep_health.py` verdict needs explaining (checklist, health and reach thresholds with
+  their source status, verdict table, copying with attribution, admission record, audit commands).
+- [scripts/dep_health.py](scripts/dep_health.py): run for every new package (fast path). `--help` lists the
+  inputs; `--self-test` runs offline.
 - [references/adapter-pattern.md](references/adapter-pattern.md): load when integrating a provider (interface,
   types, capability flags, fake, contract tests, provider column, exit).
 - [references/failover.md](references/failover.md): load when designing failover for mail, SMS or payments
@@ -194,6 +228,13 @@ that cannot be replaced when its price, terms or uptime change.
 
 - https://github.com/ossf/scorecard/blob/main/docs/checks.md: maintenance, license and supply-chain signals,
   verified 2026-10.
+- https://best.openssf.org/Concise-Guide-for-Evaluating-Open-Source-Software and
+  https://chaoss.community/kb/metric-contributor-absence-factor/: release and activity windows, maintainer
+  count, bus factor, verified 2026-11.
+- https://docs.deps.dev/api/v3/, https://github.com/npm/registry/blob/main/docs/download-counts.md,
+  https://packagist.org/apidoc, https://docs.pypi.org/api/json/,
+  https://google.github.io/osv.dev/post-v1-query/, https://docs.github.com/en/rest/repos/repos: the APIs
+  `dep_health.py` reads, checked against recorded responses 2026-11-04.
 - https://alistair.cockburn.us/hexagonal-architecture/: ports and adapters, verified 2026-10.
 - https://laravel.com/docs/12.x/mail#failover-configuration: failover mailer configuration, verified 2026-10.
 - laravel/framework v12.53.0 (`LogTransport`, `MailManager`) and symfony/mailer v7.4.6 (`FailoverTransport`,
