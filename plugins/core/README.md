@@ -29,6 +29,7 @@ attempt cap of `goal-focus` and the ban on skipped checks with hooks.
 | `maintainable-code` | writing or reviewing code for reuse, seams, conventions and the cost of a new abstraction or dependency |
 | `agent-toolbelt` | choosing the cheapest tool to answer a question, or briefing a subagent |
 | `commit-hygiene` | you write commits, rewrite branch history or write a pull request description, or set up commit checks |
+| `project-scaffold` | the approved docs are in place and the app, site or worker they name has to be created: official starter, pinned version, only the approved components |
 | `stack-bootstrap` | a repository needs its agent plugins and curated third-party skills set up per project, or its stack changed |
 | `performance-gate` | a feature with data or traffic impact is about to be handed over, or someone asks whether it scales |
 

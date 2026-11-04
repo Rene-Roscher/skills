@@ -174,7 +174,8 @@ live in another plugin of this marketplace; questions per area are in
    `--help` text by hand.
 8. Gate: hand over in the format below and stop. No scaffold, no commit of code, no push.
 9. After approval: answers into the documents, settled decisions into ADRs, record set to Approved, then
-   `check_docs.py --require-approved`. The scaffold follows the approved stack decisions (`stack-bootstrap`), and
+   `check_docs.py --require-approved`. The scaffold, only on request and only for the approved components, is
+   `project-scaffold`; plugins follow with `stack-bootstrap`, and
    the first features each get a `feature-planning` plan.
 
 ## Procedure: adopting an existing repository

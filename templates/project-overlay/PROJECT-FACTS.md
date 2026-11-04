@@ -13,6 +13,15 @@ Delete sections that don't apply.
 | Production database engine | [engine and major version] |
 | Cache, queue and session store | [engine; one instance or one per durability tier] |
 
+## Scaffold
+
+One row per component the approved architecture names, and nothing else. `project-scaffold` fills it before
+the first installer command; its `check_scaffold.py` compares the repository against it.
+
+| Component | Directory | Starter | Version | Flags |
+|---|---|---|---|---|
+| [for example App] | [app, or . for the root] | [for example Laravel Vue starter kit] | [installer and framework version, pinned] | [every choice as a flag] |
+
 ## Commands
 
 | Purpose | Command |

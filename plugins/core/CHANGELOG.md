@@ -16,4 +16,7 @@ All notable changes to the `core` plugin are recorded here. The format follows
   `docs/GLOSSARY.md` template and a format checker.
 - `goal-focus` caps fix attempts on one failing check at ten, with a visible counter and a stop report.
 - Skill `know-your-limits` for sessions on small or balanced models; `goal-focus` no longer cites a best-practices passage that was removed upstream.
+- Skill `project-scaffold`: creates only the approved components from each stack's official starter (Laravel Vue
+  kit, Nuxt, Go), with pinned versions, flags instead of prompts and an untouched first commit, plus
+  `check_scaffold.py`.
 - `stack-bootstrap` offers the `marketing` plugin, `web-quality-skills` and eight `marketingskills` skills for public marketing and docs sites.
