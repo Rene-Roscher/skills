@@ -1,0 +1,10 @@
+{
+  "list": {
+    "title": "Server",
+    "count": "{count} Server | {count} Server",
+    "found": "{n} Zertifikat(e) für {domain} gefunden",
+    "empty": "",
+    "summary": "Shows all servers of this project",
+    "extra": "Nur auf Deutsch"
+  }
+}

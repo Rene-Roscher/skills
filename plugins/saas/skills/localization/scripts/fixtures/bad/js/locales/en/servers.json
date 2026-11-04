@@ -1,0 +1,10 @@
+{
+  "list": {
+    "title": "Servers",
+    "count": "{count} server | {count} servers",
+    "found": "Found {count} certificates for {domain}",
+    "empty": "No servers yet",
+    "legacy": "Old label",
+    "summary": "Shows all servers of this project"
+  }
+}

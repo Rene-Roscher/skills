@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: output-review-server-list
+context:
+  scaffold_script: fixture.sh

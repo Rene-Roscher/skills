@@ -1,0 +1,10 @@
+{
+  "list": {
+    "title": "Serwery",
+    "count": "{count} serwer | {count} serwery",
+    "found": "Znaleziono certyfikaty ({count}) dla {domain}",
+    "empty": "Brak serwerów",
+    "legacy": "Stara etykieta",
+    "summary": "Pokazuje wszystkie serwery projektu"
+  }
+}

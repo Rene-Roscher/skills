@@ -1,0 +1,3 @@
+{
+  "invites": "{count, plural, =0 {Brak zaproszeń} one {# zaproszenie} few {# zaproszenia} many {# zaproszeń} other {# zaproszenia}}"
+}

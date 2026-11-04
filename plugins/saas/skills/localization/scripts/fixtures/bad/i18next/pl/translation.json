@@ -1,0 +1,5 @@
+{
+  "server_one": "{{count}} serwer",
+  "server_other": "{{count}} serwerów",
+  "removed": "Usunięto pliki: {{count}}"
+}

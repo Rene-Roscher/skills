@@ -1,0 +1,4 @@
+{
+  "file_one": "{{count}} Datei",
+  "file_other": "{{count}} Dateien"
+}

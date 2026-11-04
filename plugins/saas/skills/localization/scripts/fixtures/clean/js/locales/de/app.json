@@ -1,0 +1,11 @@
+{
+  "servers": {
+    "title": "Server",
+    "count": "Keine Server | {count} Server | {count} Server",
+    "rate": "{rate} MB/s",
+    "status": "Status: aktiv",
+    "refresh": "Aktualisieren",
+    "delete_failed": "Der Server konnte nicht gelöscht werden. Versuch es in einer Minute noch einmal."
+  },
+  "support": "Schreib an support{'@'}example.com"
+}

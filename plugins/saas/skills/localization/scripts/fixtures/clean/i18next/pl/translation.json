@@ -1,0 +1,6 @@
+{
+  "file_one": "{{count}} plik",
+  "file_few": "{{count}} pliki",
+  "file_many": "{{count}} plików",
+  "file_other": "{{count}} pliku"
+}
