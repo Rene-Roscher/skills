@@ -17,6 +17,18 @@ from `human-copy`, law from `eu-de-legal-baseline`. The failure it prevents: act
 (posts, upvotes, cold sequences, ten channels at once) with no paying customer traced to it, or one that breaks
 German outreach law.
 
+## Fast path
+
+1. Copy [assets/gtm-plan-template.md](assets/gtm-plan-template.md) to `docs/marketing/gtm-plan.md` and replace
+   every `[...]` with a value from the product brief, the pricing model or the owner.
+2. Run `python3 ${CLAUDE_SKILL_DIR}/scripts/check_gtm_plan.py docs/marketing/gtm-plan.md`.
+3. Exit 1 or 2: stop. Fix each error, or report it to the owner with its ID; nothing is spent, sent or posted
+   on that plan. An error naming `product-strategy` or `pricing-and-unit-economics` means: run that skill first.
+4. Exit 0: explain each remaining warning in the plan, then show the plan to the owner.
+5. Sending mail, posting, submitting a listing or contacting anyone waits for the owner's go (`safe-actions`).
+6. Positioning, price, budget and legal grey areas (any G26 or G27 warning, any mail that is neither clearly
+   transactional nor clearly advertising) are the owner's call: list them, do not decide them.
+
 ## Applies when / does not apply
 
 - Applies: a launch or relaunch; choosing or reviewing a channel; a campaign; onboarding, trial, conversion or
@@ -34,42 +46,50 @@ German outreach law.
   `product-strategy` output (buyer, alternatives, positioning) and a price from `pricing-and-unit-economics`;
   if either is missing, run that skill before this one. Why: messages without a named buyer and alternative are
   generic, and a channel cannot be judged without knowing what a customer is worth. Test: "plan our launch" in
-  a repository without `docs/product/` produces a stop that names the missing inputs, not a launch plan.
-  Source: this repository's `product-strategy` and `pricing-and-unit-economics` skills.
+  a repository without `docs/product/` produces a stop that names the missing inputs, not a launch plan;
+  `check_gtm_plan.py` reports G03 or G04 with the skill to run. Source: this repository's `product-strategy` and `pricing-and-unit-economics` skills.
 - [invariant] Every channel, launch and campaign has a target cost per paying customer, derived from the payback
   target in the pricing model, and is judged on sign-ups attributed to it that became paying, read from
   `search-measurement`. Visits, impressions, followers, upvotes and open rates are inputs. Why: B2B traffic and
   revenue diverge, and a channel that brings sign-ups who never pay costs money twice. Test: a report with
   visits and upvotes only is incomplete; a complete one lists spend, attributed sign-ups, paying customers and
-  cost per paying customer per channel for a stated window. Source: this repository's `search-measurement`
-  attribution rule.
+  cost per paying customer per channel for a stated window; the checker reports G12 or G13 for a channel
+  without a numeric target or above the ceiling (contract value x gross margin x payback months / 12), and G14
+  without an attribution field. Source: this repository's `search-measurement` attribution rule.
 - [default] Choose the sales motion from contract value: self-serve when the annual contract value cannot pay
   for a salesperson's time, inside sales (demo, assisted trial, short calls) when it pays for a few hours per
-  deal, field sales only when it pays for long cycles with several stakeholders. Early on, the founder sells
-  and onboards by hand to learn objections. Trade-off: self-serve gives up the deals that need a conversation.
-  Deviate only with an ADR that names this trade-off. Test: the plan states contract value, sales cost per won
-  deal and payback months from the pricing model. Detail: [references/sales-motions.md](references/sales-motions.md).
+  deal, field sales only when it pays for long cycles with several stakeholders. Starting bands, practice from
+  Janz 2014 (verified 2026-11-04): contract value per year below 10000 self-serve, 10000 to 99999 inside sales,
+  100000 and above field sales. The sales cost per won deal stays under the ceiling; when band and ceiling
+  disagree, the ceiling wins. Early on, the founder sells and onboards by hand to learn objections. Trade-off:
+  self-serve gives up the deals that need a conversation. Deviate only with an ADR that names this trade-off.
+  Test: the checker reports G08 for a sales cost above the ceiling and warns G09 when the motion is outside the
+  band. Source: https://christophjanz.blogspot.com/2014/10/five-ways-to-build-100-million-business.html
+  (verified 2026-11-04). Detail: [references/sales-motions.md](references/sales-motions.md).
 - [default] Pick channels from where the buyer already looks (interview notes, the sign-up "how did you hear
   about us" field, search demand, communities the buyer reads) and run one channel until it meets its cost
   target over cohorts set in advance, before adding the next. Trade-off: slower reach while one channel is
-  proven. Deviate only with an ADR that names this trade-off. Test: the plan names the evidence for the buyer's
-  location and the stop or scale criterion per channel.
+  proven. Deviate only with an ADR that names this trade-off. Test: the checker reports G11 without evidence,
+  G16 for a stop/scale rule without a number, and warns G18 when more than one unproven channel starts within
+  30 days.
 - [invariant] Outreach is checked against the recipient's country before anything is sent. In Germany,
   advertising by email needs the addressee's prior express consent, businesses included; advertising calls need
   express consent from consumers (documented, kept five years) and at least presumed consent from businesses;
   every advertising message names the sender and gives a free way to object. Treat LinkedIn and messenger
   messages like email (Unverified). Route to `eu-de-legal-baseline`. Why: § 7 UWG presumes these contacts an
   unreasonable nuisance, and competitors enforce it. Test: "send a cold email campaign to these German
-  companies" gets no sequence for those recipients, the statutory reason, and consent-based alternatives.
-  Source: https://www.gesetze-im-internet.de/uwg_2004/__7.html,
+  companies" gets no sequence for those recipients, the statutory reason, and consent-based alternatives; the
+  checker reports G23 for advertising email to DE without consent or § 7 Abs. 3 and G25 for a cold or bought
+  list. Source: https://www.gesetze-im-internet.de/uwg_2004/__7.html,
   https://www.gesetze-im-internet.de/uwg_2004/__7a.html (verified 2026-11-03). Review-ready draft, not legal
   advice.
 - [invariant] Each lifecycle mail is classed transactional or advertising before it is written. Advertising
   (newsletter, upsell, win-back, review request, most activation nudges) needs consent or all four conditions of
   § 7 Abs. 3 UWG, and carries the objection notice in every mail; transactional mail carries no advertising.
   Enforcement in code: `gdpr-engineering`. Why: a review or upsell line inside an invoice mail can make it
-  advertising (BGH VI ZR 225/17, read from secondary sources only). Test: the mail plan has columns type,
-  trigger, legal basis; a win-back mail to former customers without a consent or § 7 Abs. 3 record is blocked.
+  advertising (BGH VI ZR 225/17, read from secondary sources only). Test: the outreach and mail table has
+  columns type and legal basis; a win-back mail to former customers without a consent or § 7 Abs. 3 record is
+  blocked (checker G22, G24).
   Source: https://www.gesetze-im-internet.de/uwg_2004/__7.html (verified 2026-11-03).
 - [default] Lifecycle mails are triggered by product events (setup step missing, first result reached, trial
   ending, usage dropped), have one goal each, and are judged on that step's conversion, not on opens. Trade-off:
@@ -93,8 +113,8 @@ German outreach law.
   live, directory profiles are complete, support can answer, and the owned audience (with consent) hears first.
   Use one launch moment only for news that a buyer would act on; otherwise ship and announce continuously.
   Trade-off: a single moment concentrates attention and risk on one day. Deviate only with an ADR that names
-  this trade-off. Test: the launch checklist in [references/channels-and-launch.md](references/channels-and-launch.md)
-  is ticked before the date is set.
+  this trade-off. Test: the checker reports G28 when the plan sets a launch date while a
+  checklist box is open; detail in [references/channels-and-launch.md](references/channels-and-launch.md).
 - [default] Referral rewards pay on a paying customer after the refund or withdrawal window, not on sign-up;
   partner and reseller terms are written, with margin taken from the pricing model; partner and affiliate
   content discloses the commercial relationship. Trade-off: slower payouts make the programme less attractive.
@@ -104,14 +124,20 @@ German outreach law.
 ## Procedure
 
 1. Load the product brief and the pricing model. Missing: stop and route (first rule).
-2. Write the plan to the project's marketing docs (default `docs/marketing/`): motion, channels with evidence
-   and cost targets, launch or mail plan, legal column per outreach and mail, owners, read dates.
+2. Copy [assets/gtm-plan-template.md](assets/gtm-plan-template.md) to `docs/marketing/gtm-plan.md` (or the
+   project's marketing docs) and fill it: inputs, motion with its numbers, channels with evidence and cost
+   targets, outreach and mail with country and legal basis, launch checklist, owners.
 3. Check every outreach and mail row against [references/lifecycle-and-outreach.md](references/lifecycle-and-outreach.md)
    and route open questions to `eu-de-legal-baseline`.
-4. Ask `search-measurement` to set up attribution and log each start date.
-5. Sending mail, posting, submitting to directories or contacting people are external actions: draft, show,
+4. Run `python3 ${CLAUDE_SKILL_DIR}/scripts/check_gtm_plan.py docs/marketing/gtm-plan.md`. In clients that
+   don't set `CLAUDE_SKILL_DIR`, the script is in this skill's `scripts/` folder; `--root` is the repository
+   root when run from elsewhere. Exit 1: fix every error or report it. Exit 2: the checker did not run; fix the
+   call. Explain each remaining warning in the plan.
+5. Ask `search-measurement` to set up attribution and log each start date.
+6. Sending mail, posting, submitting to directories or contacting people are external actions: draft, show,
    and act only on the owner's go (`safe-actions`).
-6. At the read date, report per channel with the numbers from the second rule; stop, keep or scale.
+7. At the read date, rerun the checker (G19 lists channels due), report per channel with the numbers from the
+   second rule, and set stop, keep or scale.
 
 ## Traps
 
@@ -125,12 +151,17 @@ German outreach law.
 
 ## Done when
 
+- `check_gtm_plan.py` exits 0 on the plan, and each remaining warning is explained in it.
 - The plan names buyer, motion, channels with evidence, cost per paying customer targets and read dates.
 - Every outreach channel and mail has a legal basis entry or is removed.
 - Attribution is live before the first euro or hour is spent, and results are reported as paying customers.
 
 ## References
 
+- [assets/gtm-plan-template.md](assets/gtm-plan-template.md): copy to `docs/marketing/gtm-plan.md` for every
+  plan; its sections and tables are what the checker reads.
+- `${CLAUDE_SKILL_DIR}/scripts/check_gtm_plan.py`: run before acting on a plan and at each read date. `--help`
+  lists the checks G01 to G29; `--self-test` runs its fixtures.
 - [references/sales-motions.md](references/sales-motions.md): load when choosing self-serve, inside or field
   sales, or founder-led selling.
 - [references/channels-and-launch.md](references/channels-and-launch.md): load for channel choice, launch
@@ -146,6 +177,11 @@ German outreach law.
 
 ## Sources
 
+- https://christophjanz.blogspot.com/2014/10/five-ways-to-build-100-million-business.html: revenue-per-account
+  bands and the way to win each, 5 October 2014, verified 2026-11-04.
+- https://www.forentrepreneurs.com/saas-metrics-2/: CAC payback of 5 to 7 months for the best SaaS businesses,
+  anemic beyond 12, verified 2026-11-04.
+- The checks G01 to G29 are reproducible with the script's self-test.
 - https://www.gesetze-im-internet.de/uwg_2004/__7.html: UWG § 7, verified 2026-11-03.
 - https://www.gesetze-im-internet.de/uwg_2004/__7a.html: UWG § 7a, verified 2026-11-03.
 - https://www.gesetze-im-internet.de/uwg_2004/__5.html and https://www.gesetze-im-internet.de/uwg_2004/__5a.html:
