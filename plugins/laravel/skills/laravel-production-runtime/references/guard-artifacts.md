@@ -12,6 +12,7 @@ Load when setting up the guard tests in a project, or checking which exist. Each
 | `Http::preventStrayRequests()` in `tests/Pest.php` | no test calls out | hermetic env |
 | `tests/Feature/Architecture/OctaneFlushGuardTest.php`, both directions | flush list holds own keys only, and all of them | flush list |
 | Tenant-context leak test | nothing of tenant A is bound after an unauthenticated request | tenant context |
+| CI step running `scripts/octane_scan.py` (copied into the project, pinned), failing on exit 1 | no request, user or tenant state in statics, singletons, controller constructors, globals or the flush list | long-lived state, flush list |
 | Two-requests regression test per stateful service used by controllers | no stale memo across requests | long-lived state |
 | Two-tenants job test per tenant-binding job | no tenant state across jobs in one worker | long-lived state |
 | `tests/Feature/Queue/WakeUpQueueSeparationTest.php` | wake-up jobs on their queue, one dedicated worker, backlog metric | wake-up queue |

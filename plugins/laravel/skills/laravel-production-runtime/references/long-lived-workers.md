@@ -14,6 +14,7 @@ and laravel/framework v12.53.0 on 2026-10-31.
 - Request-stamped memos
 - Flush guard test
 - Two-requests regression test
+- Scanner: octane_scan.py
 - Audit report format
 
 ## What changes under a long-lived worker
@@ -37,6 +38,18 @@ singletons, static properties, listeners you register at runtime, or connections
 
 `config('octane.flush')` is passed to `forgetInstance()` after each operation
 (`FlushTemporaryContainerInstances`). The stock config ships it empty. Put only your own instance keys there.
+
+Each request runs on `clone $this->app`, set as the current container (`src/Worker.php`,
+`CurrentApplication::set()`). The clone copies the container's binding arrays, so `app()->instance()` during a
+request lands on the clone and is dropped with it. The flush list forgets keys on the base application, which
+is where a binding lands when it is written through a reference held since boot (a provider's `$this->app`, a
+singleton built with `$app`). Keep the flush list complete anyway: the scanner cannot tell which container a
+call reaches, and queue workers have no clone at all. Reproduced with the v12.53.0 container on PHP 8.3.10.
+
+Octane resets the auth and session managers in place: `FlushAuthenticationState` calls `forgetGuards()` on the
+same AuthManager and `FlushSessionState` flushes and regenerates the same session driver. A singleton that
+holds a manager therefore reads current state; one that holds a resolved guard, the user, the request or the
+route keeps the first request's.
 
 ## State that bleeds
 
@@ -133,6 +146,42 @@ it('reflects data created between two requests', function (): void {
 
 The HTTP test client reuses the route's controller instance within a test, so this catches a stateful service
 injected into the controller constructor.
+
+## Scanner: octane_scan.py
+
+`python3 scripts/octane_scan.py [app root] [--include packages] [--json]` reads `app/`, `routes/`,
+`bootstrap/app.php`, `config/octane.php` and each `--include` directory, never `vendor/` or `tests/`. With a
+PHP 8 binary on PATH it tokenizes with `token_get_all()`, otherwise with a built-in tokenizer; both give the
+same tokens on the self-test fixtures, and the summary line names the mode. Exit 0: no blocker or high.
+Exit 1: at least one. Exit 2: usage error. `--self-test` runs offline against `scripts/fixtures/octane-scan/`.
+
+| Rule | Detects | Blocker when | Lower severities |
+|---|---|---|---|
+| OS01 | `static::$x =`, `self::$x[] =`, `Name::$x[$k] ??=`, `array_push(static::$x, ...)` outside boot and reset methods | key or value reads request, auth, session, user or tenant (also through a local variable assigned earlier) | high: query or cache result; medium: keyed or pushed; low: lazy init or constant flag |
+| OS02 | `static $var` in a function or method | a write reads per-request data | high: query result; medium: other writes |
+| OS03 | `->singleton()`, `#[Singleton]`, provider `$singletons`, `withSingletons()`, boot-time `->instance(X::class, new Y)` | the constructor, its closure or what it injects (three levels) reads the request, a guard, the user, a route, a tenant holder, `#[CurrentUser]`, `#[Auth]`, `#[Context]` or `#[RouteParameter]` | medium: container or config repository injected |
+| OS04 | controller constructors | the constructor stores request or auth data in `$this` | high: reads it, injects the request or a service that captures it or memoizes it without the user or tenant in the key; medium: injects a stateful memo service |
+| OS05 | `->instance('key')` on the container outside boot code versus `octane.flush` | never | high: either direction, including a manager in the list |
+| OS06 | `spl_object_id()`, `spl_object_hash()` | the argument is the request or user | high: stored or compared as a stamp; medium: other uses |
+| OS07 | `$GLOBALS[...] =`, `define()`, `ini_set()`, `setlocale()`, `date_default_timezone_set()`, `putenv()` outside boot and console code | the value reads per-request data | high: otherwise |
+| OS08 | middleware `handle()` that binds with `->instance()` | never | high: no `forgetInstance()` before an earlier return; medium: no forget at all |
+| OS09 | job (`ShouldQueue` or `Jobs\`) that binds, logs a user in or writes config | a tenant-like key bound without a reset in `finally` | high: the other cases |
+
+Severities follow the audit format below: blocker means another request's data reaches shared state, high a
+pattern that leaks unless shown otherwise. Tenant-like means a name containing tenant, organization, org or
+workspace, or `current` followed by user, team, account, org, company, customer, project or member.
+
+What it cannot see, so a clean run is not proof:
+
+- Concrete classes in `vendor/`, and bindings whose concrete is an interface resolved elsewhere.
+- State bound through a service method (`$this->tenancy->initialize($t)`) instead of `->instance()`.
+- Dynamic keys (`->instance($key, ...)`), closures stored in properties, and request data passed in from a
+  caller under a neutral name.
+- Code reached only from packages unless they are passed with `--include`.
+
+An allow comment `// octane-scan: allow OS04 [reason]` on the same or the previous line suppresses one finding.
+Without a reason of at least a few words it is ignored and the finding says so. Suppressions belong to the
+code owner; a change that adds one needs their review.
 
 ## Audit report format
 

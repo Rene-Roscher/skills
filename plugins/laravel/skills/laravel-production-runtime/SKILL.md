@@ -60,9 +60,10 @@ queues (`safe-actions`).
   statics, singletons or services injected into a controller constructor. Resolve per-request memo services at
   call time (method injection, or `app()` inside the method), or stamp a token on the current request
   (`$request->attributes`) and compare that. Never compare `spl_object_id()`, because PHP reuses object handles.
-  Why: a page served one visitor a structure memoized from another visitor's request. Test: one test makes two
-  requests, changes data between them, and asserts that the second response shows the change; for jobs, two jobs
-  for two tenants run in one worker loop. Source: laravel/octane v2.17.5 `src/ApplicationGateway.php`
+  Why: a page served one visitor a structure memoized from another visitor's request. Test:
+  `scripts/octane_scan.py` reports no blocker or high finding; one test makes two requests, changes data between
+  them, and asserts that the second response shows the change; for jobs, two jobs for two tenants run in one
+  worker loop. Source: laravel/octane v2.17.5 `src/ApplicationGateway.php`
   `terminate()`, laravel/framework v12.53.0 `src/Illuminate/Routing/Route.php` `flushController()` and
   `src/Illuminate/Queue/QueueServiceProvider.php` reset scope (read 2026-10).
 - [invariant] Tenant context is forgotten first, and the flush list holds only the app's own bindings. The
@@ -73,7 +74,8 @@ queues (`safe-actions`).
   a manager drops driver extensions that a package registered once at boot, so the driver fails from the
   second request on, and Octane already resets those managers with its own listeners. Test: a guard in both
   directions (each `->instance('key'` in `app/` is listed in `octane.flush`, and each entry is such a key),
-  plus a request as tenant A followed by an unauthenticated request that finds nothing of A bound.
+  plus a request as tenant A followed by an unauthenticated request that finds nothing of A bound;
+  `scripts/octane_scan.py` reports no OS05, OS08 or OS09 finding.
   Source: laravel/octane v2.17.5 `src/Listeners/FlushTemporaryContainerInstances.php`,
   `GiveNewApplicationInstanceTo*Manager` and `PrepareSocialiteForNextOperation` (read 2026-10).
 
@@ -81,7 +83,7 @@ What each runtime resets, as read in the versions above:
 
 | Runtime | Route's controller instance | Scoped instances | `instance()` bindings, singletons, statics |
 |---|---|---|---|
-| Octane | dropped after a normally terminated request; kept when a Throwable escapes the gateway, because `terminate()` is skipped (`src/Worker.php`) | flushed | kept, except keys in `octane.flush` and what Octane's listeners reset |
+| Octane | dropped after a normally terminated request; kept when a Throwable escapes the gateway, because `terminate()` is skipped (`src/Worker.php`) | flushed | kept, except keys in `octane.flush` and what Octane's listeners reset; an `instance()` written through `app()` during a request lands on the per-request clone and is dropped with it |
 | HTTP test client | one instance serves every request in a test; the framework never calls `flushController()` | kept within a test | kept within a test |
 | `queue:work` | not applicable | reset before each job | kept; `octane.flush` does not apply |
 
@@ -203,17 +205,31 @@ What each runtime resets, as read in the versions above:
 
 ## Procedure
 
+### Fast path
+
+1. Run `python3 ${CLAUDE_SKILL_DIR}/scripts/octane_scan.py [app root]` (in clients without `CLAUDE_SKILL_DIR`,
+   the script is in this skill's `scripts/` folder). It names the tokenizer it used.
+2. Exit 1 means a blocker or high finding: stop, fix it, and run the scanner again. If you cannot fix it,
+   report the finding with its file, line and rule instead of finishing.
+3. Never add an `// octane-scan: allow` comment on your own. Only the code owner may accept a finding, with a
+   reason in the comment. Medium and low findings go into the report with your judgement.
+
+### Steps
+
 1. Read `composer.lock` and `composer.json`: framework, Octane, PHPUnit or Pest, PHP platform version. Compare
    with [references/verification-log.md](references/verification-log.md) and re-read the vendor lines for any
    fact whose version differs. If `laravel/boost` is missing from `require-dev`, propose
    `composer require laravel/boost --dev` and `php artisan boost:install`, and wait for approval.
-2. Name the environment differences this change touches, from the meta-rule list.
-3. Before changing `octane.flush`, a singleton or a scoped binding, read what the installed Octane version
+2. When the change touches services, bindings, middleware, controllers or jobs, run the scanner before editing
+   and again after (fast path). What each rule detects and misses is in
+   [references/long-lived-workers.md](references/long-lived-workers.md).
+3. Name the environment differences this change touches, from the meta-rule list.
+4. Before changing `octane.flush`, a singleton or a scoped binding, read what the installed Octane version
    already resets ([references/long-lived-workers.md](references/long-lived-workers.md)).
-4. Apply the rule and write its guard test ([references/guard-artifacts.md](references/guard-artifacts.md)).
-5. Run the change on the production engine and PHP minor: the PostgreSQL lane, in the production-equal
+5. Apply the rule and write its guard test ([references/guard-artifacts.md](references/guard-artifacts.md)).
+6. Run the change on the production engine and PHP minor: the PostgreSQL lane, in the production-equal
    container. If you cannot run it, say so and give the exact command.
-6. Report which lanes ran, which did not, and which facts you re-checked against the installed source.
+7. Report which lanes ran, which did not, and which facts you re-checked against the installed source.
 
 ## Traps
 
@@ -233,6 +249,8 @@ What each runtime resets, as read in the versions above:
 
 ## Done when
 
+- `scripts/octane_scan.py` exits 0 on the app, with no allow comment added in this change, and the report
+  names the tokenizer mode and any medium findings in touched files.
 - Every stateful service touched has a two-requests-in-one-test regression test, and the flush guard passes in
   both directions.
 - The change ran on the PostgreSQL lane and on the production PHP minor, or the report says it did not and why.
@@ -244,8 +262,10 @@ What each runtime resets, as read in the versions above:
 ## References
 
 - [references/long-lived-workers.md](references/long-lived-workers.md): load when touching Octane, FrankenPHP
-  worker mode, queue workers, singletons, scoped bindings, the flush list or memo services, or auditing an area
-  for long-lived worker safety.
+  worker mode, queue workers, singletons, scoped bindings, the flush list or memo services, auditing an area
+  for long-lived worker safety, or reading an `octane_scan.py` finding.
+- [scripts/octane_scan.py](scripts/octane_scan.py): run before and after changing services, bindings,
+  middleware, controllers or jobs; `--self-test` checks it offline against its fixtures.
 - [references/postgres-parity.md](references/postgres-parity.md): load when writing migrations, upserts, JSON
   columns, timestamps or aggregates, or setting up the PostgreSQL CI lane.
 - [references/test-environment-parity.md](references/test-environment-parity.md): load when editing PHPUnit
@@ -283,3 +303,6 @@ What each runtime resets, as read in the versions above:
 - https://github.com/Rene-Roscher/conditional-cache-laravel and
   https://github.com/Rene-Roscher/user-sessions-laravel: package behaviour and requirements. Verified 2026-10.
 - https://laravel.com/docs/12.x/boost: installing Laravel Boost. Verified 2026-10.
+- https://laravel.com/docs/12.x/octane#dependency-injection-and-octane: do not inject the container, request or
+  configuration repository into singleton constructors; a resolver closure or per-call argument is the fix.
+  Verified 2026-11.

@@ -17,11 +17,25 @@ say so instead of repeating this log. Checked 2026-10-31.
   and `Prepare{Socialite,Inertia,Livewire,Scout}ForNextOperation` exist.
 - `src/Listeners/CreateConfigurationSandbox.php`: binds a clone of the configuration repository into each
   operation's sandbox, so a runtime `config()` write does not outlive the request.
+- `src/Worker.php` `handle()`: each request runs on `clone $this->app`, made current by
+  `src/CurrentApplication.php` `set()` (`Container::setInstance()`, facade root). `RequestTerminated` carries
+  the base application as `$event->app`, so `FlushTemporaryContainerInstances` forgets `octane.flush` keys on
+  the base application.
+- `src/Listeners/FlushAuthenticationState.php`: forgets `auth.driver` and calls `forgetGuards()` on the
+  resolved auth manager. `src/Listeners/FlushSessionState.php`: flushes and regenerates the session driver.
+  `src/Listeners/GiveNewRequestInstanceToApplication.php`: binds the new request on both containers.
 - `config/octane.php`: `flush` ships empty.
 - `src/Commands/StartCommand.php`: `--max-requests` defaults to `config('octane.max_requests', 500)`.
 
 ## laravel/framework v12.53.0
 
+- `src/Illuminate/Container/Attributes/Singleton.php` and `Scoped.php`: class attributes;
+  `src/Illuminate/Container/Container.php` `getScopedTyped()` reads them when an unbound class is resolved.
+  `CurrentUser`, `Authenticated`, `Auth` (resolves a guard), `Context` and `RouteParameter` exist in the same
+  directory as parameter attributes.
+- `src/Illuminate/Foundation/Configuration/ApplicationBuilder.php` `withSingletons()` and
+  `src/Illuminate/Foundation/Application.php` `register()` (a provider's `$singletons` property) both call
+  `singleton()`.
 - `src/Illuminate/Routing/Route.php` `flushController()`: nulls the cached controller and computed middleware.
   No caller inside the framework.
 - `src/Illuminate/Queue/QueueServiceProvider.php`: the worker's reset scope flushes log context, resets query
@@ -58,3 +72,6 @@ say so instead of repeating this log. Checked 2026-10-31.
   `SELECT count(*)` names its column `count`.
 - SQLite 3.45.1: `SELECT count(*)` names its column `count(*)`.
 - PHP 8.3.10: `round(374.49999999999994)` is `375.0`. PHP 8.4.27: `374.0`.
+- laravel/framework v12.53.0 container on PHP 8.3.10: on a clone of a container, `instance()` through
+  `Container::getInstance()` is gone in the next clone; `instance()` through a reference to the original
+  container, held by a singleton resolved before cloning, is still bound in the next clone. Checked 2026-11-04.
