@@ -13,6 +13,7 @@ optional [docs-tools](../docs-tools/README.md) plugin installs Context7.
 | Skill | Use it when |
 |---|---|
 | `goal-focus` | starting a multi-step task, an investigation that keeps branching, or writing a reply or report to the owner |
+| `know-your-limits` | the session runs on a small or balanced model, or `AGENTS.md` asks for a cautious run: look up instead of recall, small checked steps, shipped checkers decide, hand off judgement calls |
 | `agent-delegation` | deciding whether to hand work to subagents, how many, and which model tier each one runs on |
 | `evidence-before-claims` | an answer or a change depends on how a library, framework, API, CLI flag, config key or standard behaves in the installed version |
 | `verify-before-done` | you are about to report something as done, fixed or working |

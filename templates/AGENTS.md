@@ -17,6 +17,10 @@
   If you can't find it, say so.
 - Findings from another agent or an earlier session are leads. Re-check them before acting.
 
+### Model tier
+- If this session does not run on the strong or top tier (for Claude: Opus or Fable class), or you
+  cannot tell, load `core:know-your-limits` before the first step and follow it for the whole task.
+
 ### Done means verified
 - "Done" means you ran it and saw the intended result: tests on the production database engine
   and runtime version, and the behaviour itself where that is possible.
