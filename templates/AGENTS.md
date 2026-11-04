@@ -26,6 +26,11 @@
   look it up in docs/GLOSSARY.md, then `core:glossary`, then the vendor's site, else ask. Never guess
   from the letters. Record the owner's explanation in docs/GLOSSARY.md.
 
+### User-facing text
+- Every text a user sees (UI, validation, API errors, toasts, mails, notifications, exports) goes
+  through the i18n layer. Counts use plural forms, never "(s)" or "Server(e)"; numbers and dates use
+  Intl in the user's locale. See `saas:localization`.
+
 ### Done means verified
 - A failing check you cannot explain: write `attempt k/10: [symptom]` in each message. Stop after three
   attempts in a row that brought no new fact, and always at ten: undo what you cannot explain, list the

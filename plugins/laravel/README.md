@@ -10,7 +10,7 @@ Valkey or Redis tiers, mail and time zone traps).
 | Skill | Use it when |
 |---|---|
 | `laravel-architecture` | creating or reviewing a domain, controller, service, action, DTO, enum, FormRequest or API resource |
-| `laravel-production-runtime` | editing Octane, queue, cache, database, session or test configuration, adding singletons or jobs, or when tests pass locally but fail in CI or production |
+| `laravel-production-runtime` | editing Octane, queue, cache, database, session or test configuration, adding singletons or jobs, or when tests pass locally but fail in CI or production; `octane_scan.py` finds request and tenant state in long-lived workers |
 
 Both skills load automatically when Claude Code works with matching files (`composer.json`, `artisan`, PHP
 sources, config). You can also call one directly, for example `/laravel:laravel-production-runtime`.

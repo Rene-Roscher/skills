@@ -20,6 +20,7 @@ and `service-boundaries` assumes a PHP or Laravel monolith.
 | `billing-eu-b2b` | touching checkout, subscriptions, invoices, VAT, reverse charge, webhooks from a payment provider or coupons |
 | `gdpr-engineering` | a change adds personal data, a third-party service, a retention period, or data leaving the EU/EEA |
 | `eu-de-legal-baseline` | a change touches EU or German law beyond GDPR: Impressum, cookies, consumer sign-up, AGB, marketing claims, accessibility, user content, NIS2, AI features, retention |
+| `localization` | writing or reviewing any user-facing text in UI, validation, API errors, toasts, mails, notifications or exports: i18n keys, CLDR plural forms instead of "(s)", whole sentences, Intl formatting, the recipient's locale; `i18n_check.py` checks locale files and source |
 | `domain-design` | deciding where code lives in a long-lived product: bounded contexts and the context map, aggregates and invariants, domain and integration events, long-running flows, and when plain CRUD is enough |
 | `service-boundaries` | someone proposes a microservice, worker or rewrite in another language, or designs the contract between services |
 | `async-reliability` | adding or reviewing a job, consumer, scheduled task or notification, or a queue, retry or kill-switch setting |

@@ -8,4 +8,6 @@ All notable changes to the `laravel` plugin are recorded here. The format follow
 ### Added
 
 - Skills `laravel-architecture` and `laravel-production-runtime`.
+- `octane_scan.py` in `laravel-production-runtime`: statics, singletons, controller constructors, flush list
+  and tenant middleware checked for state that outlives a request.
 - Dependencies on `core` and on `laravel-boost` from `claude-plugins-official`.
