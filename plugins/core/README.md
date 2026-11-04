@@ -6,7 +6,8 @@ building, and investigate bugs from evidence instead of guesses.
 
 The skills name tools by what they do, not by product. When a documentation index tool such as Context7 is
 available they use it, and otherwise they fall back to the vendor's docs or mark a claim as unverified. The
-optional [docs-tools](../docs-tools/README.md) plugin installs Context7.
+optional [docs-tools](../docs-tools/README.md) plugin installs Context7. The optional [guardrails](../guardrails/README.md) plugin enforces the
+attempt cap of `goal-focus` and the ban on skipped checks with hooks.
 
 ## Skills
 

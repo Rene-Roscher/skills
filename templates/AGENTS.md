@@ -34,7 +34,8 @@
 ### Done means verified
 - A failing check you cannot explain: write `attempt k/10: [symptom]` in each message. Stop after three
   attempts in a row that brought no new fact, and always at ten: undo what you cannot explain, list the
-  attempts, and ask. A new theory about the same error does not reset the count.
+  attempts, and ask. A new theory about the same error does not reset the count. The `guardrails` plugin
+  enforces this with hooks.
 - "Done" means you ran it and saw the intended result: tests on the production database engine
   and runtime version, and the behaviour itself where that is possible.
 - Report what you verified and what you did not.
@@ -52,6 +53,7 @@
 |---|---|
 | anything | core |
 | anything, and you want a documentation index tool (Context7) | docs-tools |
+| anything, run by a small or balanced model, or you want the attempt cap enforced | guardrails |
 | tenants, billing, personal data, or several services | saas |
 | composer.json requiring laravel/framework | laravel (enable at project scope) |
 | a public website, Nuxt, Vue or Inertia front end | web |

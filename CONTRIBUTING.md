@@ -11,7 +11,8 @@ released. `tools/lint.py` enforces the mechanical rules. A reviewer checks the r
 - `plugins/<plugin>/.claude-plugin/plugin.json` carries the plugin version. Marketplace entries carry none.
 - `templates/` holds files that projects copy: `AGENTS.md`, team settings, the project overlay and the example
   profile.
-- Plugins ship skills only: no `hooks/`, no `bin/`, no `.mcp.json`, no `CLAUDE.md`.
+- Plugins ship skills only: no `hooks/`, no `bin/`, no `.mcp.json`, no `CLAUDE.md`. The one exception is
+  `guardrails`, which ships `hooks/` and no skills; its script needs a passing `--self-test`.
 
 ## Writing a skill
 

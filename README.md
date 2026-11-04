@@ -49,6 +49,7 @@ Marketplaces, or run `claude plugin update core@rene-roscher-skills`.
 | [go](plugins/go/README.md) | Production Go services and wire contracts shared across languages. | `go-service-baseline`, `cross-service-contracts` |
 | [media](plugins/media/README.md) | Short product videos: the plan and approval gate, then build, voice, sound, master and delivery with measured checks. | `video-planning`, `video-production` |
 | [docs-tools](plugins/docs-tools/README.md) | Optional. Installs the Context7 documentation MCP server that `core` uses when present. | none |
+| [guardrails](plugins/guardrails/README.md) | Optional hooks. Enforce the attempt cap (stop and ask after ten failed fix attempts) and block skipped or silenced checks. Recommended with smaller models. | none |
 
 Skills are called with the plugin name as prefix, for example `/saas:tenant-isolation`. Most of the time you
 don't call them: Claude Code loads a skill when the task matches its description.
@@ -136,9 +137,11 @@ recursive search. Sources: the CLI's README and `docs/creating-skills.md` (verif
 ## What a plugin can do
 
 A plugin runs with your user's privileges. Hooks, MCP servers and executables a plugin ships run outside the
-sandbox, and skills enter the agent's context as instructions. The plugins in this repository ship skills only:
-no hooks, no MCP servers of their own, no executables. `docs-tools` and `laravel` declare dependencies on plugins
-from the official marketplace, which do add MCP servers. The lint in `tools/` checks that no plugin adds hooks,
+sandbox, and skills enter the agent's context as instructions. The plugins in this repository ship skills only,
+with one exception: `guardrails` ships hooks and nothing else, one standard-library Python script that reads
+the hook event, writes a counter file in the plugin's data directory and makes no network calls. No plugin
+ships MCP servers of its own or executables. `docs-tools` and `laravel` declare dependencies on plugins from the
+official marketplace, which do add MCP servers. The lint in `tools/` checks that no other plugin adds hooks,
 `bin/` or an MCP configuration. Source: https://code.claude.com/docs/en/plugins/security (verified 2026-10-31).
 
 ## Contributing, security, license
