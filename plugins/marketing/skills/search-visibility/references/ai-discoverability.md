@@ -48,6 +48,11 @@ https://support.apple.com/en-us/119829 (verified 2026-11-03).
 Default: allow search and user-fetch agents. Training agents are a business decision recorded once per site in
 an ADR. Re-read the vendor pages before relying on a token; vendors add agents.
 
+`scripts/site_check.py` reports the robots.txt verdict for every token above plus `Googlebot`, `Bingbot` and
+`Applebot`; a block of a search or user-fetch agent is a finding, a training token only a verdict line. Token
+names re-read on the vendor pages on 2026-11-04; OpenAI's page also lists `OAI-AdsBot`, which only checks ad
+landing pages. Bing's token: https://blogs.bing.com/webmaster/october-2022/Announcing-user-agent-change-for-Bing-crawler-bingbot.
+
 ## Where assistants get their results
 
 - Microsoft Copilot and Bing AI summaries cite pages from Bing; Bing Webmaster Tools shows citations, cited

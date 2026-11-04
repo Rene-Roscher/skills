@@ -1,0 +1,15 @@
+{
+  "team": {
+    "price_eur_month": 49,
+    "services": 1000,
+    "seats": 3,
+    "status_pages": 5,
+    "retention_days": 180
+  },
+  "webhook_retries": 8,
+  "edge_a": "first filler line",
+  "edge_b": "second filler line",
+  "edge_c": "third filler line",
+  "edge_value": "42 regions",
+  "business_status_pages": 15
+}

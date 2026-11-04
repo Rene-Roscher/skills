@@ -1,0 +1,170 @@
+{
+ "https://www.example.com/robots.txt": {
+  "status": 200,
+  "headers": {
+   "Content-Type": "text/plain"
+  },
+  "body": "# fixture\nUser-agent: *\nDisallow: /private/\nAllow: /private/press$\n\nUser-agent: GPTBot\nDisallow: /\n\nUser-agent: Claude-SearchBot\nDisallow: /en/blog/\n\nUser-agent: claude-searchbot\nAllow: /en/blog/launch\n\nUser-agent: PerplexityBot\nUser-agent: ChatGPT-User\nDisallow: /de/\nAllow: /de/\n\nSitemap: https://www.example.com/sitemap.xml\n"
+ },
+ "https://shop.example.com/robots.txt": {
+  "status": 503,
+  "body": "busy"
+ },
+ "https://down.example.net/": {
+  "network_error": true
+ },
+ "https://www.example.com/en/features": {
+  "status": 200,
+  "body": "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><title>Features - Booking system</title><link rel=\"canonical\" href=\"https://www.example.com/en/features\"><link rel=\"alternate\" hreflang=\"en\" href=\"https://www.example.com/en/features\"><link rel=\"alternate\" hreflang=\"de\" href=\"https://www.example.com/de/funktionen\"><link rel=\"alternate\" hreflang=\"x-default\" href=\"https://www.example.com/en/features\"><script type=\"application/ld+json\">{\"@context\":\"https://schema.org\",\"@type\":\"Organization\",\"@id\":\"https://www.example.com/#org\",\"name\":\"Booking system\",\"url\":\"https://www.example.com/\"}</script></head><body><h1>Run your venue from one calendar</h1><p>Plan rooms, take deposits and send reminders to every guest before arrival.</p></body></html>"
+ },
+ "https://www.example.com/de/funktionen": {
+  "status": 200,
+  "body": "<!doctype html><html lang=\"de\"><head><meta charset=\"utf-8\"><title>Funktionen - Buchungssystem</title><link rel=\"canonical\" href=\"https://www.example.com/de/funktionen\"><link rel=\"alternate\" hreflang=\"de\" href=\"https://www.example.com/de/funktionen\"><link rel=\"alternate\" hreflang=\"en\" href=\"https://www.example.com/en/features\"><link rel=\"alternate\" hreflang=\"x-default\" href=\"https://www.example.com/en/features\"></head><body><h1>Ihr Haus in einem Kalender</h1><p>Zimmer planen, Anzahlungen nehmen und Gäste vor der Anreise erinnern, alles an einem Ort.</p></body></html>"
+ },
+ "https://www.example.com/en/pricing?utm_source=newsletter": {
+  "status": 301,
+  "headers": {
+   "Location": "/en/pricing-2026"
+  },
+  "body": ""
+ },
+ "https://www.example.com/en/pricing-2026": {
+  "status": 302,
+  "headers": {
+   "Location": "https://www.example.com/en/plans"
+  },
+  "body": ""
+ },
+ "https://www.example.com/en/plans": {
+  "status": 200,
+  "body": "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><title>Plans - Booking system</title><link rel=\"canonical\" href=\"https://www.example.com/en/plans\"></head><body><h1>Plans for every venue size</h1><p>Plan rooms, take deposits and send reminders to every guest before arrival.</p></body></html>"
+ },
+ "https://www.example.com/en/old-pricing": {
+  "status": 200,
+  "body": "<!doctype html><html><head><meta http-equiv=\"refresh\" content=\"0; url=/en/plans\"></head><body></body></html>"
+ },
+ "https://www.example.com/en/blog/launch": {
+  "status": 200,
+  "body": "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><title>Launch notes - Booking system</title><link rel=\"canonical\" href=\"https://www.example.com/en/blog/launch\"><meta name=\"robots\" content=\"noindex, follow\"></head><body><h1>Launch notes</h1><p>Plan rooms, take deposits and send reminders to every guest before arrival.</p></body></html>"
+ },
+ "https://www.example.com/en/blog/archive": {
+  "status": 200,
+  "body": "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><title>Blog archive - Booking system</title><link rel=\"canonical\" href=\"https://www.example.com/en/blog/archive\"></head><body><h1>Archive</h1><p>Plan rooms, take deposits and send reminders to every guest before arrival.</p></body></html>",
+  "headers": {
+   "X-Robots-Tag": "googlebot: noindex"
+  }
+ },
+ "https://www.example.com/en/integrations": {
+  "status": 200,
+  "body": "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><title>Booking system</title><link rel=\"canonical\" href=\"https://www.example.com/\"></head><body><h1>Integrations</h1><p>Plan rooms, take deposits and send reminders to every guest before arrival.</p></body></html>"
+ },
+ "https://www.example.com/en/security": {
+  "status": 200,
+  "body": "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><title>Booking system</title><link rel=\"canonical\" href=\"https://docs.example.org/security\"></head><body><h1>Security</h1><p>Plan rooms, take deposits and send reminders to every guest before arrival.</p></body></html>"
+ },
+ "https://www.example.com/en/help/setup": {
+  "status": 200,
+  "body": "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><title>Setup - Booking system</title><link rel=\"canonical\" href=\"https://www.example.com/en/help/start\"></head><body><div id=\"app\"></div><script>window.__STATE__={\"headline\":\"Connect your calendar\"}</script><script src=\"/app.js\"></script></body></html>"
+ },
+ "https://www.example.com/en/compare": {
+  "status": 200,
+  "body": "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><title>Compare - Booking system</title><script type=\"application/ld+json\">{\"@type\": \"WebPage\",}</script><script type=\"application/ld+json\">{\"@context\":\"https://schema.org\",\"@type\":\"FAQPage\",\"mainEntity\":[]}</script><script type=\"application/ld+json\">{\"@context\":\"https://schema.org\",\"@type\":\"Organization\",\"name\":\"Booking system\",\"aggregateRating\":{\"@type\":\"AggregateRating\",\"ratingValue\":\"4.9\",\"reviewCount\":\"120\"}}</script></head><body><h1>Compare booking tools</h1><p>Plan rooms, take deposits and send reminders to every guest before arrival.</p></body></html>"
+ },
+ "https://www.example.com/en/reviews": {
+  "status": 200,
+  "body": "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><title>Reviews - Booking system</title><link rel=\"canonical\" href=\"https://www.example.com/en/reviews\"><script type=\"application/ld+json\">{\"@context\":\"https://schema.org\",\"@graph\":[{\"@type\":\"Organization\",\"@id\":\"#org\",\"name\":\"Booking system\"},{\"@type\":\"Review\",\"itemReviewed\":{\"@id\":\"#org\"},\"reviewRating\":{\"@type\":\"Rating\",\"ratingValue\":\"5\"}},{\"@type\":\"Product\",\"name\":\"Door sensor\",\"aggregateRating\":{\"@type\":\"AggregateRating\",\"ratingValue\":\"4.2\",\"reviewCount\":\"8\"}}]}</script></head><body><h1>What venues say</h1><p>Plan rooms, take deposits and send reminders to every guest before arrival.</p></body></html>"
+ },
+ "https://www.example.com/en/rooms": {
+  "status": 200,
+  "body": "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><title>Rooms - Booking system</title><link rel=\"canonical\" href=\"https://www.example.com/en/rooms\"><link rel=\"alternate\" hreflang=\"en-GB\" href=\"https://www.example.com/en-gb/rooms\"><link rel=\"alternate\" hreflang=\"fr\" href=\"https://www.example.com/fr/chambres\"><link rel=\"alternate\" hreflang=\"de\" href=\"https://www.example.com/de/zimmer\"><link rel=\"alternate\" hreflang=\"en_US\" href=\"https://www.example.com/en-us/rooms\"><link rel=\"alternate\" hreflang=\"en-UK\" href=\"https://www.example.com/en-uk/rooms\"></head><body><h1>Rooms</h1><p>Plan rooms, take deposits and send reminders to every guest before arrival.</p></body></html>"
+ },
+ "https://www.example.com/en-gb/rooms": {
+  "status": 301,
+  "headers": {
+   "Location": "https://www.example.com/en/rooms"
+  },
+  "body": ""
+ },
+ "https://www.example.com/de/zimmer": {
+  "status": 200,
+  "body": "<!doctype html><html lang=\"de\"><head><meta charset=\"utf-8\"><title>Zimmer - Buchungssystem</title><link rel=\"canonical\" href=\"https://www.example.com/de/zimmer\"><link rel=\"alternate\" hreflang=\"de\" href=\"https://www.example.com/de/zimmer\"></head><body><h1>Zimmer</h1><p>Plan rooms, take deposits and send reminders to every guest before arrival.</p></body></html>"
+ },
+ "https://www.example.com/de/preise": {
+  "status": 200,
+  "body": "<!doctype html><html lang=\"de\"><head><meta charset=\"utf-8\"><title>Preise - Buchungssystem</title><link rel=\"canonical\" href=\"https://www.example.com/en/prices\"><link rel=\"alternate\" hreflang=\"de\" href=\"https://www.example.com/de/preise\"><link rel=\"alternate\" hreflang=\"en\" href=\"https://www.example.com/en/prices\"><link rel=\"alternate\" hreflang=\"x-default\" href=\"https://www.example.com/en/prices\"></head><body><h1>Preise</h1><p>Plan rooms, take deposits and send reminders to every guest before arrival.</p></body></html>"
+ },
+ "https://www.example.com/en/prices": {
+  "status": 200,
+  "body": "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><title>Prices - Booking system</title><link rel=\"canonical\" href=\"https://www.example.com/en/prices\"><link rel=\"alternate\" hreflang=\"de\" href=\"https://www.example.com/de/preise\"><link rel=\"alternate\" hreflang=\"en\" href=\"https://www.example.com/en/prices\"><link rel=\"alternate\" hreflang=\"x-default\" href=\"https://www.example.com/en/prices\"></head><body><h1>Prices</h1><p>Plan rooms, take deposits and send reminders to every guest before arrival.</p></body></html>"
+ },
+ "https://www.example.com/en/gone": {
+  "status": 404,
+  "body": "<title>Not found</title>"
+ },
+ "https://www.example.com/en/help/start": {
+  "status": 404,
+  "body": "<title>Not found</title>"
+ },
+ "https://www.example.com/en/loop": {
+  "status": 301,
+  "headers": {
+   "Location": "https://www.example.com/en/loop2"
+  },
+  "body": ""
+ },
+ "https://www.example.com/en/loop2": {
+  "status": 301,
+  "headers": {
+   "Location": "https://www.example.com/en/loop"
+  },
+  "body": ""
+ },
+ "https://www.example.com/en/secure": {
+  "status": 301,
+  "headers": {
+   "Location": "http://www.example.com/en/secure-page"
+  },
+  "body": ""
+ },
+ "http://www.example.com/en/secure-page": {
+  "status": 200,
+  "body": "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><title>Secure page - Booking system</title><link rel=\"canonical\" href=\"http://www.example.com/en/secure-page\"></head><body><h1>Secure</h1><p>Plan rooms, take deposits and send reminders to every guest before arrival.</p></body></html>"
+ },
+ "https://www.example.com/private/old-terms": {
+  "status": 200,
+  "body": "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><title>Old terms - Booking system</title><link rel=\"canonical\" href=\"https://www.example.com/private/old-terms\"></head><body><h1>Old terms</h1><p>Plan rooms, take deposits and send reminders to every guest before arrival.</p></body></html>"
+ },
+ "https://www.example.com/private/press": {
+  "status": 200,
+  "body": "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><title>Press - Booking system</title><link rel=\"canonical\" href=\"https://www.example.com/private/press\"></head><body><h1>Press</h1><p>Plan rooms, take deposits and send reminders to every guest before arrival.</p></body></html>"
+ },
+ "https://shop.example.com/": {
+  "status": 200,
+  "body": "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><title>Shop - Booking system</title><link rel=\"canonical\" href=\"https://shop.example.com/\"></head><body><h1>Shop</h1><p>Plan rooms, take deposits and send reminders to every guest before arrival.</p></body></html>"
+ },
+ "https://www.example.com/en/token-page?token=abc123secret": {
+  "status": 200,
+  "body": "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\"><title>Token page - Booking system</title><link rel=\"canonical\" href=\"https://www.example.com/en/token-page\"></head><body><h1>Token page</h1><p>Plan rooms, take deposits and send reminders to every guest before arrival.</p></body></html>"
+ },
+ "https://www.example.com/sitemap.xml": {
+  "status": 200,
+  "headers": {
+   "Content-Type": "application/xml"
+  },
+  "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><sitemapindex xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\"><sitemap><loc>https://www.example.com/sitemap-pages.xml</loc></sitemap></sitemapindex>"
+ },
+ "https://www.example.com/sitemap-pages.xml": {
+  "status": 200,
+  "headers": {
+   "Content-Type": "application/xml"
+  },
+  "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\"><url><loc>https://www.example.com/en/features</loc></url><url><loc>https://www.example.com/de/funktionen</loc></url><url><loc>https://www.example.com/en/moved</loc></url></urlset>"
+ },
+ "https://www.example.com/en/moved": {
+  "status": 301,
+  "headers": {
+   "Location": "https://www.example.com/en/features"
+  },
+  "body": ""
+ }
+}

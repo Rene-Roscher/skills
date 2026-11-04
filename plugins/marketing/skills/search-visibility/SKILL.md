@@ -14,7 +14,7 @@ canonical and hreflang clusters, content depth, product-truth and comparison pag
 policy and the claims about SEO that have no source. Numbers come from `search-measurement`; copy quality from
 `human-copy`; claims law from `eu-de-legal-baseline`. The failure it prevents: pages written for a word count or
 a schema type while the real problem is indexing, a second URL competing for the same query, or a claim the
-product does not back.
+product does not back. Any model running an audit starts with the fast path under Procedure.
 
 ## Applies when / does not apply
 
@@ -64,7 +64,8 @@ product does not back.
   number) traces to code, config or spec in the repository, or to a dated record, before it is published.
   Unbuilt features are left out; another marketing page is never the source. Why: snippets and assistants
   quote pages verbatim, and UWG § 5 covers misleading statements to business buyers. Test: a claims table maps
-  each claim on the changed page to a file and line or a dated record; claims without an entry are removed.
+  each claim on the changed page to a file and line or a dated record, and `check_claims.py --page` exits 0;
+  claims without an entry are removed.
   Source: https://www.gesetze-im-internet.de/uwg_2004/__5.html,
   https://developers.google.com/search/docs/fundamentals/using-gen-ai-content (verified 2026-11-03).
 - [invariant] Comparison and alternative pages compare like with like, date and source every competitor fact,
@@ -113,13 +114,31 @@ product does not back.
 
 ## Procedure
 
+### Fast path
+
+Run these steps first, in order. The scripts are in this skill's `scripts/` folder (`${CLAUDE_SKILL_DIR}/scripts/`).
+
+1. Run `python3 ${CLAUDE_SKILL_DIR}/scripts/site_check.py --text --sitemap https://[host]/sitemap.xml` (or URLs;
+   for a build: `--root-dir [dir] --base-url https://[host]`; add `--expect-text "[main sentence]"` per page).
+2. A non-zero exit means stop and report. Exit 1: blocker or high findings. Exit 2, 3 or 4: nothing was checked.
+3. Copy findings from the script output as printed, severity included. Never add or soften one from memory.
+4. Page with product claims: fill [assets/claims-table.md](assets/claims-table.md), then run
+   `check_claims.py --table [file] --root . --page [page file]`. Exit 1: source or remove the failing rows first.
+5. Judgement calls go to the owner: merging pages, a canonical or block that may be deliberate, comparison
+   claims, legal review. A bot block an ADR records: re-run with `--accept-block [token]` and cite the ADR.
+
+### Full audit
+
 1. Read the product context (`product-strategy` output) and the site's surface roles: which domain or section
    targets which intents.
-2. Access: crawl the site, fetch target URLs without JavaScript, read robots.txt and CDN bot rules, check
-   redirects. Get index status and query data from `search-measurement`; do not estimate rankings.
+2. Access: `site_check.py` over the sitemap and target URLs (status, redirects, noindex, server-HTML text,
+   robots.txt per agent). Read CDN or WAF bot rules by hand; the script cannot see them. Get index status and
+   query data from `search-measurement`; do not estimate rankings.
 3. Intent map: one row per intent with its owning URL; mark duplicates and orphans.
-4. Canonical, hreflang, sitemap and structured data checks per [references/technical-checks.md](references/technical-checks.md).
-5. Content: depth, product truth and comparison pages per [references/content-and-comparisons.md](references/content-and-comparisons.md).
+4. Canonical, hreflang, sitemap and structured data: `site_check.py` covers the mechanical checks; the rest per
+   [references/technical-checks.md](references/technical-checks.md).
+5. Content: depth, product truth (`check_claims.py`) and comparison pages per
+   [references/content-and-comparisons.md](references/content-and-comparisons.md).
 6. AI discoverability per [references/ai-discoverability.md](references/ai-discoverability.md).
 7. Write findings, sorted by effect per effort. Changes to a live site are deploys: show the diff first
    (`safe-actions`). Hand each change to `search-measurement` for its log entry and re-check date.
@@ -146,6 +165,9 @@ Verify: how and when to check it worked (re-fetch, re-crawl date, metric and win
 ## Done when
 
 - Every finding has severity, URL, evidence, fix and a verification step; none rests on memory or a blog.
+- `site_check.py` exits 0 on the changed URLs after the deploy, or each remaining blocker or high finding is in
+  the report with an owner.
+- `check_claims.py` exits 0 for every changed page that makes product claims.
 - The intent map has one owning URL per intent, and planned pages name the intent they take from nobody.
 - Changed pages pass the product-truth table and, for comparisons, the legal review flag.
 - Each shipped change is logged with `search-measurement` and has a re-check date.
@@ -160,6 +182,11 @@ Verify: how and when to check it worked (re-fetch, re-crawl date, metric and win
   assistants get results, IndexNow, `llms.txt` and entity consistency.
 - [references/myths.md](references/myths.md): load when a request or a source states an SEO or AEO tactic as
   fact.
+- [scripts/site_check.py](scripts/site_check.py): run for any audit or before a deploy; `--help` lists inputs and
+  exit codes, `--self-test` runs offline against `scripts/fixtures/`.
+- [scripts/check_claims.py](scripts/check_claims.py): run on the claims table of every page with product claims;
+  `--self-test` runs offline.
+- [assets/claims-table.md](assets/claims-table.md): copy next to a page change; one row per product claim.
 - Depth on the technical layer: `addyosmani/web-quality-skills` (`seo`, `core-web-vitals`, `performance`,
   `web-quality-audit`), MIT, listed in `stack-bootstrap`'s curated skills; it also treats field data as the
   proof for Core Web Vitals. https://github.com/addyosmani/web-quality-skills (verified 2026-11-03).
@@ -179,5 +206,7 @@ Verify: how and when to check it worked (re-fetch, re-crawl date, metric and win
   https://developers.google.com/search/docs/essentials/spam-policies: word count, scaled content, verified
   2026-11-03.
 - https://web.dev/articles/vitals: thresholds and field measurement, verified 2026-11-03.
+- https://www.rfc-editor.org/rfc/rfc9309: robots.txt group selection, longest match, 5xx as complete disallow,
+  as implemented in `site_check.py`, verified 2026-11-04.
 - Crawler and index sources: see the rules above and
   [references/ai-discoverability.md](references/ai-discoverability.md).

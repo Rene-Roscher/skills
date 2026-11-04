@@ -1,0 +1,22 @@
+https://www.example.com/en/features
+https://www.example.com/de/funktionen
+https://www.example.com/en/pricing?utm_source=newsletter
+https://www.example.com/en/old-pricing
+https://www.example.com/en/blog/launch
+https://www.example.com/en/blog/archive
+https://www.example.com/en/integrations
+https://www.example.com/en/security
+https://www.example.com/en/help/setup	Connect your calendar
+https://www.example.com/en/help/start
+https://www.example.com/en/compare
+https://www.example.com/en/reviews
+https://www.example.com/en/rooms
+https://www.example.com/de/preise
+https://www.example.com/en/gone
+https://www.example.com/en/loop
+https://www.example.com/en/secure
+https://www.example.com/private/old-terms
+https://www.example.com/private/press
+https://shop.example.com/
+https://www.example.com/en/token-page?token=abc123secret
+https://down.example.net/
