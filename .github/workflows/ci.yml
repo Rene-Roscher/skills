@@ -70,6 +70,16 @@ jobs:
           else
             python3 tools/lint.py
           fi
+      - name: Script self-tests
+        run: |
+          set -eu
+          n=0
+          for f in plugins/*/skills/*/scripts/*.py; do
+            grep -q -- "--self-test" "$f" || continue
+            python3 -I "$f" --self-test > /dev/null
+            n=$((n + 1))
+          done
+          echo "self-tested $n script(s)"
 
   skills-ref:
     name: skills-ref cross-check (core, saas)
