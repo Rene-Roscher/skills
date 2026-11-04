@@ -51,9 +51,9 @@ diff three times larger than the task, and a reply that buries the one answer th
   approach has changed twice, or when the time or call budget you set is spent. Then write three lines: what
   you tried, what you learned, the options with their cost. Pick one if the choice is yours; ask if it
   changes scope or risk. Trade-off: a stop can come just before the third attempt that would have worked.
-  Deviate only with an ADR that names this trade-off. Source: https://code.claude.com/docs/en/best-practices
-  (after two failed corrections, start over with a better prompt rather than a third; a third correction adds
-  to a conversation that already holds two failed attempts; verified 2026-11-03).
+  Deviate only with an ADR that names this trade-off. Source: none; design judgment. Earlier versions of
+  https://code.claude.com/docs/en/best-practices advised starting over after two failed corrections; the
+  rewritten page no longer says so (checked 2026-11-04).
 - [invariant] No scope creep. Do not refactor, rename, reformat, upgrade a dependency, add a feature flag or
   restructure files unless the goal needs it. Every hunk in the diff should trace back to the goal. Why:
   unrequested changes cost review time, hide the real change and carry their own risk. Test: ask for a fix to
@@ -113,5 +113,5 @@ diff three times larger than the task, and a reply that buries the one answer th
 
 ## Sources
 
-- https://code.claude.com/docs/en/best-practices: steer early, two failed corrections then restart with a
-  better prompt; telling an agent to "keep going" tends to cause over-work, verified 2026-11-03.
+- https://code.claude.com/docs/en/best-practices: telling an agent to "keep going" is more likely to cause
+  over-work than to fix a stall; a check to pass is worth giving, verified 2026-11-04.
