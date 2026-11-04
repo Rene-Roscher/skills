@@ -82,6 +82,18 @@
       ]
     },
     {
+      "name": "guardrails",
+      "source": "./plugins/guardrails",
+      "description": "Optional hooks that enforce two core rules a prompt cannot guarantee: stop after ten failed fix attempts and ask, and never skip or silence a check (--no-verify, HUSKY=0, check || true).",
+      "category": "engineering",
+      "tags": [
+        "hooks",
+        "guardrails",
+        "attempt-cap",
+        "verification"
+      ]
+    },
+    {
       "name": "business",
       "source": "./plugins/business",
       "description": "Product discovery, dated market analysis, pricing and unit economics for B2B SaaS, and copy that reads as written by a person.",

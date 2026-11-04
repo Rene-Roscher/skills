@@ -22,7 +22,9 @@ from pathlib import Path
 
 MARKETPLACE = "rene-roscher-skills"
 PORTABLE_PLUGINS = {"core", "saas"}
-NO_SKILL_PLUGINS = {"docs-tools"}
+NO_SKILL_PLUGINS = {"docs-tools", "guardrails"}
+# Plugins allowed to ship hooks/ (and only hooks): each hook script must pass its --self-test.
+HOOK_PLUGINS = {"guardrails"}
 SPEC_KEYS = ["name", "description", "license", "compatibility", "metadata", "allowed-tools"]
 LISTING_WARN = 500  # L21: listing text above this many characters is a warning
 CLAUDE_KEYS = ["paths", "when_to_use", "disable-model-invocation", "user-invocable"]
@@ -347,6 +349,47 @@ class Linter:
         return val
 
     # -- skills ----------------------------------------------------------
+    def check_hooks(self, prel: str, pdir: Path) -> None:
+        """L19 for hook plugins: hooks/hooks.json parses, every command points at a script inside
+        hooks/ that exists, and every Python hook script passes its offline --self-test."""
+        hj = pdir / "hooks" / "hooks.json"
+        if not hj.exists():
+            self.err(prel, 0, "L19", "hook plugin without hooks/hooks.json")
+            return
+        try:
+            cfg = json.loads(hj.read_text(encoding="utf-8"))
+        except ValueError as e:
+            self.err(self.rel(hj), 0, "L19", f"hooks.json is not valid JSON: {e}")
+            return
+        scripts = set()
+        for groups in (cfg.get("hooks") or {}).values():
+            for group in groups:
+                for h in group.get("hooks", []):
+                    cmd = h.get("command", "")
+                    m = re.search(r"\$\{CLAUDE_PLUGIN_ROOT\}/(hooks/[\w./-]+)", cmd)
+                    if not m:
+                        self.err(self.rel(hj), 0, "L19", f"hook command does not run a script from hooks/: {cmd!r}")
+                        continue
+                    target = pdir / m.group(1)
+                    if not target.is_file():
+                        self.err(self.rel(hj), 0, "L19", f"hook script {m.group(1)} does not exist")
+                    else:
+                        scripts.add(target)
+        if not scripts:
+            self.err(self.rel(hj), 0, "L19", "hooks.json declares no hook commands")
+        for script in sorted(scripts):
+            if script.suffix != ".py":
+                continue
+            try:
+                r = subprocess.run([sys.executable, "-I", str(script), "--self-test"], capture_output=True,
+                                   text=True, timeout=120)
+            except subprocess.TimeoutExpired:
+                self.err(self.rel(script), 0, "L19", "hook --self-test timed out")
+                continue
+            if r.returncode != 0:
+                tail = (r.stdout + r.stderr).strip().splitlines()[-1:] or ["no output"]
+                self.err(self.rel(script), 0, "L19", f"hook --self-test failed: {tail[0]}")
+
     def check_skill(self, plugin: str, skill_dir: Path) -> None:
         skill_md = skill_dir / "SKILL.md"
         rel = self.rel(skill_md)
@@ -662,7 +705,7 @@ class Linter:
             if pj.get("license") != "Apache-2.0":
                 self.err(prel, 0, "L05", "plugin.json license must be Apache-2.0")
             for key in ("hooks", "mcpServers", "lspServers"):
-                if key in pj:
+                if key in pj and not (key == "hooks" and ename in HOOK_PLUGINS):
                     self.err(prel, 0, "L19", f"plugin.json declares '{key}'; wave 1 ships skills only")
             for dep in pj.get("dependencies") or []:
                 mk = None
@@ -681,6 +724,9 @@ class Linter:
             if not rt or not re.search(r"(?:/|claude )plugin install " + re.escape(f"{ename}@{MARKETPLACE}"), rt):
                 self.err(self.rel(rd), 0, "L18", f"README.md lacks the install line 'plugin install {ename}@{MARKETPLACE}'")
             for bad in ("bin", "hooks"):
+                if bad == "hooks" and ename in HOOK_PLUGINS:
+                    self.check_hooks(prel, pdir)
+                    continue
                 if (pdir / bad).exists():
                     self.err(self.rel(pdir / bad), 0, "L19", f"{bad}/ is not allowed in wave-1 plugins")
             if (pdir / ".mcp.json").exists():

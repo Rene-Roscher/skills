@@ -1,0 +1,19 @@
+{
+  "name": "guardrails",
+  "displayName": "Guardrails: attempt cap and check bypass block",
+  "version": "0.1.0",
+  "description": "Optional hooks that enforce two core rules a prompt cannot guarantee: stop after ten failed fix attempts and ask, and never skip or silence a check (--no-verify, HUSKY=0, check || true).",
+  "author": {
+    "name": "Rene Roscher",
+    "url": "https://github.com/Rene-Roscher"
+  },
+  "homepage": "https://github.com/Rene-Roscher/skills/tree/main/plugins/guardrails",
+  "repository": "https://github.com/Rene-Roscher/skills",
+  "license": "Apache-2.0",
+  "keywords": [
+    "hooks",
+    "guardrails",
+    "attempt-cap",
+    "verification"
+  ]
+}
