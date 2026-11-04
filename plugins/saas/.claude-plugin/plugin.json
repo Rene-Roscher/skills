@@ -2,7 +2,7 @@
   "name": "saas",
   "displayName": "SaaS: multi-tenant B2B foundations",
   "version": "0.1.0",
-  "description": "Multi-tenant B2B SaaS: tenancy model, external IDs, isolation, RBAC, plan entitlements, build vs buy, EU B2B billing, GDPR, EU and German legal baseline, service boundaries, async jobs, egress and webhooks.",
+  "description": "Multi-tenant B2B SaaS: tenancy model, domain design and events, external IDs, isolation, RBAC, plan entitlements, build vs buy, EU B2B billing, GDPR, EU and German legal baseline, service boundaries, async jobs, egress and webhooks.",
   "author": {
     "name": "Rene Roscher",
     "url": "https://github.com/Rene-Roscher"

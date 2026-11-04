@@ -2,7 +2,7 @@
   "name": "core",
   "displayName": "Core: evidence and safe delivery",
   "version": "0.1.0",
-  "description": "Goal focus, subagent delegation, evidence before claims, verification, safe actions, project inception, planning, delivery, tests, maintainable code, lessons, tooling, commits, stack bootstrap, performance. Stack-agnostic.",
+  "description": "Goal focus, work on smaller models, a glossary of EU and German ecosystem terms, subagent delegation, evidence before claims, verification, safe actions, project inception, planning, delivery, tests, maintainable code, lessons, tooling, commits, stack bootstrap, performance. Stack-agnostic.",
   "author": {
     "name": "Rene Roscher",
     "url": "https://github.com/Rene-Roscher"

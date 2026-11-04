@@ -21,6 +21,11 @@
 - If this session does not run on the strong or top tier (for Claude: Opus or Fable class), or you
   cannot tell, load `core:know-your-limits` before the first step and follow it for the whole task.
 
+### Terms
+- A short name, abbreviation or project term you do not know for certain (R2, ptero, AVV, "analytics"):
+  look it up in docs/GLOSSARY.md, then `core:glossary`, then the vendor's site, else ask. Never guess
+  from the letters. Record the owner's explanation in docs/GLOSSARY.md.
+
 ### Done means verified
 - A failing check you cannot explain: write `attempt k/10: [symptom]` in each message. Stop after three
   attempts in a row that brought no new fact, and always at ten: undo what you cannot explain, list the
