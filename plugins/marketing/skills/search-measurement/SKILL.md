@@ -118,6 +118,18 @@ Examples use a booking system for venues and an invoicing app.
 
 ## Procedure
 
+### Fast path
+
+1. Run `python3 ${CLAUDE_SKILL_DIR}/scripts/measure.py window`, then the subcommand for the question (`gsc`,
+   `bing`, `plausible`, `inspect`). Exit 3: reply "not measured" plus the setup steps; exit 4: report the
+   refusal. Never fill the gap with a number from memory.
+2. Quote figures only from the script output, each with source, window and data state.
+3. "Did the change work": only `measure.py compare ... --treated ... --control ...`. Report `claimable` and
+   every `blocking` reason as printed; `claimable: false` means "not yet", never "it worked".
+4. A key pasted into chat: do not use it; ask for rotation and the file setup in `references/credentials.md`.
+
+### Full procedure
+
 1. Access gate: run `python3 ${CLAUDE_SKILL_DIR}/scripts/measure.py window` and one cheap call per source (in
    clients without `CLAUDE_SKILL_DIR`, the script is in this skill's `scripts/` folder). Exit 3: say what is not
    measured and hand the owner the setup steps from [references/credentials.md](references/credentials.md).
