@@ -58,7 +58,8 @@ agent. The tiers are the ones in `agent-delegation`. Facts about dependencies an
   access check; without credentials the agent stops there and reports "not measured".
 - [invariant] Stop and hand off when (a) the next step is a judgement call: architecture or data model,
   security, authentication or permissions, money and billing, legal wording, deleting data, prices, or text
-  that will be published; (b) two attempts at the same problem have failed; (c) the change grows beyond what
+  that will be published; (b) two attempts at the same symptom brought no new fact, or the attempt cap of
+  `goal-focus` (counter `attempt k/10`) is reached; (c) the change grows beyond what
   the plan named, or past about three files or 150 changed lines without a plan that says so; (d) a test fails
   for a reason you cannot explain from its output; (e) instructions conflict, or the request can be read two
   ways that lead to different changes. Hand off to the owner, or to a stronger-tier agent where the owner
@@ -91,8 +92,8 @@ agent. The tiers are the ones in `agent-delegation`. Facts about dependencies an
 2. Locate: search for the files, names and existing patterns the task touches. Write down what exists and
    what does not.
 3. Loop per step: re-read the target file, make one change, run the narrowest check, read the full output.
-   Pass: next step. Fail: read the error, fix the cause, run again. Second failure on the same point: stop and
-   hand off (rule above).
+   Pass: next step. Fail: read the error, fix the cause, run again, and keep the `attempt k/10` counter in
+   each message. Two attempts without a new fact, or the cap: undo what you cannot explain, stop and hand off.
 4. Before reporting: run every checker the applicable skills ship and the project's tests for the touched
    area. Check the stop list once more.
 5. Report: result first, then each item as verified, not verified or could not do, then the open question if

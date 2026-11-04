@@ -54,6 +54,17 @@ diff three times larger than the task, and a reply that buries the one answer th
   Deviate only with an ADR that names this trade-off. Source: none; design judgment. Earlier versions of
   https://code.claude.com/docs/en/best-practices advised starting over after two failed corrections; the
   rewritten page no longer says so (checked 2026-11-04).
+- [invariant] Count attempts on a failing check, and stop at the cap. A symptom is the failing test, command or
+  check together with its error; a new theory about the same error is not a new symptom. Each message during
+  the fix carries the counter `attempt k/10: [symptom]`. Stop after three attempts in a row that produced no
+  new fact (the error, a log line or a read value did not change), and always at the tenth attempt. At the stop,
+  undo the attempts you cannot explain, then report: the symptom, one line per attempt with its result, what is
+  known, what is not, up to three options with their cost, and the question. The owner may set another cap in
+  `AGENTS.md`. Why: an error the agent does not understand invites one plausible fix after another; each costs
+  tokens and widens the diff, and the cause is usually a wrong assumption that a further attempt will not reveal.
+  Test: a fixture whose test fails because of a setting outside the repository; the transcript shows the
+  counter, at most ten fix attempts, and ends with the stop report instead of an eleventh change. Source: none;
+  design judgment.
 - [invariant] No scope creep. Do not refactor, rename, reformat, upgrade a dependency, add a feature flag or
   restructure files unless the goal needs it. Every hunk in the diff should trace back to the goal. Why:
   unrequested changes cost review time, hide the real change and carry their own risk. Test: ask for a fix to
@@ -89,7 +100,8 @@ diff three times larger than the task, and a reply that buries the one answer th
 1. Write the goal and the done criterion. If either is unclear, ask now.
 2. Write the task list. Mark which items are needed for the criterion.
 3. Work the list. At each checkpoint ask the question; put side findings on a separate list.
-4. If an investigation hits the timebox, stop and write the three lines. If a premise breaks, stop and report.
+4. If an investigation hits the timebox, stop and write the three lines. If a fix loop reaches the attempt cap,
+   undo the unexplained attempts and write the stop report. If a premise breaks, stop and report.
 5. Check the criterion. Verification follows `verify-before-done`.
 6. Reply in the order above. Side findings and offered extras go last.
 

@@ -22,6 +22,9 @@
   cannot tell, load `core:know-your-limits` before the first step and follow it for the whole task.
 
 ### Done means verified
+- A failing check you cannot explain: write `attempt k/10: [symptom]` in each message. Stop after three
+  attempts in a row that brought no new fact, and always at ten: undo what you cannot explain, list the
+  attempts, and ask. A new theory about the same error does not reset the count.
 - "Done" means you ran it and saw the intended result: tests on the production database engine
   and runtime version, and the behaviour itself where that is possible.
 - Report what you verified and what you did not.
