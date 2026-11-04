@@ -489,6 +489,11 @@ def gsc_sitemaps(site: str, token: str) -> dict:
 _MS_DATE = re.compile(r"/Date\((-?\d+)([+-]\d{4})?\)/")
 
 
+def _bing_pos(v):
+    """Bing reports -1 (or 0) when it has no position for a row; a position is 1 or more."""
+    return v if isinstance(v, (int, float)) and v >= 1 else None
+
+
 def bing_date(value: str) -> str:
     m = _MS_DATE.fullmatch(value or "")
     if not m:
@@ -516,8 +521,8 @@ def bing_stats(site: str, method: str, key: str, start: dt.date | None = None, e
             continue
         rows.append({"date": day, "key": item.get("Query"), "clicks": item.get("Clicks", 0),
                      "impressions": item.get("Impressions", 0),
-                     "avg_impression_position": item.get("AvgImpressionPosition"),
-                     "avg_click_position": item.get("AvgClickPosition")})
+                     "avg_impression_position": _bing_pos(item.get("AvgImpressionPosition")),
+                     "avg_click_position": _bing_pos(item.get("AvgClickPosition"))})
     return {"rows": rows, "params": {"site": site, "method": method,
                                      "start": start.isoformat() if start else None,
                                      "end": end.isoformat() if end else None},
@@ -548,7 +553,8 @@ def plausible_query(site_id: str, metrics: list[str], dims: list[str], date_rang
             if "rejected" not in str(e):
                 raise
             raise NoAccess(f"{e}. On Plausible Cloud the Stats API needs the Business plan, and a key reaches "
-                           "only the sites of the team it was created in")
+                           "only the sites of the team it was created in; for a self-hosted instance set "
+                           "PLAUSIBLE_BASE_URL")
         calls += 1
         batch = data.get("results") or []
         for r in batch:
@@ -1064,6 +1070,13 @@ def self_test() -> int:
         TRANSPORT = fake
         b = bing_stats("https://www.example.com/", "GetQueryStats", key, dt.date(2026, 10, 1), dt.date(2026, 10, 31))
         check([r["key"] for r in b["rows"]] == ["invoice app"], f"bing: window filter {b['rows']}")
+        fake = _FakeTransport([(200, {"d": [
+            {"Date": "/Date(1791270000000-0700)/", "Query": "no click position", "Clicks": 1, "Impressions": 2,
+             "AvgImpressionPosition": 4, "AvgClickPosition": -1}]})])
+        TRANSPORT = fake
+        b2 = bing_stats("https://www.example.com/", "GetQueryStats", key, dt.date(2026, 10, 1), dt.date(2026, 10, 31))
+        check(b2["rows"][0]["avg_click_position"] is None and b2["rows"][0]["avg_impression_position"] == 4,
+              f"bing: -1 means no position, not a position: {b2['rows']}")
         check("apikey=" in fake.calls[0]["url"] and fake.calls[0]["method"] == "GET", "bing: key goes in the query")
         page1 = {"results": [{"dimensions": [f"/p{i}"], "metrics": [i, i]} for i in range(PLAUSIBLE_PAGE)]}
         page2 = {"results": [{"dimensions": ["/last"], "metrics": [7, 9]}]}

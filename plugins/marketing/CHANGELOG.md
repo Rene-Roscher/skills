@@ -14,3 +14,9 @@ All notable changes to the `marketing` plugin are recorded here. The format foll
 - Scripts `site_check.py` and `check_claims.py` in `search-visibility`, with a claims table template.
 - Plan template and `check_gtm_plan.py` in `go-to-market`, and sales-motion bands from a cited source.
 - A fast path at the top of each procedure for smaller models.
+- `site_check.py --accept-block` for a bot block an ADR records.
+
+### Fixed
+
+- `measure.py`: Bing's `-1` for a missing position becomes `null`; the Plausible 401 message names
+  `PLAUSIBLE_BASE_URL` for self-hosted instances. Both found in a live run against real properties.
