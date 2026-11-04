@@ -16,6 +16,13 @@ against a control group before anyone calls it a win.
 Claude Code loads a skill when the task matches its description. You can call one directly, for example
 `/marketing:search-measurement`.
 
+Each skill starts with a short fast path that says which script to run and when to stop, so a smaller model
+can follow it without weighing the rules itself. `search-visibility` ships `site_check.py`, which audits live
+URLs, a sitemap or a built site without running JavaScript and prints findings in a fixed format, and
+`check_claims.py`, which checks that every product claim on a page points to a source line in the repository.
+`go-to-market` ships a plan template and `check_gtm_plan.py`, which rejects plans without a cost target per
+paying customer, a read date or a legal basis for each outreach row.
+
 `search-measurement` ships `scripts/measure.py`, standard library only, which reads the Google Search Console,
 Bing Webmaster and Plausible Stats APIs with read-only keys, writes dated snapshots to `docs/growth/snapshots/`
 and compares two windows with a control group. The Google service-account token is signed with the `openssl`
