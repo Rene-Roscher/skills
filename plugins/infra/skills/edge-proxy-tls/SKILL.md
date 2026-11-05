@@ -123,11 +123,18 @@ behind TLS, falls over under a flood and runs as root on the host network.
   shows a non-root user, `ReadonlyRootfs: true` and `CapDrop: [ALL]`; writing to `/` inside fails. Source:
   https://docs.docker.com/reference/compose-file/services/ (`read_only`, `cap_drop`, `security_opt`, `mem_limit`),
   verified 2026-11-03.
-- [invariant] CI validates the config with the exact image that ships: `caddy validate` inside the pinned image,
-  plus `caddy list-modules` to assert every module the config uses. Why: validate "loads and provisions all of its
-  modules", which `caddy adapt` does not, and a module missing from the build fails only at start. Test: remove the
-  rate limit module from the build; CI fails. Source: https://caddyserver.com/docs/command-line, verified
-  2026-11-03.
+- [invariant] Every config change is validated by the proxy binary of the image that ships before it is called
+  done, locally and again in CI: `caddy validate --config [file] --adapter caddyfile` inside the pinned image, plus
+  `caddy list-modules` to assert every module the config uses; `nginx -t` for an nginx hop. A directive or option
+  you have not seen in the docs of the installed version, or one moved into another block, counts as unverified
+  until validate passes. Why: validate "loads and provisions all of its modules", which `caddy adapt` does not; an
+  unknown directive, an option in the wrong block and a module missing from the build all fail only at start, and
+  a failed start of the edge takes every site down. Test: remove the rate limit module from the build and CI
+  fails; a server option written as a site directive (`log_credentials` inside a site block instead of the global
+  `servers` block) fails validate with "unrecognized directive" and exit 1 (Caddy 2.11.7, reproduced 2026-11-05),
+  and an unknown nginx directive fails `nginx -t` with "unknown directive". Source:
+  https://caddyserver.com/docs/command-line, https://caddyserver.com/docs/caddyfile/options (`servers`,
+  `log_credentials`), https://nginx.org/en/docs/switches.html (`-t`), verified 2026-11-05.
 - [default] Two edges in separate failure domains, active and passive behind a floating address or both behind
   DNS, with a health check that tests real serving and treats a check timeout as a failure; roll out one edge at a
   time, passive first. Trade-off: a second machine and a failover component to maintain. Deviate only with an ADR
@@ -139,8 +146,10 @@ behind TLS, falls over under a flood and runs as root on the host network.
 1. Gate: find the config that is actually deployed (trace the rollout), not a copy in another directory.
 2. Walk the rules: on-demand TLS, headers and client IP, origin protection, caching, the edge container.
 3. Load the reference that matches the change.
-4. Validate in the pinned image (`caddy validate`, `caddy list-modules`) and test with `curl -sI` against a
-   staging edge: redirects, canonical, cache headers, 429 page, ask responses.
+4. Validate in the pinned image (`caddy validate --adapter caddyfile`, `caddy list-modules`, `nginx -t` for nginx
+   hops) after every edit, not once at the end. Then start the edge container with its production settings
+   (`container-images`: read-only, tmpfs owned by its user, dropped capabilities) and test with `curl -sI` against
+   it or a staging edge: redirects, canonical, cache headers, 429 page, ask responses.
 5. Report the diff and the test results. Roll out passive first; do not apply from this skill.
 
 ## Traps
@@ -154,6 +163,8 @@ behind TLS, falls over under a flood and runs as root on the host network.
 - A binary with file capabilities in an image whose capabilities are all dropped: it can fail to start. Test the
   final image with the final security settings.
 - A health check script that times out and is skipped, so a frozen edge keeps the floating address.
+- A config reviewed only by reading it. Global options, server options and site directives look alike in a
+  Caddyfile, and only validate tells which block accepts which.
 
 ## Done when
 
@@ -162,7 +173,8 @@ behind TLS, falls over under a flood and runs as root on the host network.
 - Forwarded headers are trusted only from listed ranges; redirects and canonicals are `https` without a port.
 - Rate limits answer 429 with `no-store`; public pages have `stale-if-error`.
 - The edge runs non-root, read-only, with dropped capabilities and a memory limit.
-- CI validates the config in the shipped image, and failover between two edges was tested.
+- The last config edit passed `caddy validate` (or `nginx -t`) in the shipped image, with the output quoted; CI
+  repeats it, and failover between two edges was tested.
 
 ## References
 
@@ -179,7 +191,9 @@ behind TLS, falls over under a flood and runs as root on the host network.
   `trusted_proxies_strict`, `admin off`, verified 2026-11-03.
 - https://caddyserver.com/docs/caddyfile/directives/reverse_proxy: forwarded headers, health checks,
   `lb_try_duration`, verified 2026-11-03.
-- https://caddyserver.com/docs/command-line: `validate`, `adapt`, `list-modules`, verified 2026-11-03.
+- https://caddyserver.com/docs/command-line: `validate`, `adapt`, `list-modules`, verified 2026-11-03 and
+  2026-11-05.
+- https://nginx.org/en/docs/switches.html: `nginx -t` tests the configuration, verified 2026-11-05.
 - https://github.com/mholt/caddy-ratelimit: rate limit module, verified 2026-11-03.
 - https://www.rfc-editor.org/rfc/rfc5861.html: `stale-while-revalidate`, `stale-if-error`, verified 2026-11-03.
 - https://nginx.org/en/docs/http/ngx_http_core_module.html and
