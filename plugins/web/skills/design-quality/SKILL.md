@@ -1,6 +1,6 @@
 ---
 name: design-quality
-description: "Makes product and marketing UI look made with care, not generated: match the existing artifact first, closed token sets for type, spacing, radius and colour, one accent, WCAG contrast, every state designed, no template tells, all measured in a browser. Use when designing, restyling or reviewing a page, dashboard, table, form, empty state or landing hero. Not for test mechanics or copywriting."
+description: "Makes product and marketing UI look made with care, not generated: match the existing artifact first, closed token sets for type, spacing, radius and colour, one accent, WCAG contrast, every state designed, real icons instead of emoji, no template tells, all measured in a browser. Use when designing, restyling or reviewing a page, dashboard, table, form, empty state or landing hero. Not for test mechanics or copywriting."
 license: Apache-2.0
 compatibility: "Any web frontend. The bundled audit needs Node 18 or later and Playwright already installed in the project with its Chromium build; tested with Playwright 1.64.1."
 metadata:
@@ -65,6 +65,30 @@ Most important first. Examples use an invoicing app, a project tool and a bookin
   Test: a lint over component files fails on focusable elements inside the tooltip component. Source: ARIA APG
   tooltip pattern: "Tooltip widgets do not receive focus." and "A hover that contains focusable elements can be
   made using a non-modal dialog." (https://www.w3.org/WAI/ARIA/apg/patterns/tooltip/, verified 2026-11-01).
+- [invariant] No emoji and no character standing in for an icon anywhere in the UI: not as status marks (check,
+  cross, warning), ratings (stars), close buttons, arrows on buttons, feature tiles, headings, labels or country
+  flags. Icons come from the project's icon set (for example Lucide) or inline SVG, coloured through
+  `currentColor` and sized from the type scale; flags are SVG assets next to the language or country name. What
+  users wrote and code samples stay as written. Why: emoji come from each platform's colour font, so they ignore
+  the theme and the colour tokens and look different on every system, and Windows' emoji font draws a flag as two
+  letters. Test: `design_audit.mjs` fails on `emoji-glyph` and `symbol-icon`; its self-test plants a flag pair, a
+  check-mark status, a star rating and a lone close cross, and passes the copyright sign, the trademark sign and
+  an arrow inside a sentence. Source: Unicode Technical Standard 51, section 2.2, "The set of supported emoji
+  sequences may vary by platform." (https://www.unicode.org/reports/tr51/);
+  https://bugzilla.mozilla.org/show_bug.cgi?id=1970980 comment 6,
+  "Segoe UI Emoji does not provide ligatures for the Regional-Indicator codepoints to render them as flags";
+  both verified 2026-11-05.
+- [invariant] Global and base styles live in a cascade layer: resets, element defaults and global focus rings in
+  `@layer base`, component classes in `@layer components` (Tailwind CSS v4), never as plain CSS beside the
+  framework's layers. Why: normal declarations outside any layer beat every layered declaration whatever their
+  specificity, so one unlayered `:focus-visible` rule overrides every focus utility in the app, and the fix gets
+  hunted in specificity instead of in the layer. Test: a control with a `focus-visible:` utility, focused by
+  keyboard in the browser, computes the utility's ring, not the global one; `design_audit.mjs` reports no
+  `unlayered-css` warning, or each listed rule has a reason (third-party CSS). Source: MDN `@layer`, "Styles that
+  are not defined in a layer always override styles declared in named and anonymous layers."
+  (https://developer.mozilla.org/en-US/docs/Web/CSS/@layer); Tailwind CSS, base styles in `@layer base`,
+  component classes in `@layer components` "that you'd still like to be able to override with utility classes"
+  (https://tailwindcss.com/docs/adding-custom-styles); both verified 2026-11-05.
 - [invariant] Every number on a marketing page is true and traceable: it names subject, unit and period ("[count]
   invoices sent in [month, year]"), and a claims file in the repo holds its source and the date it was checked.
   No invented customer counts, uptime figures, ratings or growth rates. Why: an invented figure is a false
@@ -106,6 +130,28 @@ Most important first. Examples use an invoicing app, a project tool and a bookin
   carries a comment. Trade-off: every new value costs a token change. Deviate only with an ADR that names this
   trade-off. Proof: `design_audit.mjs --tokens tokens.json` exits 0. Source: Web Interface Guidelines, "Optical
   alignment. Adjust ±1px when perception beats geometry." (verified 2026-11-01).
+- [default] Theme tokens come from measurements, one token per role. When a reference exists (the product's
+  artifact, a screenshot from the owner, a brand guide), measure its surfaces, borders, input borders, text and
+  muted text in light and dark first, then write both themes from those numbers. Each role has its own token with
+  its own value per theme; no role is defined through another role's token, so raising caption contrast cannot
+  lighten every border. After every visual change, element screenshots in light and dark sit next to the
+  reference. Trade-off: more tokens to maintain. Deviate only with an ADR that names this trade-off. Proof: the
+  measurement table from references/tokens.md (role, reference value, token value, per theme) is in the review,
+  and no border or surface token is defined with `var()` or `color-mix()` of a text token. Source: Geist colour
+  step roles (https://vercel.com/geist/colors, verified 2026-11-01); reproducible with the proof above.
+- [default] Interactive controls get a state matrix before any styling: for each control type, which of default,
+  hover, focus-visible, active, disabled, invalid and checked or pressed change, and to which tokens, in both
+  themes. Focus uses `:focus-visible`; hover is never the only cue. Trade-off: one table per control type before
+  the first class. Deviate only with an ADR that names this trade-off. Proof: the matrix in the plan (template in
+  references/app-ui.md) and an element screenshot per state and theme. Source: WCAG 2.2, 1.4.11 and 2.4.7
+  (https://www.w3.org/TR/WCAG22/, verified 2026-11-01); the matrix itself is design judgment.
+- [default] Stacking comes from one z-index scale: named steps for base, raised, dropdown, overlay (sheet,
+  slideover), modal, popover, toast and tooltip, defined in one file and referenced by name. A layer opened from
+  another layer takes a higher step and is portalled to `<body>`. Trade-off: a new layer type needs a scale
+  change. Deviate only with an ADR that names this trade-off. Proof: no numeric `z-index` or `z-[n]` outside the
+  scale file; `design_audit.mjs` with `zIndex` tokens reports no `off-token-zIndex`; a browser test opens the
+  confirm from the sheet and finds it topmost at its centre. Source: none; design judgment, reproducible with the
+  proof above.
 - [default] Type comes from a role-based scale: heading, label (single line), copy (multi-line), button and mono
   roles, each step with fixed size, line height, tracking and weight. Headings from 32 px up get a line height of
   about 1.0 to 1.2 and negative tracking; reading copy stays at 16 px. Most text sits in two or three sizes.
@@ -164,8 +210,8 @@ Most important first. Examples use an invoicing app, a project tool and a bookin
 - [default] Remove generated-template tells unless the brief asks for one: purple gradients on white, an untuned
   default font, tracked all-caps eyebrows over every heading, one accented headline word, identical cards with
   one soft shadow, `→` on every link, middle-dot meta strings, monospace for non-code labels, 01 / 02 / 03 on
-  things that are not steps, a big-number hero without the product, entrance animations on every section, emoji
-  feature tiles, glowing dark cards, grey-bar browser frames and placeholder data. Trade-off: a kept tell needs a
+  things that are not steps, a big-number hero without the product, entrance animations on every section,
+  glowing dark cards, grey-bar browser frames and placeholder data. Trade-off: a kept tell needs a
   written reason. Deviate only with an ADR that names this trade-off. Proof: the audit's tell warnings, each
   fixed or justified. Source: "Inter fonts, purple gradients on white backgrounds"
   (https://www.claude.com/blog/improving-frontend-design-through-skills) and the frontend-design skill's pattern
@@ -194,11 +240,15 @@ Most important first. Examples use an invoicing app, a project tool and a bookin
    none exists, name the closest one and say so. For a new surface, also name two or three outside references
    for its surface type from [references/design-references.md](references/design-references.md). Do not
    design before this step.
-2. Write or extract the token list (`tokens.json`, format in [references/tokens.md](references/tokens.md)). Record
-   project taste (density, radii, viewports) in the project overlay profile, not in components.
+2. Measure the reference's values per role in light and dark, then write or extract the token list
+   (`tokens.json`, format and measurement table in [references/tokens.md](references/tokens.md)), one token per
+   role, plus the stacking scale. Record project taste (density, radii, viewports) in the project overlay profile,
+   not in components.
 3. List the states the view needs (empty, loading, error, partial, no permission, limit reached, one item, worst
-   count) and build a fixture for each before styling.
-4. Build with the product's components and tokens. For app screens follow
+   count) and build a fixture for each before styling. Write the state matrix for each interactive control type.
+   Check that global CSS sits in a layer.
+4. Build with the product's components, tokens and icon set (no emoji, no characters as icons). For app screens
+   follow
    [references/app-ui.md](references/app-ui.md); for marketing pages
    [references/marketing-pages.md](references/marketing-pages.md).
 5. Run the audit on each state, in light and dark, with and without reduced motion, and with `--marketing` on
@@ -221,6 +271,11 @@ Most important first. Examples use an invoicing app, a project tool and a bookin
 - An empty state repeated the "New invoice" button the page header already had. One state, one call to action.
 - Banning one generated look moves output to the next one. Matching the product is stable; "be distinctive" is
   not.
+- Border colours defined through the caption colour: raising caption contrast for readability lightened every
+  border in dark mode as well.
+- A global focus ring written outside `@layer` beat every focus utility, and the fix was searched in specificity
+  for several rounds.
+- A confirm dialog opened from a slideover rendered underneath it, because each overlay picked its own z-index.
 - Premium sites miss contrast too, in placeholders, chart axes and mock-ups. Copy their restraint, not their
   contrast values.
 
@@ -235,6 +290,8 @@ Most important first. Examples use an invoicing app, a project tool and a bookin
 - The `browser-verification` measurement passes for contrast, overflow, targets and fit on every state.
 - Every state of each changed data view has a fixture and an element screenshot.
 - Every number and logo on a marketing page has a claims entry with source and date.
+- No `emoji-glyph`, `symbol-icon` or `unlayered-css` finding is left without a written reason.
+- Every interactive control type has a filled state matrix and element screenshots per state in both themes.
 
 ## References
 
@@ -244,8 +301,8 @@ Most important first. Examples use an invoicing app, a project tool and a bookin
   pick the outside references for its surface type and see what each company publishes.
 - [references/tells.md](references/tells.md): load when reviewing a design for a generic look or when the audit
   reports tell warnings.
-- [references/app-ui.md](references/app-ui.md): load when building or reviewing tables, forms, states, overlays,
-  command palettes, shortcuts, charts or dark mode.
+- [references/app-ui.md](references/app-ui.md): load when building or reviewing tables, forms, interactive states,
+  icons, overlays, command palettes, shortcuts, charts or dark mode, or when a utility class has no effect.
 - [references/marketing-pages.md](references/marketing-pages.md): load when building a landing, pricing or
   feature page, a hero, a product mock-up, or a claims file.
 - [references/measurement.md](references/measurement.md): load before running the audit, when reading its
@@ -280,6 +337,13 @@ Most important first. Examples use an invoicing app, a project tool and a bookin
   `title`, verified 2026-11-01.
 - https://www.ftc.gov/business-guidance/resources/consumer-reviews-testimonials-rule-questions-answers: rule
   sections and effective date, verified 2026-11-01.
+- https://www.unicode.org/reports/tr51/: emoji support varies by platform (2.2), verified 2026-11-05.
+- https://bugzilla.mozilla.org/show_bug.cgi?id=1970980: Segoe UI Emoji has no flag ligatures; other browsers show
+  two letters with that font, verified 2026-11-05.
+- https://developer.mozilla.org/en-US/docs/Web/CSS/@layer: unlayered styles override layered ones, verified
+  2026-11-05.
+- https://tailwindcss.com/docs/adding-custom-styles: `@layer base` and `@layer components`, utilities override
+  component classes, verified 2026-11-05.
 - Outside references per surface (Vercel, AI Elements, Linear, Stripe, Kumo, Saga, Sentry, Proton, Anthropic,
   OpenAI, Discord, Apple HIG, Raycast, Spectrum, and the product-only ones): URLs and repositories in
   references/design-references.md, verified 2026-11-03.

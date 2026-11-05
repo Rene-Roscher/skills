@@ -6,6 +6,8 @@
 - Empty, sparse and error states
 - Loading
 - Forms
+- Interactive states and the cascade
+- Icons, not characters
 - Command palette
 - Shortcuts
 - Overlays
@@ -67,6 +69,52 @@ From the guidelines:
 - Placeholders show an example value and end with an ellipsis character.
 - Warn before navigation that would lose unsaved changes.
 
+## Interactive states and the cascade
+
+Write the state matrix before the first utility class. One row per control type, one column per state, each cell
+a token or "same as default":
+
+| Control | Default | Hover | Focus-visible | Active | Disabled | Invalid | Checked or pressed |
+|---|---|---|---|---|---|---|---|
+| text input | `--input-border`, `--surface` | border one step stronger | ring token, border unchanged | n/a | `--surface-muted`, `--text-muted` | `--danger` border, message below | n/a |
+| button, secondary | | | | | | n/a | n/a |
+| toggle button | | | | | | n/a | accent surface, `aria-pressed="true"` |
+
+- Decide which states change at all. A quiet input that only changes on focus is a valid design; an input that
+  changes border, background, shadow and ring on hover and focus is noise.
+- Focus uses `:focus-visible`, so a mouse click does not draw the ring; focus indicators meet 3:1 against adjacent
+  colours (WCAG 2.2, 1.4.11 and 2.4.7).
+- Hover is never the only cue: touch has no hover.
+- Fill the matrix for light and dark.
+
+Cascade: normal declarations outside any `@layer` beat every layered declaration, whatever the specificity
+(MDN, "Styles that are not defined in a layer always override styles declared in named and anonymous layers.",
+https://developer.mozilla.org/en-US/docs/Web/CSS/@layer, verified 2026-11-05). Tailwind CSS v4 emits its own
+layers (`theme`, `base`, `components`, `utilities`), so a global `:focus-visible` or `input` rule written as plain
+CSS after `@import "tailwindcss"` wins over every `focus-visible:` utility in the app. Put element defaults and
+global rings in `@layer base` and component classes in `@layer components`
+(https://tailwindcss.com/docs/adding-custom-styles, verified 2026-11-05). When a utility "does nothing", read the
+computed style and the winning rule in the browser before raising specificity; the audit's `unlayered-css`
+warning lists the rules that sit outside a layer. Third-party CSS injected without a layer (some toast and date
+picker libraries do this) shows up there too: wrap its import in a layer (`@import "lib.css" layer(components)`)
+or justify it.
+
+## Icons, not characters
+
+- Icons come from the project's icon set (for example Lucide) or inline SVG: `currentColor`, sized from the type
+  scale, `aria-hidden="true"` next to a visible label, an accessible name (`aria-label` on the button) when the
+  icon stands alone.
+- Flags are SVG assets (a flag icon package or files in the repo), always with the language or country name as
+  text; a flag alone does not name a language.
+- No emoji and no character drawn as an icon: check marks, crosses, stars, warning signs, arrows on buttons, a
+  multiplication sign as the close button, bullets as status dots. The audit fails on `emoji-glyph` and
+  `symbol-icon`.
+- Exempt: what users wrote (mark the container `data-user-content`) and code samples.
+- Windows' emoji font has no flag glyphs and shows the two letters instead
+  (https://bugzilla.mozilla.org/show_bug.cgi?id=1970980 comment 6, verified 2026-11-05). Emoji in general come
+  from each platform's colour font, ignore the theme and `currentColor`, and differ between systems (Unicode
+  Technical Standard 51, section 2.2, https://www.unicode.org/reports/tr51/, verified 2026-11-05).
+
 ## Command palette
 
 - Build it as a combobox with a listbox popup. DOM focus stays in the input; the active option is referenced with
@@ -97,7 +145,10 @@ From the guidelines:
   (https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Global_attributes/title, verified 2026-11-01).
 - Delay the first tooltip in a group; peers open without delay (guidelines).
 - One modal at a time. A confirmation that follows a dialog replaces it or follows after it closes; stacked
-  overlays compete for focus traps. Source: none; design judgment.
+  overlays compete for focus traps. Source: none; design judgment. Where a confirm has to open from a sheet or
+  slideover, it takes the higher step of the stacking scale (tokens reference, "Stacking scale") and is
+  portalled to `<body>`; a browser test asserts the confirm is the topmost element at its centre
+  (`document.elementFromPoint`).
 - Sticky headers, footers and banners never cover the focused element (WCAG 2.2, 2.4.11).
 
 ## Charts and data visualisation
@@ -129,6 +180,10 @@ From the guidelines:
 | form | first error focused; submit enabled before the request | browser test through `browser-verification` |
 | command palette | `role=combobox` input, `aria-activedescendant` changes on Down | browser test |
 | tooltip | no focusable element inside the tooltip component | lint over component files |
+| icons | no emoji, no character as icon, flags as SVG | audit `emoji-glyph`, `symbol-icon` |
+| interactive controls | state matrix filled for both themes; every state has an element screenshot | review and browser test |
+| global CSS | no rule outside `@layer` on a layered page | audit `unlayered-css` |
+| overlays | no numeric `z-index` outside the scale; a confirm from a sheet sits on top | audit `off-token-zIndex` with `zIndex` tokens, browser test |
 | shortcuts | with the setting off, the key does nothing in the page body | browser test |
 | chart | every series has a second cue; marks at least 3:1 | review and contrast measurement |
 | dark mode | audit with `--scheme dark` shows no new `contrast` fail | audit |

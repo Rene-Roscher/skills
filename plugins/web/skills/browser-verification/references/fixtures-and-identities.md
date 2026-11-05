@@ -2,6 +2,33 @@
 
 Each browser test owns its data and its user. Nothing it does reaches a real person or a shared database.
 
+## The suite's own environment
+
+The suite never shares a process, a port, a database or a build with the developer's running stack.
+
+| Part | Developer stack | Browser suite |
+|---|---|---|
+| App server | its usual port | its own port, started by the runner (`webServer` with `reuseExistingServer: false`) |
+| Asset build | dev server, hot file present | production build into its own output directory; setup fails if the hot file exists |
+| Database | dev database | its own database, created and migrated by global setup |
+| Cache, sessions, queues | dev stores | stores in the suite's database or its own Redis database number |
+| Mail, SMS, webhooks | whatever dev uses | fakes only (see "Side effects") |
+
+Global setup, every run, before the first test:
+
+1. Create or reset the suite's database (fresh schema, seed).
+2. Clear the cache store the app uses. Rate-limit counters live there: in Laravel the limiter uses the default
+   cache store unless a `limiter` store is configured (https://laravel.com/docs/12.x/rate-limiting, verified
+   2026-11-05), and a database cache survives between runs.
+3. Read every limit a test can hit (creates per hour, login attempts, invites per day) from the environment, and
+   set test values in the suite's environment file, so a full run never meets a production limit. A dedicated
+   test that proves the limit sets it low on purpose.
+4. Fail loudly when a guard trips: the dev server's port answers on the suite's URL, the hot file exists, or the
+   database name is not the suite's.
+
+Proof: run the full suite twice in a row while the dev stack runs. Both runs pass, and the dev database's row counts
+are unchanged.
+
 ## Creating the tenant and user
 
 - Use the application's real creation path: the signup action or service, or factories that call it. Raw

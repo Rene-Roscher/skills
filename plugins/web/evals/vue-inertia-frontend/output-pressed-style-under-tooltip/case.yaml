@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: output-pressed-style-under-tooltip
+context:
+  scaffold_script: fixture.sh

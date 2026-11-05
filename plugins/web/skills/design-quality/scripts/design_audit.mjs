@@ -1,5 +1,6 @@
 #!/usr/bin/env node
-// Design audit: contrast, token, spacing, radius, shadow, target-size, overflow, motion and template-tell checks.
+// Design audit: contrast, token, spacing, radius, shadow, z-index, target-size, overflow, motion, glyph, cascade-layer
+// and template-tell checks.
 //
 // Usage (run from the project directory so the project's Playwright is found):
 //   node design_audit.mjs --url http://localhost:3000/billing [--tokens tokens.json] [--scheme dark]
@@ -126,6 +127,7 @@ export function auditTokens(records, tokens) {
     if (tokens.radii) for (const v of r.radius || []) if (v !== 0 && v < 999 && !inList(tokens.radii, v)) add('radius', `${num(v)}px`, r.sel);
     if (tokens.shadows && r.shadow && r.shadow !== 'none' && !tokens.shadows.includes(r.shadow)) add('shadow', r.shadow, r.sel);
     if (tokens.colors && r.hasText && r.color && !tokens.colors.some((c) => sameColor(c, r.color))) add('textColor', rgbString(r.color), r.sel);
+    if (tokens.zIndex && r.zIndex != null && r.zIndex !== 0 && !tokens.zIndex.map(Number).includes(r.zIndex)) add('zIndex', r.zIndex, r.sel);
   }
   return findings;
 }
@@ -258,11 +260,44 @@ export function auditMarketing(page, viewportHeight) {
   return findings;
 }
 
+// ---------- emoji and symbol stand-ins (fail) ----------
+
+// Emoji: default emoji presentation (this includes the regional-indicator letters that form flags), any
+// pictograph forced to emoji style (U+FE0F) and keycaps (U+20E3). Text-style symbols such as (c), (tm) and
+// arrows inside a sentence are not emoji. Symbol stand-ins: a character doing an icon's job, either alone (a
+// star rating, a close cross, an arrow button) or as a status marker in front of a label (a check mark before
+// "Paid"). Text inside code or under [data-user-content] is skipped: users may write emoji.
+const EMOJI_GLYPH = /\p{Emoji_Presentation}|\p{Extended_Pictographic}\uFE0F|\u20E3/u;
+const ICON_CHARS = '\u2190-\u21FF\u2713-\u2718\u2605\u2606\u2610-\u2612\u26A0\u2139\u25A0-\u25FF\u00D7\u2715\u2716\u203A\u2039\u00AB\u00BB';
+const SYMBOL_ONLY = new RegExp(`^[${ICON_CHARS}\\s]+$`, 'u');
+const STATUS_MARK = /^[\u2713-\u2718\u2605\u2606\u2610-\u2612\u26A0\u2139]\s*\S/u;
+
+export function auditGlyphs(records) {
+  const f = [];
+  for (const r of records) {
+    if (!r.text || r.inCode || r.userContent) continue;
+    if (EMOJI_GLYPH.test(r.text)) f.push({ level: 'fail', id: 'emoji-glyph', selector: r.sel, message: `emoji in UI text "${r.text.slice(0, 40)}"; use the icon set or an SVG (flags as SVG assets)` });
+    else if (SYMBOL_ONLY.test(r.text) || STATUS_MARK.test(r.text)) f.push({ level: 'fail', id: 'symbol-icon', selector: r.sel, message: `character used as an icon "${r.text.slice(0, 40)}"; use the icon set or an SVG` });
+  }
+  const seen = new Set();
+  return f.filter((x) => { const k = `${x.id}|${x.selector}`; if (seen.has(k)) return false; seen.add(k); return true; });
+}
+
+// ---------- cascade layers (warning) ----------
+
+// Normal declarations outside any @layer beat every layered declaration, whatever the specificity. On a page
+// that uses layers (Tailwind v4 emits theme, base, components, utilities), an unlayered rule overrides the
+// utilities; a global focus ring there wins over every focus utility.
+export function auditLayers(page) {
+  if (!page || !page.usesLayers || !page.unlayered || page.unlayered.length === 0) return [];
+  const list = page.unlayered.slice(0, 5).join(', ');
+  return [{ level: 'warn', id: 'unlayered-css', selector: page.unlayered[0], message: `${page.unlayered.length} style rule(s) outside @layer override layered utilities: ${list}; move them into @layer base or components, or justify (third-party CSS)`, value: page.unlayered.length }];
+}
+
 // ---------- template tells (warnings) ----------
 
 const HEADING = /^h[1-6]$/;
 const PLACEHOLDER = /lorem ipsum|\bjohn doe\b|\bjane doe\b|\bacme\b|your text here|\bfoo@bar\b/i;
-const EMOJI = /\p{Extended_Pictographic}/u;
 
 export function lintTells(records, ctx = {}) {
   const f = [];
@@ -274,7 +309,6 @@ export function lintTells(records, ctx = {}) {
       if (next && /^h[1-3]$/.test(next.tag)) warn('tell-eyebrow', r.sel, `tracked all-caps label "${r.text.slice(0, 40)}" directly above a heading (T7)`);
     }
     if (HEADING.test(r.tag) && r.accentedWord) warn('tell-accent-word', r.sel, 'one word of the heading is styled differently (T10)');
-    if (HEADING.test(r.tag) && EMOJI.test(r.text)) warn('tell-emoji-heading', r.sel, 'emoji in a heading (T14)');
     if (PLACEHOLDER.test(r.text)) warn('tell-placeholder-data', r.sel, `placeholder text "${r.text.slice(0, 40)}" (T18)`);
   });
   const targets = texty.filter((r) => r.tag === 'a' || r.tag === 'button');
@@ -362,6 +396,8 @@ export function recordsFromHtml(html) {
       radialGlow: /radial-gradient/.test(decl['background-image'] || decl.background || '') && /\d{2,}px/.test(decl['box-shadow'] || ''),
       transitionAll: /\ball\b/.test(decl.transition || decl['transition-property'] || ''),
       animName: decl['animation-name'] || ((decl.animation || '').split(/\s+/)[0] || 'none'),
+      userContent: /\bdata-user-content\b/.test(attrs) || stack.some((x) => x.rec.userContent),
+      zIndex: /^-?\d+$/.test(decl['z-index'] || '') ? Number(decl['z-index']) : null,
       _decl: decl,
     };
     const parent = stack[stack.length - 1];
@@ -379,6 +415,7 @@ export function lintHtml(html) {
   const records = recordsFromHtml(html);
   const lightPage = !/<body[^>]*(background(?:-color)?\s*:\s*#(?:0|1)[0-9a-f]{2,5})/i.test(html);
   const findings = lintTells(records, { lightPage });
+  findings.push(...auditGlyphs(records));
   for (const r of records) if (r.transitionAll) findings.push({ level: 'fail', id: 'transition-all', selector: r.sel, message: 'transition-property all; list the properties' });
   return findings;
 }
@@ -481,6 +518,7 @@ export function collectInPage(opts) {
       radius, shadow: cs.boxShadow, spacing, parentRadiusIdx: pIdx, parentKey: el.parentElement ? index.get(el.parentElement) ?? null : null,
       upperTracked: cs.textTransform === 'uppercase' && (cs.letterSpacing !== 'normal' && pxv(cs.letterSpacing) > 0),
       mono: /mono|menlo|consolas|courier/i.test(cs.fontFamily), inCode: !!el.closest('code, pre, kbd, samp'),
+      userContent: !!el.closest('[data-user-content]'), zIndex: cs.position !== 'static' && /^-?\d+$/.test(cs.zIndex) ? Number(cs.zIndex) : null,
       bgImage: cs.backgroundImage, radialGlow: /radial-gradient/.test(cs.backgroundImage) && /\d{2,}px/.test(cs.boxShadow),
       animName: animDur > 0 ? cs.animationName : 'none', accentedWord,
       numericCell: isCell && /\d/.test(text) && /^[\s$€£+-]*[\d.,\s]+\s*[%A-Za-z]{0,3}$/.test(text),
@@ -512,11 +550,23 @@ export function collectInPage(opts) {
   const hero = h1 ? h1.closest('section, header, [data-hero]') || h1.parentElement : null;
   const heroButtons = hero ? [...hero.querySelectorAll('button, [role="button"], a[data-cta]')].filter(visible).length : 0;
   const spacingValues = records.flatMap((r) => r.spacing);
+  let usesLayers = false;
+  const unlayered = [];
+  const walk = (rules, inLayer) => {
+    for (const rule of rules) {
+      const layer = typeof CSSLayerBlockRule !== 'undefined' && rule instanceof CSSLayerBlockRule;
+      if (layer || (typeof CSSLayerStatementRule !== 'undefined' && rule instanceof CSSLayerStatementRule)) usesLayers = true;
+      if (rule instanceof CSSStyleRule && !inLayer) unlayered.push(rule.selectorText);
+      if (rule.cssRules && !(rule instanceof CSSStyleRule)) walk(rule.cssRules, inLayer || layer);
+    }
+  };
+  for (const sheet of document.styleSheets) { try { walk(sheet.cssRules, false); } catch { /* cross-origin sheet */ } }
   const page = {
     transitionAll: [...new Set(transitionAll)], runningAnimations: running,
     productUi: pu ? { visible: visible(pu), top: pu.getBoundingClientRect().top + scrollY } : null, heroButtons,
     colorScheme: matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light',
     reducedMotion: matchMedia('(prefers-reduced-motion: reduce)').matches, innerHeight,
+    usesLayers, unlayered: [...new Set(unlayered)],
   };
   return { records, targets, overflow, page, spacingValues };
 }
@@ -536,6 +586,8 @@ export function buildReport(collected, { tokens, marketing, reducedMotion }) {
   findings.push(...auditOverflow(collected.overflow));
   findings.push(...auditMotion(collected.page, { reducedMotion }));
   findings.push(...lintTells(collected.records, { lightPage: collected.page.colorScheme !== 'dark' }));
+  findings.push(...auditGlyphs(collected.records));
+  findings.push(...auditLayers(collected.page));
   if (marketing) findings.push(...auditMarketing(collected.page, collected.page.innerHeight));
   const scale = tokens && tokens.spacing ? spacingAudit(collected.spacingValues, tokens.spacing) : null;
   const accent = tokens && tokens.accent ? parseColor(tokens.accent) : null;
@@ -610,6 +662,7 @@ const GOOD_HTML = `<!doctype html><html><head><style>
  h1 { font-size: 40px; line-height: 1.1; letter-spacing: -0.04em; }
  .btn { transition: opacity .15s, transform .15s; }
 </style></head><body><h1>Create your first invoice</h1><p>Send it in under a minute.</p>
+<p>Import \u2192 review \u2192 send. \u00A9 2026 Example\u2122</p>
 <button class="btn">Create invoice</button><a href="/pricing">See pricing</a></body></html>`;
 
 function check(name, cond, detail = '') {
@@ -679,11 +732,28 @@ export function runPureTests() {
   check('auditMarketing: no product UI and three hero buttons fail', auditMarketing({ productUi: null, heroButtons: 3 }, 900).length === 2 && auditMarketing({ productUi: { visible: true, top: 527 }, heroButtons: 2 }, 900).length === 0);
 
   const bad = lintHtml(BAD_HTML);
-  const want = ['tell-eyebrow', 'tell-accent-word', 'tell-emoji-heading', 'tell-placeholder-data', 'tell-arrow-links', 'tell-middle-dot-meta', 'tell-numbered-markers', 'tell-mono-labels', 'tell-purple-gradient', 'transition-all'];
+  const want = ['tell-eyebrow', 'tell-accent-word', 'emoji-glyph', 'tell-placeholder-data', 'tell-arrow-links', 'tell-middle-dot-meta', 'tell-numbered-markers', 'tell-mono-labels', 'tell-purple-gradient', 'transition-all'];
   const missing = want.filter((w) => !ids(bad).includes(w));
   check('tell lint finds every planted tell in the bad sample', missing.length === 0, `missing: ${missing.join(', ')}`);
   const good = lintHtml(GOOD_HTML);
   check('tell lint finds nothing in the clean sample', good.length === 0, ids(good).join(', '));
+
+  const g = (text, o = {}) => ({ text, sel: 'span', inCode: false, userContent: false, ...o });
+  const glyphIds = (text, o) => ids(auditGlyphs([g(text, o)]));
+  check('glyphs: a flag pair is an emoji', glyphIds('\u{1F1E9}\u{1F1EA} Deutsch').includes('emoji-glyph'));
+  check('glyphs: an emoji-style check mark is an emoji', glyphIds('\u2705 Paid').includes('emoji-glyph'));
+  check('glyphs: a text check mark forced to emoji style (FE0F) is an emoji', glyphIds('\u2714\uFE0F Paid').includes('emoji-glyph'));
+  check('glyphs: a keycap is an emoji', glyphIds('1\uFE0F\u20E3 Step').includes('emoji-glyph'));
+  check('glyphs: a text check mark before a label is a symbol icon', glyphIds('\u2714 Paid').includes('symbol-icon'));
+  check('glyphs: a star rating is a symbol icon', glyphIds('\u2605\u2605\u2605\u2605\u2606').includes('symbol-icon'));
+  check('glyphs: a close cross alone is a symbol icon', glyphIds('\u00D7').includes('symbol-icon'));
+  check('glyphs: an arrow alone is a symbol icon', glyphIds('\u2192').includes('symbol-icon'));
+  check('glyphs: (c), (tm) and an arrow inside a sentence pass', auditGlyphs([g('\u00A9 2026 Example\u2122'), g('Import \u2192 review \u2192 send')]).length === 0);
+  check('glyphs: emoji in code and in user content pass', auditGlyphs([g('\u{1F680}', { inCode: true }), g('Great \u{1F389}', { userContent: true })]).length === 0);
+  check('glyphs: data-user-content is read from HTML', ids(lintHtml('<html><body><div data-user-content><p>Thanks \u{1F389}</p></div><p>Plain</p></body></html>')).length === 0);
+  check('layers: unlayered rules on a layered page warn', ids(auditLayers({ usesLayers: true, unlayered: [':focus-visible'] })).includes('unlayered-css'));
+  check('layers: a page without layers does not warn', auditLayers({ usesLayers: false, unlayered: ['p'] }).length === 0);
+  check('auditTokens reports a z-index outside the scale', ids(auditTokens([rec({ zIndex: 9999 }), rec({ zIndex: 50 })], normalizeTokens({ zIndex: [10, 50] }))).join() === 'off-token-zIndex');
 }
 
 const PAGE = (css, body, extra = '') => `<!doctype html><html lang="en"><head><meta charset="utf-8"><style>*{box-sizing:border-box}body{margin:0;font:16px/24px sans-serif;background:#fff;color:#171717}${css}</style></head><body>${body}${extra}</body></html>`;
@@ -748,6 +818,14 @@ export async function runBrowserTests(pw) {
     check('browser: marketing page without product UI and with three hero buttons fails', has(r, 'product-ui', 'fail') && has(r, 'hero-buttons', 'fail'));
     r = await run(PAGE('h1{margin:0}.b{display:inline-block;padding:4px 12px}', '<section><h1>Create invoices</h1><button class="b">Create</button></section><div data-testid="product-ui" style="margin-top:300px">UI</div>'), { marketing: true });
     check('browser: product UI at 360 px with one button passes', !has(r, 'product-ui') && !has(r, 'hero-buttons'));
+
+    r = await run(PAGE('', '<p><span>\u{1F1E9}\u{1F1EA}</span> Deutsch</p><p>\u2713 Paid</p><p>Import \u2192 send</p>'));
+    check('browser: flag emoji and check-mark status fail, arrow in prose passes', has(r, 'emoji-glyph', 'fail') && has(r, 'symbol-icon', 'fail') && r.findings.filter((x) => x.id === 'symbol-icon').length === 1);
+
+    r = await run('<!doctype html><html><head><style>@layer base{a{color:#171717}}@layer utilities{.ring{outline:2px solid #171717}}:focus-visible{outline:3px solid red}</style></head><body><a class="ring" href="#x">Link</a></body></html>');
+    check('browser: unlayered rule on a layered page warns', has(r, 'unlayered-css', 'warn'));
+    r = await run('<!doctype html><html><head><style>@layer base{a{color:#171717}:focus-visible{outline:3px solid #171717}}</style></head><body><a href="#x">Link</a></body></html>');
+    check('browser: everything layered does not warn', !has(r, 'unlayered-css'));
 
     r = await run(PAGE('p{font-size:15px;margin:0;padding:10px}', '<p>Hello</p>'), { tokens: normalizeTokens({ fontSizes: [14, 16], spacing: [4, 8, 16], radii: [6, 12] }) });
     check('browser: token list rejects 15 px text and 10 px padding', has(r, 'off-token-fontSize', 'fail') && has(r, 'off-token-spacing', 'fail'));

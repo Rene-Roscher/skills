@@ -24,8 +24,9 @@ never reaches the request, or a translation that takes a whole dialog down.
 
 - Applies: writing or reviewing a `.vue` page or component in an Inertia app; forms, buttons and submit
   handling; polling, partial reloads, deferred props; locale JSON edits; wrapping a Reka UI or shadcn-vue
-  primitive; dialogs, sheets and confirms; Pinia stores; "the form submits twice", "the toggle moves but nothing
-  saves", "field required although I typed it".
+  primitive; dialogs, sheets and confirms; toasts and other partly fitting UI libraries; Pinia stores; "the form
+  submits twice", "the toggle moves but nothing saves", "the pressed style is gone", "field required although I
+  typed it".
 - Does not apply: public marketing or docs sites and SSR caching (`web-architecture`), visual design
   (`design-quality`), headless browser checks and screenshots (`browser-verification`), backend validation and
   authorization, general Vue questions the Vue docs answer.
@@ -83,6 +84,18 @@ Most important first. Examples use a project-management app: projects, tasks, me
   and content are invisible on screen and break screen readers. Test: a browser test reads the dialog's
   accessible name and checks `document.activeElement` after open and close. Source: WAI-ARIA APG dialog pattern
   (https://www.w3.org/WAI/ARIA/apg/patterns/dialog-modal/, verified 2026-11-03).
+- [invariant] Style a control's own state through its ARIA state attribute (`aria-pressed`, `aria-checked`,
+  `aria-expanded`, `aria-selected`, `aria-current`, `aria-invalid`), not through `data-state`, whenever another
+  primitive can render onto the same element, such as a tooltip or popover trigger with `as-child` around a
+  toggle. Why: with `as-child` both primitives write `data-state` to the one merged element, so the toggle's
+  `on`/`off` and the tooltip's `closed`/`delayed-open` compete for one attribute, and the pressed style vanishes
+  while the saved value is right. Test: a component test wraps the toggle in the tooltip trigger, presses it, and
+  asserts the pressed style through the selector on `aria-pressed="true"`. Source: Reka UI Toggle (`data-state`
+  `on`/`off`, renders `aria-pressed`), TooltipTrigger (`data-state` `closed`, `delayed-open`, `instant-open`) and
+  `asChild` "merging their props and behavior"
+  (https://github.com/unovue/reka-ui/tree/v2/docs/content/docs/components and
+  https://github.com/unovue/reka-ui/tree/v2/packages/core/src, `Toggle.vue`, `TooltipTrigger.vue`), verified
+  2026-11-05.
 - [default] Page props are typed from the backend contract (generated types or a contract test) and declared with
   `defineProps<T>()` in `<script setup lang="ts">`; a rendered-DOM test proves at least one new prop reaches the
   component. Trade-off: generation or a contract test in the build. Deviate only with an ADR that names this
@@ -100,6 +113,16 @@ Most important first. Examples use a project-management app: projects, tasks, me
 - [default] Expensive props are deferred on the server and rendered with Inertia's `<Deferred>` and a fallback
   that keeps the layout's size. Trade-off: one extra request after the page loads. Deviate only with an ADR that
   names this trade-off. Source: https://inertiajs.com/docs/v2/data-props/deferred-props (verified 2026-11-03).
+- [default] A UI library that fits only in part supplies the mechanics, and the product renders its own
+  component; decide this before the first override. For toasts: keep the library's queue, placement, timers,
+  swipe and live region, and render the product's toast component through its custom-render API (`toast.custom`
+  in vue-sonner) or its unstyled mode, instead of stacking CSS overrides on its default close button, title and
+  layout. List what the library gets right and wrong against the design first; a third override of its markup or
+  styling means wrap or replace. Trade-off: one more component to own and test. Deviate only with an ADR that
+  names this trade-off. Proof: the wrapper is the only place that imports the library; no stylesheet targets the
+  library's internal class names or attributes. Source: vue-sonner README, `toast.custom(markRaw(HeadlessToast))`,
+  `unstyled` with `classes`, Toaster props `position`, `closeButton` and `closeButtonPosition`
+  (https://github.com/xiaoluoboding/vue-sonner, verified 2026-11-05).
 - [default] Client state holds UI state only: sidebar, open dialogs, view preferences. Server data lives in page
   props or a query cache keyed by tenant, and stores that hold tenant data reset on a tenant switch. Trade-off:
   some reloads instead of local caches. Deviate only with an ADR that names this trade-off. Proof: switch tenant in
@@ -114,7 +137,8 @@ Most important first. Examples use a project-management app: projects, tasks, me
 3. Props: type them from the backend contract; add one rendered-DOM assertion for new props.
 4. Forms: one submit path, `type` on every button, in-flight guard, idempotency key for creates that must not
    repeat.
-5. Inputs: handlers take `$event`; wrappers bind the primitive's declared prop and event.
+5. Inputs: handlers take `$event`; wrappers bind the primitive's declared prop and event; state styles select
+   ARIA attributes where a trigger wrapper shares the element.
 6. Data refresh: `only` on every reload and poll; defer expensive props.
 7. Text: run the locale compile test after each locale edit.
 8. Dialogs: title, description, id, focus on open and close.
@@ -132,6 +156,9 @@ Most important first. Examples use a project-management app: projects, tasks, me
   (https://github.com/unovue/reka-ui/issues/2867), can leave `pointer-events: none` on `<body>` after closing, so
   the page stops reacting to clicks. More SSR dialog traps in the reference.
 - Teleported dialog content sits under `<body>`, so a text color set only on the layout wrapper does not reach it.
+- A pressed-state class written as `data-[state=on]:` stops working the day a tooltip trigger wraps the toggle.
+- A toast library's default close button, position and title layout survive every override in one corner
+  (mobile, dark mode, a long title); the custom component does not have that problem.
 
 ## Done when
 
@@ -141,6 +168,7 @@ Most important first. Examples use a project-management app: projects, tasks, me
 - Every reload and poll names its props.
 - The locale compile test is green.
 - Dialogs have a name, focus moves in and returns.
+- State styles on controls inside trigger wrappers select ARIA attributes, and a test proves the pressed style.
 - Client stores hold no server data that survives a tenant switch.
 
 ## References
@@ -166,3 +194,6 @@ Most important first. Examples use a project-management app: projects, tasks, me
 - https://html.spec.whatwg.org/multipage/form-control-infrastructure.html#implicit-submission: Enter clicks the
   default button, verified 2026-11-03.
 - https://github.com/unovue/reka-ui/issues/2867: body pointer-events ownership, closed, verified 2026-11-03.
+- https://github.com/unovue/reka-ui/tree/v2/packages/core/src: `Toggle.vue` renders `aria-pressed` and
+  `data-state`; `TooltipTrigger.vue` sets `data-state` and passes `as-child`, verified 2026-11-05.
+- https://github.com/xiaoluoboding/vue-sonner: `toast.custom`, `unstyled`, Toaster props, verified 2026-11-05.

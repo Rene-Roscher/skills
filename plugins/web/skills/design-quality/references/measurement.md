@@ -61,17 +61,20 @@ browser-test fixtures; the audit takes a URL and does not log in.
 | Level | id | Condition | Source |
 |---|---|---|---|
 | fail | `contrast` | text below 4.5:1, or 3:1 for large text (24 px, or about 18.5 px at weight 700 or more) | WCAG 2.2, 1.4.3 |
-| fail | `off-token-*` | font size, weight, family, spacing, radius, shadow or text colour not in the token list | the closed-set rule |
+| fail | `off-token-*` | font size, weight, family, spacing, radius, shadow, text colour or z-index not in the token list | the closed-set rule |
 | fail | `nested-radius` | child radius larger than the parent's | the radius rule |
 | fail | `target-size` | target under 24 x 24 px with another target or circle within 24 px | WCAG 2.2, 2.5.8 |
 | fail | `overflow` | `scrollWidth` exceeds `clientWidth` by more than 1 px, including clipped containers | the overflow rule |
 | fail | `transition-all` | `transition-property: all` with a non-zero duration | Web Interface Guidelines |
 | fail | `reduced-motion` | running animations with reduced motion requested | Web Interface Guidelines |
+| fail | `emoji-glyph` | emoji in visible UI text: emoji-style characters, flags (regional-indicator pairs), keycaps, pictographs forced to emoji style; code and `[data-user-content]` are skipped | the no-emoji rule |
+| fail | `symbol-icon` | a character doing an icon's job: alone (a star rating, a close cross, a lone arrow) or as a status mark before a label (a check mark before "Paid") | the no-emoji rule |
 | fail | `product-ui`, `hero-buttons` | with `--marketing`: no product UI within 1.3 viewport heights; more than two hero buttons | the marketing rule |
 | warn | `contrast-unknown-background` | text over a gradient or image, not measured | limit of the method |
 | warn | `type-scatter` | more than five sizes and the top three cover under 60% | design default |
 | warn | `untuned-display` | text of 32 px or more with tracking 0 and line height of 1.2 or more | design default |
 | warn | `tabular-nums` | numeric table cell without tabular numerals | Web Interface Guidelines |
+| warn | `unlayered-css` | the page uses cascade layers and has style rules outside any layer; those beat every layered utility | the cascade-layer rule |
 | warn | `tell-*` | template tells, see the tells reference | design default |
 
 Contrast is computed with the WCAG formula: relative luminance `L = 0.2126 R + 0.7152 G + 0.0722 B` over linearised
@@ -138,9 +141,12 @@ Do not install it globally. Choose one:
   value is not `rgb()` or `rgba()`; the browser-less functions return no colour for `oklch()`, `lab()` and
   `color()`. Unverified: how each Chromium version serialises computed values in those spaces; the self-test
   covers `rgb()` pages only.
-- Pseudo-element text, text in canvas and SVG, shadow DOM contents, and iframes.
+- Pseudo-element text, text in canvas and SVG, shadow DOM contents, and iframes. An emoji set through CSS
+  `content` is not seen; search the stylesheets for it.
+- Rules in cross-origin stylesheets: the layer check cannot read them.
 - Focus visibility, hit areas enlarged with pseudo-elements, keyboard behaviour, forced-colours rendering.
-- Hover and active states: the audit reads the resting page.
+- Hover, focus and active states: the audit reads the resting page. Check the state matrix with element
+  screenshots after `locator.hover()`, keyboard focus and `disabled`, in both themes.
 - Meaning: whether a component is the right component.
 - The self-test's HTML reader is a small regex reader for tell lint on snippets; it is not a CSS engine.
 

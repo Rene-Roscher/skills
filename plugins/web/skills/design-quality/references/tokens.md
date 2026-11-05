@@ -7,7 +7,7 @@
 - Type roles
 - Spacing
 - Radius and shadow by elevation
-- Colour roles
+- Colour roles (tokens from a measured reference, stacking scale)
 - Calibration: what measured products do
 
 A token list makes "closed set" checkable. The audit compares every computed value on a page against it and fails
@@ -27,7 +27,8 @@ measured ranges to calibrate against.
   "radii": [4, 6, 12, 16],
   "shadows": ["rgba(0, 0, 0, 0.08) 0px 0px 0px 1px"],
   "colors": ["#171717", "#4d4d4d", "#0070f3"],
-  "accent": "#0070f3"
+  "accent": "#0070f3",
+  "zIndex": [10, 20, 30, 40, 50, 60, 70]
 }
 ```
 
@@ -38,6 +39,7 @@ measured ranges to calibrate against.
   audit run rather than typing them.
 - `colors` lists allowed text colours only (hex or `rgb()`); `accent` makes the report list every element that
   uses it as text, background, border or gradient.
+- `zIndex` lists the steps of the stacking scale; any positioned element with another non-zero `z-index` fails.
 - Pills (radius of 999 px or more) are not compared.
 
 Expect the first run on an unstyled page to fail on browser defaults, for example the 0.67 em margin of an `h1`.
@@ -106,6 +108,35 @@ Linear generates its themes from three inputs, a base colour, an accent colour a
 colour space, replacing 98 per-theme variables
 (https://linear.app/now/how-we-redesigned-the-linear-ui, verified 2026-11-01). Do the same where themes multiply:
 derive surfaces and text from a few inputs and re-check contrast for every output.
+
+### Tokens from a measured reference, one per role
+
+When a reference exists, measure first and write tokens second. For each role, read the computed value from the
+reference in light and in dark (element screenshot plus the audit's `textColors`, or `getComputedStyle` on the
+element) and record it in a table:
+
+| Role | Reference light | Token light | Reference dark | Token dark | Contrast against its surface |
+|---|---|---|---|---|---|
+| `--surface` | | | | | |
+| `--surface-raised` | | | | | |
+| `--border` | | | | | 3:1 only where the border alone marks a control |
+| `--input-border` | | | | | 3:1 against the surface (WCAG 1.4.11) |
+| `--text` | | | | | 4.5:1 |
+| `--text-muted` | | | | | 4.5:1 |
+| `--caption` | | | | | 4.5:1 |
+
+Each role is its own token, written with its own value per theme. A border defined as `var(--caption)` or as
+`color-mix()` of a text token moves whenever the text token moves: raising caption contrast then lightens every
+border in dark mode. Shared values are fine; shared definitions are not. After each change, take element
+screenshots of the same component in light and dark next to the reference.
+
+### Stacking scale
+
+One scale, one file, in this order from low to high: base content, raised (sticky headers, floating action),
+dropdown and select menus, overlay (sheet, slideover, drawer), modal dialog, popover opened inside a dialog, toast,
+tooltip. Components reference the step by name (`z-[var(--z-modal)]`, `z-modal`), never a number. A layer opened
+from another layer takes a higher step and is portalled to `<body>`; inside one stacking context a higher number
+cannot lift an element above a sibling context.
 
 Rules of thumb: text in two or three neutral steps; one accent hue; status hues only for state; status colour as
 text is computed per theme (the dark-theme step usually needs to be lighter than the light-theme step).

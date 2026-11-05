@@ -69,6 +69,19 @@ reported as done that never changed what the user sees.
   fixture helper used by every browser test; a test asserts that the mail, SMS, chat and webhook transports
   of the test environment are fakes. See `safe-actions`.
 
+- [invariant] The browser suite runs in its own environment and starts clean every run. It gets its own ports,
+  its own database and its own build output, and never reuses the developer's dev server, dev database or dev
+  build marker (Laravel's hot file); a global setup resets the state the suite depends on (fresh schema and seed
+  in the test database, cleared cache, including rate-limit counters kept in it), and every limit a test can reach
+  is configurable through the environment with a test value. Why: counters in a cache-backed rate limiter outlive
+  a run, so each test passed alone and the full suite failed at the limit on the next run; a suite that shares the
+  dev server or dev database tests leftovers and breaks the developer's setup. Test: run the full suite twice in a
+  row with the dev stack running; both runs pass and the dev database is unchanged; `reuseExistingServer` is not
+  `true` against a port the dev server uses. Source: Playwright `webServer.reuseExistingServer`, "If `true`, it
+  will re-use an existing server on the `port` or `url` when available."
+  (https://playwright.dev/docs/test-webserver); Laravel rate limiting "utilizes your default application cache"
+  (https://laravel.com/docs/12.x/rate-limiting); both verified 2026-11-05.
+
 - [invariant] Every browser test asserts the absence of failure: no JavaScript errors, no failed requests to
   your own origin, zero CSP violations, exact counts where counts matter (one toast, one POST per submit), and
   no known failure signature (the fallback sentence shown when data did not arrive, a prop rendered as a DOM
@@ -132,6 +145,11 @@ reported as done that never changed what the user sees.
   https://playwright.dev/docs/accessibility-testing (`@axe-core/playwright`; automated tests cannot find every
   violation), verified 2026-10-31.
 
+- [default] A change to markup, tokens or states updates the browser tests that assert them in the same commit,
+  and the suite runs before that commit. Trade-off: a design change is not done until its tests are. Deviate
+  only with an ADR that names this trade-off. Proof: the commit that changes a selector, a state style or a
+  hidden element also changes the test; no "fix tests" commit follows a design commit.
+
 - [default] Finish edits before a browser run. When a dev build plugin regenerates code from backend files,
   write an import and its use in the same edit; an error overlay is a setup error, so rerun the generator and
   then the test instead of changing the test. Trade-off: a rerun after every edit batch. Deviate only with an
@@ -148,7 +166,8 @@ reported as done that never changed what the user sees.
    stop. Report "not verified in a browser", list what was checked instead, and ask before installing
    anything.
 2. Preflight: run the checks in [references/preflight.md](references/preflight.md) and keep the output.
-3. Fixture: create the tenant and user through the real path, pass the gates, pin locale and theme, store the
+3. Environment: the suite's own ports, database and build; global setup resets schema, seed and caches.
+   Fixture: create the tenant and user through the real path, pass the gates, pin locale and theme, store the
    session.
 4. Run headless. Wait for each condition before reading or counting.
 5. Assert the absence of failure: errors, failed requests, CSP violations, exact counts, failure signatures.
@@ -166,6 +185,10 @@ reported as done that never changed what the user sees.
   rendered `[object Object]` in production. Detect: fixtures built through the real backend path.
 - The HMR host was unreachable from the headless browser, the app never mounted, and every test timed out on a
   blank page. Detect: the dev-server marker skip.
+- Each test passed alone and the full run failed with "too many attempts": a rate-limit counter in the database
+  cache survived from the previous run. Clear the cache in global setup and read the limit from the environment.
+- Design changes left tests asserting an old border, an old focus style and an input that was now hidden. Change
+  the test in the same commit as the design.
 - A count read right after a click returned zero toasts and passed. Wait for the expected count instead.
 - A component fell back to a generic sentence when its data was missing, and every positive assertion still
   passed. Assert the fallback sentence is absent.
@@ -182,6 +205,7 @@ reported as done that never changed what the user sees.
 - The preflight output is in the report and shows the served artifact contains the change.
 - The absence-of-failure checks passed, and `measure-check.py check` exited 0 on the measurement JSON.
 - No fixed waits, no headed mode, no user profile in the committed tests.
+- The suite ran twice in a row on its own ports and database, and passed both times.
 - Behaviours the harness cannot show (scrollbars, GPU video, real Safari) are listed as not verifiable
   headless.
 
@@ -193,8 +217,9 @@ reported as done that never changed what the user sees.
   browser test.
 - [references/measurement.md](references/measurement.md): load for contrast, overflow, fit, target size, or any
   "does it look right" question.
-- [references/fixtures-and-identities.md](references/fixtures-and-identities.md): load for authenticated pages,
-  gated flows, dark mode, locale pinning and cleanup.
+- [references/fixtures-and-identities.md](references/fixtures-and-identities.md): load when setting up the suite's
+  own ports, database and global setup, and for authenticated pages, gated flows, dark mode, locale pinning and
+  cleanup.
 - [references/prod-bundle-check.md](references/prod-bundle-check.md): load for push-to-deploy SSR or static
   sites, or when verifying the production build before a release.
 - [references/harness-differences.md](references/harness-differences.md): load for scrollbars, media, GPU,
@@ -226,5 +251,8 @@ reported as done that never changed what the user sees.
   24 x 24 CSS px (2.5.8), verified 2026-10-31.
 - https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum.html: target size exceptions, verified
   2026-10-31.
+- https://playwright.dev/docs/test-webserver: `webServer`, `reuseExistingServer`, verified 2026-11-05.
+- https://laravel.com/docs/12.x/rate-limiting: the rate limiter uses the default cache store unless `limiter` is
+  set, `RateLimiter::clear`, verified 2026-11-05.
 - https://laravel.com/docs/12.x/vite: the `@vite` directive detects the dev server through the hot file;
   `Illuminate\Foundation\Vite` defaults it to `public/hot` (framework 12.x source), verified 2026-10-31.
