@@ -24,7 +24,10 @@ and repository policies can require SHA pins or require the lockfile.
 ## Resolving a SHA
 
 1. Take the tag from the action's own repository: `git ls-remote --tags https://github.com/OWNER/REPO 'v4.4.0*'`.
-   An annotated tag lists two lines; the one ending in `^{}` is the commit.
+   An annotated tag lists two lines: the first is the tag object, the one ending in `^{}` is the commit. Pin the
+   commit. `--refs` hides the `^{}` line, so never combine it with this lookup. Cross-check with
+   `gh api repos/OWNER/REPO/commits/v4.4.0 --jq .sha`, which prints the commit; the same endpoint answers 422 for a
+   tag object SHA.
 2. Confirm that the commit belongs to that repository and not only to a fork in its network:
    `gh api repos/OWNER/REPO/commits/SHA` succeeds for both, so also check that a branch or tag of OWNER/REPO
    contains it. zizmor `impostor-commit` automates this.
@@ -39,9 +42,11 @@ Dependabot and Renovate are equally valid. Pick one per repository, not both.
 
 - Dependabot: ecosystem `github-actions`, directory `/`. Dependabot then searches `/.github/workflows` and a root
   `action.yml` or `action.yaml`. Composite actions elsewhere need their own `directories` entry.
-- Dependabot cooldown: version updates get a 3-day cooldown even when `cooldown` is not set. Security updates have
-  no cooldown. For `github-actions` and `docker` only `default-days` applies; the semver-specific day settings are
-  not supported for those ecosystems.
+- Dependabot cooldown: version updates get a 3-day cooldown even when `cooldown` is not set. zizmor's
+  `dependabot-cooldown` audit wants at least 7 by default, so give every ecosystem entry a `cooldown` block with
+  `default-days: 7`. Renovate's equivalent is `minimumReleaseAge`. Security updates have no cooldown. For
+  `github-actions` and `docker` only `default-days` applies; the semver-specific day settings are not supported
+  for those ecosystems.
 - With the lockfile, Dependabot updates the lockfile entry in the same pull request (GA changelog,
   https://github.blog/changelog/2026-10-28-github-actions-workflow-lockfiles-are-generally-available/).
 - Renovate: preset `helpers:pinGitHubActionDigests`. Renovate's docs don't mention the lockfile (checked
@@ -62,4 +67,5 @@ Dependabot and Renovate are equally valid. Pick one per repository, not both.
 - https://docs.github.com/en/actions/how-tos/administer/enforce-workflow-lockfiles (verified 2026-10)
 - https://docs.github.com/en/code-security/reference/supply-chain-security/dependabot-options-reference (verified 2026-10)
 - https://docs.renovatebot.com/presets-helpers/ (verified 2026-10)
-- https://docs.zizmor.sh/audits/ (verified 2026-10)
+- https://docs.zizmor.sh/audits/ (verified 2026-10; `dependabot-cooldown` threshold re-checked 2026-11-05)
+- https://git-scm.com/docs/git-ls-remote (peeled `^{}` lines and `--refs`, verified 2026-11-05)

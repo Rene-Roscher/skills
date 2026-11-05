@@ -38,19 +38,25 @@ Ordered by blast radius. Each rule names the check that proves it, so the target
   (https://github.com/advisories/GHSA-mrrh-fwg8-r2c3). Test: zizmor `unpinned-uses` (since v1.20.0 its default
   policy requires hash pins for all actions, `actions/*` included), `unpinned-images`, `impostor-commit` and
   `ref-version-mismatch` report nothing; with the lockfile, `gh actions-lock --verify` runs as a required check
-  and fails on a stale lockfile. Source: https://docs.github.com/en/actions/concepts/security/workflow-dependency-lockfiles,
+  and fails on a stale lockfile; for every inline pin, `gh api repos/[owner]/[repo]/commits/[tag] --jq .sha` prints
+  the pinned SHA, which fails for the SHA of an annotated tag object. Source:
+  https://docs.github.com/en/actions/concepts/security/workflow-dependency-lockfiles,
   https://docs.github.com/en/actions/reference/security/secure-use, https://docs.zizmor.sh/audits/ (verified 2026-10).
 - [invariant] **Pins have an updater, and its pull requests are reviewed.** Enable Dependabot's `github-actions`
-  ecosystem or Renovate with `helpers:pinGitHubActionDigests`; both are equally valid. Keep a cooldown on version
-  updates, and never auto-merge updater pull requests into workflows that publish or deploy. Why: a pin nobody
-  updates keeps known-vulnerable code, and a cooldown keeps a freshly published malicious release out of routine
-  update pull requests for a few days. Dependabot applies 3 days by default, and for `github-actions` and `docker`
-  only `default-days` is supported. Test: the updater covers directory `/` for actions (Dependabot then reads
+  ecosystem or Renovate with `helpers:pinGitHubActionDigests`; both are equally valid. Set the cooldown on version
+  updates explicitly to at least 7 days (Dependabot `cooldown.default-days: 7`, Renovate `minimumReleaseAge`), and
+  never auto-merge updater pull requests into workflows that publish or deploy. Why: a pin nobody updates keeps
+  known-vulnerable code, and a cooldown keeps a freshly published malicious release out of routine update pull
+  requests. Dependabot's implicit default is 3 days, below zizmor's default threshold of 7, so a config without an
+  explicit cooldown fails the audit on its first run; for `github-actions` and `docker` only `default-days` is
+  supported. Test: the updater covers directory `/` for actions (Dependabot then reads
   `/.github/workflows` and a root `action.yml`); zizmor `dependabot-cooldown`, `dependabot-execution` and
   `known-vulnerable-actions` report nothing; after the first update pull request `ref-version-mismatch` still
   passes, which shows the version comment moved with the SHA. Source:
   https://docs.github.com/en/code-security/reference/supply-chain-security/dependabot-options-reference,
-  https://docs.renovatebot.com/presets-helpers/ (verified 2026-10).
+  https://docs.renovatebot.com/presets-helpers/ (verified 2026-10), https://docs.zizmor.sh/audits/
+  (`dependabot-cooldown` default threshold 7 days), https://docs.renovatebot.com/configuration-options/
+  (`minimumReleaseAge`) (verified 2026-11-05).
 - [invariant] **Least-privilege token, granted per job.** Start every workflow with `permissions: {}` (or
   `contents: read`) and grant write scopes only on the job that uses them, each with a comment saying why. Never
   put a write scope at workflow level in a workflow triggered by `pull_request`. Why: every step and action in a
@@ -159,6 +165,16 @@ Ordered by blast radius. Each rule names the check that proves it, so the target
   codes, so a blocking gate uses plain or `github` output, or a required code-scanning check. Trade-off: pedantic
   findings block a merge until fixed or suppressed with a reason. Deviate only with an ADR that names this
   trade-off. Source: https://docs.zizmor.sh/usage/, https://github.com/rhysd/actionlint (verified 2026-10).
+- [default] **A new or changed workflow is rehearsed before its first push.** Run zizmor and actionlint locally at
+  the pinned versions, then walk the job graph: for every job, list what it consumes (built frontend assets and
+  their manifest, generated code, a service container, an env value, an artifact) and name the step or the
+  `needs:` job that produces it in a fresh checkout. Run each job's commands once in a clean clone
+  (`git clone [repo] [tmp dir]`), not in the working copy, because the working copy holds build output that a
+  runner never has, for example a test job that renders views and needs the asset manifest. Trade-off: minutes of
+  local work before each workflow change. Deviate only with an ADR that names this trade-off. Proof: the push
+  message or pull request names the zizmor and actionlint versions and their clean result, and the first run is
+  green without a follow-up "fix CI" commit. Source: https://docs.zizmor.sh/usage/,
+  https://github.com/rhysd/actionlint (verified 2026-11-05).
 - [default] **Preflight guards run before anything is pushed.** The job asserts required non-secret variables
   (`: "${VAR:?set VAR in repository variables}"`), required tools on the runner and consistency of coupled flags,
   with `::error::` messages that name the fix. Trade-off: the guard list needs upkeep when configuration changes.
@@ -183,15 +199,23 @@ Ordered by blast radius. Each rule names the check that proves it, so the target
    available, say so and review by hand against the rules.
 3. Fix in rule order: references, updater, permissions, injection, triggers, release gating, gate integrity,
    tools, OIDC, runners. Then the defaults.
-4. Resolve every SHA from the action's own repository and confirm the version comment matches it. Never copy a
-   SHA from a search result or a fork.
+4. Resolve every SHA from the action's own repository and confirm the version comment matches it. Pin the commit:
+   for an annotated tag, `git ls-remote --tags` prints the tag object first and the commit on the line ending in
+   `^{}`; `gh api repos/[owner]/[repo]/commits/[tag] --jq .sha` prints the commit directly. Never copy a SHA from
+   a search result or a fork.
 5. Before stating what a recent platform feature covers (the lockfile, execution protections, event policies),
    check the current GitHub docs, following `evidence-before-claims`. Mark anything the docs don't state as
    unverified.
 6. Add the guard artifacts to the target repository and prove each one against its seeded-bad fixture.
-7. Write the settings checklist and run only the read-only audit. Hand any settings change to an administrator,
+7. Before the first push: the rehearsal above (local zizmor and actionlint, the job graph, the jobs' commands in
+   a clean clone), and for an updater config an explicit cooldown of at least 7 days.
+8. Write the settings checklist and run only the read-only audit. Hand any settings change to an administrator,
    or run it through `safe-actions` with approval.
-8. Report per rule: the check that ran and its result, and what was not run. Follow `verify-before-done`: a green
+9. After the push, read the run for the pushed commit, not the newest run:
+   `gh run list --commit "$(git rev-parse HEAD)" --workflow [file] --json databaseId,headSha,status,conclusion`,
+   then `gh run watch [id] --exit-status`. Updater pull requests, scheduled runs and the previous push all produce
+   runs that can be newer or still running.
+10. Report per rule: the check that ran and its result, and what was not run. Follow `verify-before-done`: a green
    lint is not a working release.
 
 ## Traps
@@ -211,12 +235,24 @@ Ordered by blast radius. Each rule names the check that proves it, so the target
   event policy, enforced from 2026-12-02 for affected repositories
   (https://github.blog/changelog/2026-09-17-workflow-execution-protections-in-github-actions-generally-available/).
   A working coverage-comment workflow on a public repository can stop on that date.
+- `git ls-remote --tags --refs` hides the peeled `^{}` lines, and `head -1` on the unfiltered output picks the
+  tag object. For an annotated tag that SHA is not a commit: `gh api repos/[owner]/[repo]/commits/[tag-object SHA]`
+  answers 422 "No commit found" (reproduced 2026-11-05 with `aquasecurity/trivy-action` v0.36.0, git 2.43.0).
+- "The latest run" is not the run of your commit. `gh run list --limit 1` or `gh run watch` without an ID can pick a
+  Dependabot run, a scheduled run or the previous push, and a green result then describes code you did not push.
+  Select by `--commit` and compare `headSha`.
+- A test job that passes on the developer machine can fail on the runner because the working copy holds generated
+  files (an asset manifest, generated routes or types, a cached config) that a fresh checkout lacks.
 - Moving a tag-triggered release to `workflow_dispatch` "to re-run it" changes the signing identity, and the
   project's own verifier then rejects it. Widening the verifier is the wrong fix.
 
 ## Done when
 
-- zizmor and actionlint, at pinned versions, report no findings, or each suppression carries a reason.
+- zizmor and actionlint, at pinned versions, report no findings, or each suppression carries a reason; for a new
+  or changed workflow they ran locally before the first push.
+- Every inline pin is a commit SHA: `gh api .../commits/[tag] --jq .sha` matches it.
+- The updater cooldown is set explicitly to 7 days or more.
+- The first run of the pushed commit, selected by its head SHA, is green, or its failure is reported.
 - The workflow checker fails on its seeded-bad fixture and passes on the repository.
 - Every job with a write scope, `id-token: write` or `environment:` transitively needs the gate jobs, and the
   gate jobs are required checks.
@@ -264,3 +300,6 @@ Ordered by blast radius. Each rule names the check that proves it, so the target
 - https://docs.zizmor.sh/audits/ and https://docs.zizmor.sh/usage/: audit names, personas, exit codes, ignore
   comments, verified 2026-10.
 - https://github.com/advisories/GHSA-mrrh-fwg8-r2c3: tag retargeting in a compromised action, verified 2026-10.
+- https://git-scm.com/docs/git-ls-remote: an annotated tag shows two lines, the second with `^{}` naming the object
+  the tag points at; `--refs` hides peeled tags; verified 2026-11-05.
+- `gh run list --help` (gh 2.45.0): `--commit` filters runs by commit SHA; verified 2026-11-05.

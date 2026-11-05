@@ -10,6 +10,10 @@ all have to be collected, and PHP code often starts processes through a shell.
 - Private packages: an auth token through a secret mount (for example an `auth.json` mounted with `target=`),
   never an `ARG`.
 - Never `composer update` in an image build.
+- `--no-dev` keeps everything under `require`. The Laravel skeleton and its starter kits list `laravel/tinker` (and
+  with it `psy/psysh`) there, so it ships unless it is moved to `require-dev` (the app then must not reference it
+  outside development) or the build removes it. Check `vendor/composer/installed.json` in the image against the
+  denylist from the image tests reference.
 
 ## Moving to distroless or another minimal base
 

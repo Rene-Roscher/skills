@@ -81,14 +81,49 @@ Ordered by blast radius.
   `--immutable`, and a manifest copied without its lockfile; `composer validate` fails on a stale lock. Source:
   https://docs.npmjs.com/cli/v11/commands/npm-ci, https://pnpm.io/cli/install, https://yarnpkg.com/cli/install,
   https://pip.pypa.io/en/stable/topics/secure-installs/, https://getcomposer.org/doc/03-cli.md (verified 2026-10).
-- [invariant] **The image you test is the image you ship.** CI builds an explicit `target` (or the production stage
-  is last), and a smoke job runs that exact image under production constraints before any tag points at it:
-  `--read-only` with `--tmpfs` for declared paths, `--cap-drop=ALL`, `--security-opt=no-new-privileges`, the numeric
-  user and the production entrypoint. It waits for health and sends one real request. After a base or runtime
-  change, the test suite runs inside the final image. Why: an untargeted build of a Dockerfile whose last stage is
-  `dev` ships the dev image, and a runtime that lacks a system file fails only inside the hardened image. Test: the
-  smoke job is a `needs:` dependency of the push step, and a seeded-bad image that writes under its app directory
-  fails it.
+- [invariant] **The image you test is the image you ship, and an image is done only after it ran.** A Dockerfile
+  that builds is not finished. CI builds an explicit `target` (or the production stage is last), and a smoke job
+  runs that exact image under production constraints before any tag points at it: `--read-only`, one `--tmpfs` per
+  declared writable path with the runtime user's `uid`, `gid` and the narrowest `mode` that works, `--cap-drop=ALL`,
+  `--security-opt=no-new-privileges`, the numeric user and the production entrypoint. It walks every entry path:
+  the default start reaches healthy (the image `HEALTHCHECK` status, or the probe endpoint) and answers one real
+  request; arguments given to `docker run [image] [args]` reach the process, so a wrapper script ends in
+  `exec "$@"`; every other documented mode (worker, scheduler, migrate, one-off command) starts the same way; the
+  scan runs on the result. After a base or runtime change, the test suite runs inside the final image. Why: an
+  untargeted build of a Dockerfile whose last stage is `dev` ships the dev image; an entrypoint that drops its
+  arguments, a tmpfs the runtime user cannot write and a proxy directive the binary rejects all build cleanly and
+  fail only when the container starts. Test: the smoke job is a `needs:` dependency of the push step; a seeded-bad
+  image that writes under its app directory fails it, and so does one whose entrypoint ignores its arguments
+  (`docker run --rm [image] [binary] --version` must print the version, not start the server). Source:
+  https://docs.docker.com/reference/cli/docker/container/run/ (`--tmpfs`, `--read-only`) (verified 2026-11-05);
+  `--tmpfs /data:uid=10001,gid=10001,mode=0700` under `--read-only --user 10001:10001` gives a writable `/data`
+  owned by 10001 with mode 700, while the default tmpfs is root-owned with mode 1777 (Docker 29.9.2, reproduced
+  2026-11-05).
+- [invariant] **No development dependencies or interactive tooling in the runtime image.** Production installs
+  exclude development dependencies (`composer install --no-dev`, `npm ci --omit=dev`, `pnpm install --prod`), and
+  packages that open an interactive shell into the application (REPLs such as Laravel Tinker or PsySH, debuggers,
+  profilers, test runners, fakers) are absent even when the framework skeleton lists them as production
+  dependencies. Why: a REPL in the image runs arbitrary code with the application's secrets for anyone who reaches
+  `docker exec`, and `--no-dev` does not remove a package listed under `require`; the Laravel skeleton and its
+  starter kits list `laravel/tinker` there. Test: the package inventory read from the built image
+  (`vendor/composer/installed.json`, `node_modules/.package-lock.json`, `go version -m [binary]`) contains no
+  entry of a committed denylist, and a seeded-bad build with a denylisted package fails the check. Source:
+  https://getcomposer.org/doc/03-cli.md (`--no-dev`), https://raw.githubusercontent.com/laravel/vue-starter-kit/main/composer.json
+  (`laravel/tinker` under `require`) (verified 2026-11-05).
+- [invariant] **Every long-running process is supervised, reports its health and survives a kill test.** A web
+  server, queue worker, scheduler or consumer runs as its own container under the orchestrator's restart policy,
+  or, when several processes must share a container, under a real process supervisor; never under a shell loop
+  (`while true; do ...; sleep 60; done`), which hides crashes, swallows signals and never reports unhealthy. Each
+  one exposes health that reflects whether it does its work: an HTTP probe for a server, a heartbeat (a timestamp
+  the work loop updates, checked against a maximum age) for workers and schedulers. A scheduler follows its
+  framework's production instructions, not its development command. Why: a process that died or hangs behind a
+  loop looks running to the orchestrator, so nothing restarts it and nobody is told. Test: kill the main process
+  from the host (`kill -9 "$(docker inspect -f '{{.State.Pid}}' [container])"`) and watch the restart count rise
+  and the health go from unhealthy back to healthy; stop the work loop without killing the process and watch the
+  heartbeat check turn red within its budget. Source:
+  https://docs.docker.com/engine/containers/start-containers-automatically/ (a manually stopped container is not
+  restarted) (verified 2026-11-05); with `--restart=on-failure`, a host `kill -9` of the main process restarts the
+  container and `docker kill` does not (Docker 29.9.2, reproduced 2026-11-05).
 - [invariant] **Whatever is signed is verified before it runs.** If images are signed, a gate you control checks
   the signature and its identity (repository, workflow file, release ref, OIDC issuer) before a container starts,
   and deploy references are digests. Why: a signature nobody checks proves nothing. Test: a policy test in the
@@ -145,8 +180,12 @@ Ordered by blast radius.
   Source: https://docs.docker.com/build/building/multi-platform/ (verified 2026-10).
 - [default] **Scan before publish and keep scanning what runs.** Scan the built image with a pinned scanner and
   fail on fixable HIGH and CRITICAL findings (`trivy image --exit-code 1 --severity HIGH,CRITICAL --ignore-unfixed`);
-  every ignore entry carries a reason and an expiry date. Re-scan deployed digests on a schedule. Trade-off: a new
-  advisory can block an unrelated release until it is fixed or ignored with a reason. Deviate only with an ADR that
+  every ignore entry carries a reason and an expiry date. A fixable finding in a base-image package is resolved in
+  this order: drop the package if the runtime does not need it, move the base digest if upstream has rebuilt,
+  otherwise upgrade only that package in the runtime stage (`apk add --no-cache --upgrade [package]`,
+  `apt-get install --only-upgrade [package]`) with a comment naming the advisory, removed at the next base bump.
+  Re-scan deployed digests on a schedule. Trade-off: a new advisory can block an unrelated release until it is
+  fixed or ignored with a reason. Deviate only with an ADR that
   names this trade-off. Source: https://github.com/aquasecurity/trivy/blob/v0.76.1/docs/guide/configuration/filtering.md
   (verified 2026-10).
 - [default] **Builds are reproducible and labelled.** `SOURCE_DATE_EPOCH` from the commit time, `rewrite-timestamp=true`
@@ -168,8 +207,10 @@ Ordered by blast radius.
 2. New image: start from the baseline in references. Runtime change (new base, distroless): do the runtime
    inventory first, with the stack notes for the language.
 3. Apply the invariants, then the defaults.
-4. Run `docker build --check`, build the production target, run the smoke test and the scan, as in the image tests
-   reference.
+4. Run `docker build --check`, build the production target, then run it: start the container with the production
+   constraints, pass arguments through the entrypoint, start every documented mode, wait for healthy, read the
+   package inventory, kill the main process once, and scan, as in the image tests reference. Only then call the
+   image done.
 5. For signing, coordinate the CI job with `github-actions-hardening` (permissions, trigger, runner) and write the
    verification gate on the deployment side.
 6. Check flags and version-bound behaviour against current docs before stating them (`evidence-before-claims`).
@@ -184,6 +225,11 @@ Ordered by blast radius.
 - A missing OpenSSL configuration file can surface as a `false` return value instead of an error. PHP's
   `openssl_pkey_new()` returns `false` when `OPENSSL_CONF` points at a missing file (PHP 8.3.10 and 8.4.26,
   reproduced 2026-10-31), so only the test suite inside the final image shows it.
+- `docker kill` and `docker stop` count as a manual stop, so the restart policy does not apply and a kill test done
+  that way proves nothing. Kill the main process from the host instead.
+- A wrapper entrypoint script that ends in `exec php-fpm` (or any fixed command) instead of `exec "$@"` silently
+  ignores every argument; the container starts the server whatever you ask it to run.
+- `composer install --no-dev` keeps packages listed under `require`; a skeleton that lists a REPL there ships it.
 - Build stages on Debian-based images run `RUN` through dash, which rejects `set -o pipefail` and fails the build.
   Switch the stage's `SHELL` to bash instead of deleting pipefail.
 
@@ -191,8 +237,11 @@ Ordered by blast radius.
 
 - `docker build --check` passes with `check=error=true` for every Dockerfile.
 - The Dockerfile checker passes on the repository and fails on its seeded-bad fixture.
-- The smoke test ran the production target with `--read-only`, `--cap-drop=ALL`, `no-new-privileges` and the
-  numeric user, and the canary and source-map checks found nothing.
+- The smoke test ran the production target with `--read-only`, tmpfs mounts owned by the runtime user,
+  `--cap-drop=ALL`, `no-new-privileges` and the numeric user; it reached healthy, passed arguments through the
+  entrypoint, started every documented mode, and the canary, source-map and package-denylist checks found nothing.
+- Every long-running process came back after a host kill of its main process, with its health turning red and
+  green again.
 - The scan ran at a pinned version, and every ignore entry has a reason and an expiry.
 - If images are signed: the release verifies its own signature, and a deployment-side policy test rejects unsigned
   and foreign-signed images.
@@ -238,3 +287,6 @@ Ordered by blast radius.
   verified 2026-10.
 - https://github.com/kubernetes/kubernetes/pull/56503: non-numeric user rejected under `runAsNonRoot`, verified
   2026-10.
+- https://docs.docker.com/reference/cli/docker/container/run/ and
+  https://docs.docker.com/engine/containers/start-containers-automatically/: tmpfs options, read-only root, restart
+  policies and manual stops, verified 2026-11-05.
