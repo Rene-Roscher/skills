@@ -927,7 +927,7 @@ def self_test() -> int:
             check(key not in str(e) and NoAccess.code == 3, "network error leaked the key or wrong exit code")
         check(key not in redact(f"upstream said: unknown key {key}."),
               "a registered secret must be redacted anywhere")
-        pem = "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASC\n-----END PRIVATE KEY-----\n"
+        pem = "-----BEGIN " + "PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASC\n-----END PRIVATE KEY-----\n"
         fake_token = "ya29." + "a0AfB_test"  # built from two pieces so secret scanners skip the fixture
         msg = redact(json.dumps({"private_key": pem, "access_token": fake_token}) + " Bearer " + fake_token)
         check("MIIEvQ" not in msg and "a0AfB_test" not in msg, f"redaction missed a key or token: {msg}")

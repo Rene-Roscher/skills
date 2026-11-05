@@ -29,6 +29,24 @@ creates branches:
 - Reorder local commits so the fix comes first, then push the fix by its commit: `git push origin [commit]:main`.
   The source of a refspec can be any commit expression; the destination must be a ref name.
 
+## Before a repository or package goes public
+
+A visibility switch or a first push to a public remote publishes every commit, not only the working tree.
+
+1. Run the scanner over files and history, with the private term list (people, customers, internal projects and
+   hosts), kept outside the repository:
+   `python3 scripts/leak_scan.py [repo] --history --terms [file]`.
+2. Read every finding. Resolve errors; read each warning and decide. A deliberate match (a fake key in a test
+   fixture) gets `leak-scan: allow P02 [reason]` on its line or the line above.
+3. Read README, docs, ADRs and changelog yourself: the scanner finds speaker prefixes and phrases such as
+   "as you said", not a paraphrased chat decision or an internal process note. Claims about status, authorship
+   and security are checked as `evidence-before-claims` describes.
+4. A finding in history: before the first public push, rewrite the history with the user's approval (for example
+   with `git filter-repo`) and scan again. After it, rotate every exposed secret first; removal alone does not
+   revoke a copy someone already cloned.
+5. Report what was scanned, the term list used (by count, never the terms) and the result, then ask for the
+   visibility change as an approval-tier action.
+
 ## Force-push
 
 - Never on a shared branch.
@@ -51,5 +69,8 @@ A tag without a push, a push without a tag, or a tag whose release never reached
 
 ## Sources
 
+- https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/removing-sensitive-data-from-a-repository:
+  rotate exposed secrets, rewrite history with `git filter-repo`, cached copies and forks keep the data; verified
+  2026-11-05.
 - https://git-scm.com/docs/git-push: `--follow-tags`, `--force-with-lease`, refspec source and destination;
   verified 2026-10.

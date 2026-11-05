@@ -238,7 +238,7 @@ def self_test():
         ("github", "token ghp_" + "a" * 36),
         ("password", "password: hunter2hunter2"),
         ("url", "db postgres://admin:s3cretpass@db.example.com/app"),
-        ("key block", "-----BEGIN RSA PRIVATE KEY-----"),
+        ("key block", "-----BEGIN RSA " + "PRIVATE KEY-----"),
         ("bearer", "Authorization: Bearer abcdefghijklmnopqrstuvwxyz0123"),
     ):
         expect(f"L06 {label}", {**base, "other-lesson.md": OTHER + "\n" + secret + "\n"}, "L06")

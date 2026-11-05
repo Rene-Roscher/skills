@@ -238,7 +238,7 @@ NXY_DE = rx(
 TRIAD = re.compile(r"(?:\b[A-ZÄÖÜ][\wäöüß-]+\.\s+){2}[A-ZÄÖÜ][\wäöüß-]+\.")
 RESIDUE = rx(
     r"\b(?:i hope this helps|certainly!|of course!|great question|you'?re absolutely right|let me know if|feel free to"
-    r"|i'?d be happy to|as an ai\b|here is (?:a|an|the) (?:revised|updated|draft|polished)|is there anything else"
+    r"|i'?d be happy to|as an ai\b|here is (?:a|an|the) (?:revised|updated|draft|polished)|is there anything else"  # leak-scan: allow P04 pattern list of chatbot phrases
     r"|ich hoffe, (?:das|dies) hilft|natürlich!|sicherlich!|gerne!|absolut!|lass(?:en sie)? (?:mich|uns) wissen"
     r"|hier (?:ist|sind) (?:ein|eine|der|die|das|deine|ihre) (?:überarbeitet|aktualisiert|übersicht|version|entwurf)\w*)"
     r"|\[(?:your|company|product|name|insert|article title|firmenname|ihr name)[^\]]*\]|lorem ipsum|\{TODO[^}]*\}|\bTBD\b"
