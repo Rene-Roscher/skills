@@ -79,6 +79,20 @@ because the tests ran against something other than what production runs.
   Why: hosted CI runners stopped starting jobs after a billing failure, and merged documentation was never
   deployed while everyone assumed it was. Test: a post-deploy check compares the version the app reports with
   the version the release run wrote, and fails on a mismatch.
+- [invariant] A CI result belongs to a commit. Select the run by the pushed head SHA and the workflow
+  (`gh run list --commit [sha] --workflow [name]`), wait for that run to finish, and quote its ID and
+  conclusion. Never report "the latest run": it may be a dependency-update run, a scheduled run or a run for an
+  older commit. Status lines in docs follow the same rule (`evidence-before-claims`). Why: a watcher that reads
+  the newest run reports another commit's result, green or red. Test: with a newer green dependency-update run
+  and a red run for the pushed commit, the report says red and names the run of the pushed SHA. Source:
+  `gh run list --help` (`--commit SHA`, `--workflow`), gh 2.45.0, run 2026-11-05.
+- [invariant] A long-lived process (queue worker, scheduler, stream consumer, daemon) counts as verified only
+  when its supervision is proven: kill it and watch the supervisor start it again, and watch its health check go
+  unhealthy while it is down or stuck and healthy again afterwards. A shell loop around the command is not
+  supervision. Take the production entry point from the framework's or platform's docs, not from the local
+  development command; the container and runtime skills carry the details per platform. Why: a hand-rolled loop
+  works until its first crash, and then nothing restarts it and nothing reports it. Test: `kill -9` the process
+  during verification; the report shows the restart and both health transitions with timestamps.
 - [invariant] Apply schema changes to the real dev database and confirm none are pending before any
   end-to-end claim. In rollout plans the schema change ships before the code that needs it (expand, then
   contract). Why: a large suite was green, and the first real run of a scheduled job died on a missing column
@@ -132,6 +146,8 @@ because the tests ran against something other than what production runs.
   notices.
 - A dev-stack mock endpoint that answers with canned data instead of the real service.
 - A green pipeline whose deploy job never started.
+- A CI watcher that picks the newest run, which belongs to a dependency update or an older commit.
+- A development-only command (a foreground scheduler or file watcher) shipped as the production process.
 - A host package manager that rewrote the lockfile, so CI's clean install fails.
 
 ## Done when
@@ -141,6 +157,7 @@ because the tests ran against something other than what production runs.
 - Each regression test was seen red without the fix and green with it.
 - The applicable test-environment differences are named with how each was checked.
 - Failing checks are listed with their output.
+- CI results are quoted with the run ID for the pushed commit; long-lived processes survived a kill test.
 - Items that are not verified sit in the tracker's review or needs-verification state.
 
 ## References

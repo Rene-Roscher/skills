@@ -41,8 +41,12 @@ number that still let a broken refund, a leaked tenant row or a missing permissi
 - [invariant] Every new test has been seen failing against broken code before it counts: run it before the
   fix or the feature exists, or break the code under test on purpose, see it red for the expected reason, then
   restore. This applies to every new test, not only regression tests; the red-green record for a bug fix is
-  in `verify-before-done`. Why: a test that was never red may be unable to fail, and a suite of such tests
-  approves any change. Test: revert the change the test was written for; the test fails with an assertion
+  in `verify-before-done`. For behaviour that depends on the environment (transport security, transactions,
+  timing and waits, file locks, signals), first prove by hand that the test environment can produce the
+  failure at all, then encode that proof as the test: a header that is only sent over HTTPS cannot be asserted
+  over plain HTTP, a statement that refuses to run inside a transaction cannot be tested inside the test's
+  wrapping transaction, and a wait that returns at once proves nothing about the timeout. Why: a test that was
+  never red may be unable to fail, and a suite of such tests approves any change. Test: revert the change the test was written for; the test fails with an assertion
   message about the behaviour, not with an import or setup error. Source:
   https://newsletter.kentbeck.com/p/canon-tdd (a failing test comes before the code change; verified
   2026-11-03).
@@ -78,6 +82,14 @@ number that still let a broken refund, a leaked tenant row or a missing permissi
   under load; real clocks make results differ by the minute. Test: run the test 20 times, once with the system
   clock set across midnight and a month end; every run gives the same result. Source:
   https://martinfowler.com/articles/nonDeterminism.html (sleep and system clock sections, verified 2026-11-01).
+- [invariant] End-to-end and browser suites start from an isolated, clean state on every run: their own
+  database, their own ports, their own build output, and caches, queues, sessions and rate-limit counters reset
+  in the global setup. Limits the suite can exhaust (requests per hour, sign-ups per address) are configurable
+  and set for the test run. The suite never uses or changes the developer's database, dev server, ports or dev
+  build files. Why: state left by an earlier run (a counter that survives in a cache table, a row another test
+  created) turns a green test red in the full run only, and a suite that shares the dev setup damages it. Test:
+  run the full suite twice in a row and once while the dev stack runs; all three runs give the same result and
+  the dev database is unchanged. Source: none; design judgment. Technique in `browser-verification`.
 - [invariant] A flaky test is a bug, in the test or in the product, and it gets a decision the same day: fix it,
   or quarantine it with a named owner and a deadline. A quarantined test leaves the required suite, stays
   visible, and is fixed or deleted by the deadline. Silent automatic reruns do not count as a decision. Why:
@@ -182,6 +194,10 @@ number that still let a broken refund, a leaked tenant row or a missing permissi
 - A failing assertion "fixed" by pasting the actual value into the expectation.
 - An in-memory database standing in for the production engine. See `verify-before-done` for the differences.
 - One huge end-to-end scenario that covers ten rules and fails for ten reasons.
+- A transport-security header test that runs over plain HTTP, where the framework never sends the header.
+- A database maintenance statement inside the test's wrapping transaction, where the engine refuses or ignores it.
+- A wait or read with a timeout that returns at once because its input is closed, so the timeout never ran.
+- A rate limit that survives between runs in a cache table and fails the suite only when it runs in full.
 
 ## Done when
 
@@ -189,6 +205,7 @@ number that still let a broken refund, a leaked tenant row or a missing permissi
   turns a test red.
 - Each test asserts behaviour and fails for one reason.
 - Each new test was seen red against broken code, and no assertion was removed or loosened to get green.
+- End-to-end suites run on their own database and ports and give the same result twice in a row.
 - No test sleeps, reads the real clock or uses unseeded randomness.
 - Intermittent tests are fixed, or quarantined with an owner and a date.
 - The coverage gate names critical modules and changed lines, and any global number is informational.

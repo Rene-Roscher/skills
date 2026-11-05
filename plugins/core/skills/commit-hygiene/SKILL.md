@@ -35,10 +35,14 @@ internals in public repositories.
   Origin. Why: the trailer is a legal statement by that person. Test: the agent commits for a user whose
   project uses DCO; it tells the user to sign off with `git commit -s` themselves and does not write the
   trailer. Source: https://docs.kernel.org/process/coding-assistants.html (verified 2026-10-31).
-- [invariant] One logical change per commit, and each commit builds. If the subject needs "and" to join two
-  verbs, or two Conventional Commits types would fit, split it. Why: a reviewer must be able to revert half of
-  a change. Test: stage a rename and a bug fix together; the agent commits them separately (eval
-  `output-split-commits`). Source: https://docs.kernel.org/process/submitting-patches.html (verified
+- [invariant] One logical change per commit, and each commit builds and passes its tests. If the subject needs
+  "and" to join two verbs, or two Conventional Commits types would fit, split it. A change to behaviour or design
+  and the test updates it makes necessary are one logical change and land in the same commit; a commit that
+  leaves a test stale, red or asserting the old design is not finished. Why: a reviewer must be able to revert
+  half of a change, and a revert or bisect that lands between a change and its test fix reads as a regression.
+  Test: stage a rename and a bug fix together; the agent commits them separately (eval
+  `output-split-commits`). Change a field's focus style that a test asserts; the test update is in the same
+  commit. Source: https://docs.kernel.org/process/submitting-patches.html (verified
   2026-10-31).
 - [invariant] The subject is imperative, at most 72 characters (aim for 50), has no trailing period and names
   the thing and the effect. "fix bug", "update", "wip", "address review" are not subjects. Why: `git log
@@ -115,6 +119,7 @@ internals in public repositories.
 - A `chore:` commit that changes behaviour and so vanishes from the changelog.
 - Rewriting a branch after review has started, which orphans review comments.
 - Committed agent instruction files in a public repository.
+- A design change in one commit and "fix tests" in the next: the first commit fails its own tests.
 
 ## Done when
 

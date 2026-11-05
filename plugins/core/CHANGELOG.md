@@ -20,3 +20,13 @@ All notable changes to the `core` plugin are recorded here. The format follows
   kit, Nuxt, Go), with pinned versions, flags instead of prompts and an untouched first commit, plus
   `check_scaffold.py`.
 - `stack-bootstrap` offers the `marketing` plugin, `web-quality-skills` and eight `marketingskills` skills for public marketing and docs sites.
+- `evidence-before-claims` checks the status, authorship and security claims in README, specs and ADRs against
+  CI runs, the ADR record and git history before a push, with `claim_scan.py` and a reference on rewriting them.
+- `safe-actions` audits files and history for leaks before a repository or package goes public, with
+  `leak_scan.py` (home paths, secrets, private terms, chat residue, internal hosts).
+- `test-strategy` requires a failure proof in the real test environment for transport, transaction and timing
+  behaviour, and an isolated clean state for end-to-end suites.
+- `verify-before-done` selects CI runs by the pushed commit and requires a kill test for long-lived processes.
+- `commit-hygiene` keeps a behaviour or design change and its test updates in one commit.
+- `project-scaffold` audits starter leftovers against the approved specs, asks the owner per item and pins the
+  allowed tables with a guard test.

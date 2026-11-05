@@ -38,6 +38,16 @@ laravel new [directory] --vue --pest --database=pgsql --pnpm --no-boost --no-int
   production PHP version; `QUEUE_CONNECTION`, `CACHE_STORE` and `SESSION_DRIVER` (all `database` by default)
   to what the runtime spec chose; `APP_LOCALE` to the product's default language.
 - Removing a Fortify feature means removing its frontend route references too, or the Wayfinder build fails.
+- Usual leftovers for the audit (from the `laravel/laravel` skeleton for framework 13.17, read 2026-11-05):
+  migrations create `users`, `password_reset_tokens` and `sessions`; `cache` and `cache_locks`; `jobs`,
+  `job_batches` and `failed_jobs`. `.env.example` sets `SESSION_DRIVER`, `QUEUE_CONNECTION` and `CACHE_STORE` to
+  `database` and `MAIL_MAILER` to `log`, and `DatabaseSeeder` creates a demo user. When the runtime spec chose
+  Redis, the `cache*` tables, `jobs` and the `sessions` table are leftovers; `failed_jobs` stays as long as
+  `queue.failed.driver` is `database-uuids` (the default), and `job_batches` stays if the app uses job batches.
+  `password_reset_tokens` belongs to Fortify's password reset.
+- Guard test for the allowed tables, after the agreed removals: list the tables of the migrated test database
+  (`Schema::getTableListing(schemaQualified: false)`; with the default `true` PostgreSQL names come back as
+  `public.users`) and compare with an explicit array in the test.
 
 ## Nuxt
 
@@ -81,5 +91,8 @@ directory.
 - https://laravel.com/docs/starter-kits and https://github.com/laravel/installer (`src/NewCommand.php`, options and
   `createRepository`), verified 2026-11-04; kit contents from a run of `laravel new demo --vue --pest
   --database=pgsql --pnpm --no-boost -n` with installer 5.32.0, 40 tests passed.
+- `laravel/laravel` skeleton archive for framework `^13.17` (commit `06d016a`): migrations, `.env.example`, <!-- lint-allow: L13 skeleton commit the facts were read from -->
+  `config/queue.php` (`failed.driver` default `database-uuids`, `batching.table`), `DatabaseSeeder`, read
+  2026-11-05; `Illuminate\Database\Schema\Builder::getTableListing` in framework 13.40.0, read 2026-11-05.
 - https://nuxt.com/docs/4.x/getting-started/installation and `create-nuxt --help` (4.0.3), run 2026-11-04.
 - `go version` (1.27.3) and https://go.dev/ref/mod (`go mod init`), 2026-11-04.
