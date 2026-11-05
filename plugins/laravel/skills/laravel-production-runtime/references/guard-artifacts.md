@@ -25,6 +25,8 @@ Load when setting up the guard tests in a project, or checking which exist. Each
 | Query-budget helper in `tests/Pest.php` with `freezeTime()` built in | hot paths stay within budget | query budgets |
 | Config tests: `redis.client`, queue and session connection differ from cache, debounce store | tiers and client as decided | stores |
 | CI check that `tests/` imports no real broker client or production host | tests stay hermetic | hermetic env |
+| `tests/Feature/Console/SchedulerHeartbeatTest.php` and a CI grep over deployment files for `schedule:work` | the scheduler ticks through `schedule:run` | scheduler |
+| `tests/Feature/Database/SchemaGuardTest.php` | the database holds exactly the approved tables | starter leftovers |
 
 ## Query-budget helper
 
@@ -42,3 +44,43 @@ function expectQueryBudget(int $max, Closure $requests): void
 ```
 
 Pair the absolute budget with a scaling check: the count for ten records is close to the count for one.
+
+## Scheduler heartbeat
+
+```php
+// routes/console.php
+Schedule::call(fn () => Cache::forever('scheduler:heartbeat', now()->getTimestamp()))
+    ->name('scheduler-heartbeat')->everyMinute()->onOneServer();
+
+// tests/Feature/Console/SchedulerHeartbeatTest.php
+it('moves the heartbeat on every scheduler run', function () {
+    $this->travelTo(now()->startOfMinute());
+    $this->artisan('schedule:run')->assertSuccessful();
+    expect(Cache::get('scheduler:heartbeat'))->toBe(now()->getTimestamp());
+});
+```
+
+The health check or alert reads the same key and fails when it is older than two minutes. Use a store that the
+health check and every scheduler instance share.
+
+## Schema guard
+
+```php
+// tests/Feature/Database/SchemaGuardTest.php
+it('holds exactly the approved tables', function () {
+    $tables = collect(Schema::getTables())->pluck('name')->sort()->values()->all();
+
+    expect($tables)->toBe([
+        'migrations',
+        // one line per approved table, sorted; a new table is added here in the same commit as its migration
+        'users',
+    ]);
+});
+```
+
+`Schema::getTables()` returns a `name` key on Laravel 11, 12 and 13 (`getTableListing()` returns schema-qualified
+names by default from 12 on). The test runs after `RefreshDatabase` has migrated, so it sees what the migrations
+create, and it runs on the PostgreSQL lane as well.
+
+Both tests were run on a fresh `laravel/laravel` (framework 13.40.0, SQLite, 2026-11-05): green as written, red
+when the heartbeat moved to `hourlyAt(17)`, and red after adding a `widgets` migration.

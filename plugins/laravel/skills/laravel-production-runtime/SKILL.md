@@ -1,6 +1,6 @@
 ---
 name: laravel-production-runtime
-description: "Keeps Laravel correct under production conditions tests hide: Octane and queue worker state, SQLite-green but PostgreSQL-red suites, PHP minor drift, env pins that never apply, datetime offsets, tagged caches. Use when editing Octane, queue, cache, database or mail config or phpunit*.xml, adding singletons or jobs, or when tests pass locally but fail in CI. Not for layering (laravel-architecture)."
+description: "Keeps Laravel correct under production conditions tests hide: Octane and queue worker state, SQLite-green but PostgreSQL-red suites, PHP minor drift, env pins that never apply, datetime offsets, tagged caches, the scheduler, starter leftovers. Use when editing Octane, queue, cache, database or mail config or phpunit*.xml, adding singletons, jobs or schedules, or after a scaffold. Not for layering (laravel-architecture)."
 license: Apache-2.0
 compatibility: "Laravel 11 or later, PHP 8.2 or later, PostgreSQL, Valkey or Redis through PhpRedis. Octane is optional; queues may run on Horizon or plain queue:work. Vendor facts were checked against Laravel 12.53.0 and Octane 2.17.5."
 metadata:
@@ -20,6 +20,8 @@ paths:
   - "**/app/Providers/**"
   - "**/app/**/Jobs/**"
   - "**/app/**/Mail/**"
+  - "**/routes/console.php"
+  - "**/database/migrations/**"
   - "**/Dockerfile*"
 ---
 
@@ -46,8 +48,9 @@ queues (`safe-actions`).
 ## Applies when / does not apply
 
 - Applies: Octane, queue, cache, database, session, mail and test configuration; singletons, scoped bindings,
-  `app()->instance()` calls; jobs, mailables and notifications; time-accepting endpoints; tests that pass locally
-  and fail in CI or production.
+  `app()->instance()` calls; jobs, mailables and notifications; scheduled tasks and how the scheduler runs in
+  production; the cleanup after a starter-kit scaffold; time-accepting endpoints; tests that pass locally and fail
+  in CI or production.
 - Does not apply: where code belongs (`laravel-architecture`), installing Octane or Horizon (vendor docs), who
   may see which tenant's data (`tenant-isolation`), Inertia SSR settings (`web-architecture`), pooler and
   zero-downtime DDL work, Kubernetes manifests.
@@ -127,6 +130,36 @@ What each runtime resets, as read in the versions above:
   another table a job fills. Why: a duplicate guard built on the audit log passed with the sync test queue and
   never fired in production, where the entry arrived seconds later. Test: the guard test runs under
   `Queue::fake()` and asserts that the second attempt is rejected.
+
+### Scheduler
+
+- [invariant] In production the scheduler is `php artisan schedule:run`, started once a minute by a real
+  scheduler (system cron, a cron runner in the container, or the orchestrator's scheduled job), never
+  `schedule:work` and never a shell loop around either command. With more than one instance running it, tasks
+  that must run once use `onOneServer()` (or `Schedule::alwaysOnOneServer()`) on a shared lock-capable cache, and
+  with sub-minute tasks the deploy runs `schedule:interrupt`. A heartbeat task writes a timestamp every minute,
+  and health or an alert fails when it is stale. Why: the docs name `schedule:work` as the local command and give a
+  per-minute cron entry for servers; a hand-written loop dies or drifts without a signal, and a scheduler that
+  stopped is noticed only when a report or a cleanup is missing. Test: a test runs `schedule:run` at a frozen time
+  and asserts that the heartbeat moved; a CI grep fails when deployment files contain `schedule:work` or a
+  `while` loop around `artisan`; the kill test from `container-images` passes for the scheduler process. Source:
+  https://laravel.com/docs/13.x/scheduling ("Running the Scheduler", "Running the Scheduler Locally",
+  "Running Tasks on One Server", "Interrupting Sub-Minute Tasks"), verified 2026-11-05.
+
+### Starter leftovers
+
+- [invariant] After a starter-kit scaffold, the starter's runtime defaults are audited against the approved
+  runtime spec before the first feature. The Laravel skeleton and its kits set `SESSION_DRIVER`,
+  `QUEUE_CONNECTION` and `CACHE_STORE` to `database` and `MAIL_MAILER` to `log`, and ship migrations for
+  `sessions`, `cache`, `cache_locks`, `jobs`, `job_batches` and `failed_jobs` plus a demo `DatabaseSeeder`. List
+  every leftover the spec does not need (tables, config files, env keys, seeders, routes) with keep or remove as
+  an owner decision, remove the agreed ones in their own commits, and add a schema guard test that asserts the
+  exact set of tables after migrating. Why: unused tables still end up in backups, retention and privacy records
+  (the `sessions` table stores IP addresses and user agents), and a `database` queue or cache default works quietly
+  in production on the primary database, so the missing runtime decision never surfaces. Test: the guard test
+  compares the sorted table names with a committed list, equal and not a subset, and a migration that adds an
+  unlisted table turns it red. Source: https://github.com/laravel/vue-starter-kit (`.env.example`,
+  `database/migrations`, `database/seeders`, read on `main` on 2026-11-05).
 
 ### Time and mail
 
@@ -246,6 +279,9 @@ What each runtime resets, as read in the versions above:
   expression (`selectRaw('count(*) as total')`).
 - A job that passes in tests because the test process boots every provider, including ones that production
   queue workers never boot.
+- A scheduled closure needs `name()` to run on one server; `Schedule::alwaysOnOneServer()` skips unnamed closures,
+  which keep running on every instance.
+- `composer install --no-dev` keeps `laravel/tinker`, listed under `require` (`container-images`).
 
 ## Done when
 
@@ -257,6 +293,8 @@ What each runtime resets, as read in the versions above:
 - New env pins have a test that proves they reach `config()`.
 - New wake-up jobs are on the dedicated queue, asserted by a test.
 - Time-accepting endpoints touched have a `+01:00` test; mailables touched have a rendered test.
+- Scheduled tasks touched run through `schedule:run` from a real scheduler, with a heartbeat test.
+- After a scaffold: the leftover list is answered by the owner, and the schema guard test lists the exact tables.
 - Version-bound facts used were re-checked against the installed source, or marked unverified.
 
 ## References
@@ -279,7 +317,7 @@ What each runtime resets, as read in the versions above:
 - [references/verification-log.md](references/verification-log.md): load before relying on a version-bound
   fact; it lists each fact with its file and the version it was checked at.
 - [references/guard-artifacts.md](references/guard-artifacts.md): load when setting up the guard tests in a
-  project, or checking which exist.
+  project, or checking which exist, including the scheduler heartbeat and the schema guard.
 
 ## Sources
 
@@ -303,6 +341,10 @@ What each runtime resets, as read in the versions above:
 - https://github.com/Rene-Roscher/conditional-cache-laravel and
   https://github.com/Rene-Roscher/user-sessions-laravel: package behaviour and requirements. Verified 2026-10.
 - https://laravel.com/docs/12.x/boost: installing Laravel Boost. Verified 2026-10.
+- https://laravel.com/docs/13.x/scheduling: `schedule:run` from a per-minute cron entry, `schedule:work` for local
+  development, `onOneServer()` cache requirement and unnamed closures, `schedule:interrupt`. Verified 2026-11-05.
+- https://github.com/laravel/vue-starter-kit: `.env.example` defaults, starter migrations and seeder, `laravel/tinker`
+  under `require` in `composer.json`. Read on `main`, 2026-11-05.
 - https://laravel.com/docs/12.x/octane#dependency-injection-and-octane: do not inject the container, request or
   configuration repository into singleton constructors; a resolver closure or per-call argument is the fix.
   Verified 2026-11.
