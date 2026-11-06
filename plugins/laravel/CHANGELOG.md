@@ -15,3 +15,7 @@ All notable changes to the `laravel` plugin are recorded here. The format follow
   never `schedule:work` or a shell loop; starter-kit leftovers are audited against the runtime spec after a
   scaffold and the table set is guarded by a schema test. Eval cases `adversarial-scheduler-shell-loop` and
   `trigger-starter-leftovers`.
+- `laravel-architecture`: dashboard widgets are query classes mapped to load modes in a controller that computes
+  nothing, cached per tenant and viewer visibility with `Cache::flexible` and a cold-path lock, heavy KPIs read
+  from rollups, cost measured cold and warm; reference `dashboard-data.md` and eval
+  `output-dashboard-many-kpis`.

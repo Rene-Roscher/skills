@@ -1,6 +1,6 @@
 ---
 name: laravel-architecture
-description: "Structures Laravel SaaS code and enforces its boundaries with tests: public IDs apart from the bigint key, FormRequests, thin controllers, one write path for UI and API, one service per use case, Pest arch tests. Use when creating or reviewing a Laravel model, migration, controller, service, policy or API resource, or asked where code belongs. Not for Octane or queues (laravel-production-runtime)."
+description: "Structures Laravel SaaS code and enforces its boundaries with tests: public IDs apart from the bigint key, FormRequests, thin controllers, one write path for UI and API, one service per use case, dashboard widgets deferred and cached per tenant, Pest arch tests. Use when creating or reviewing a Laravel model, migration, controller, service, policy or API resource, or asked where code belongs. Not for Octane or queues (laravel-production-runtime)."
 license: Apache-2.0
 compatibility: "Laravel 11 or later on PHP 8.2 or later. Version-bound facts were checked against Laravel 12.53.0 and Pest 4.3.2."
 metadata:
@@ -27,8 +27,9 @@ matching the codebase.
 ## Applies when / does not apply
 
 - Applies: creating or reviewing a domain, model, migration, controller, service, action, DTO, enum,
-  FormRequest, policy, API resource or Inertia props; deciding where code belongs; splitting a large controller
-  or service provider; exposing IDs; writing arch tests or structural guard tests.
+  FormRequest, policy, API resource or Inertia props; a dashboard or KPI page with several sources; deciding
+  where code belongs; splitting a large controller or service provider; exposing IDs; writing arch tests or
+  structural guard tests.
 - Does not apply: framework syntax lookups (vendor docs), Octane, queue, cache or test-environment behaviour
   (`laravel-production-runtime`), who may see which tenant's records (`tenant-isolation`; this skill only wires
   the scoped lookup), frontend code, and non-Laravel stacks (`dual-key-identifiers` holds the stack-neutral rule).
@@ -122,6 +123,17 @@ ID column.
   `->delete()`; they call the same domain service as the UI controller. Trade-off: a service class even for
   simple CRUD. Deviate only with an ADR that names this trade-off. Proof: a scanner test for model writes in
   API controllers, and a parity test per resource that web and API store the same state for the same input.
+- [default] A page with several widgets computes nothing in its controller: each widget is one query class
+  that returns a DTO; the controller maps it to a load mode (cheap in the first response, expensive as
+  `Inertia::defer` in its own group with `rescue: true`, below the fold as `Inertia::optional`); every widget
+  reads through one cache helper keyed by tenant, widget and the viewer's visibility, with `Cache::flexible`
+  fresh and stale times from the widget's freshness need and a lock on the cold path; KPIs that aggregate more
+  rows than the request budget allows read a rollup table that a scheduled job fills. Trade-off: one class, one
+  cache entry and possibly one rollup per widget. Deviate only with an ADR that names this trade-off. Proof: the
+  group test (`missing`, `loadDeferredProps` per group) and a cold and warm query count per widget, warm with
+  zero queries, in references/dashboard-data.md. Source: https://laravel.com/docs/13.x/cache ("Stale While
+  Revalidate", "Atomic Locks"); `Illuminate\Cache\Repository::flexible` locks only the background refresh
+  (13.x source); https://inertiajs.com/docs/v3/data-props/deferred-props; all verified 2026-11-06.
 - [default] A size ratchet holds large classes: a committed baseline of line counts per controller and
   service provider, which a file may shrink below but never grow past, and a soft cap for new files. A
   provider that mixes bindings, rate limiters and event wiring is split by concern or domain. Trade-off: the
@@ -210,6 +222,10 @@ ID column.
   Context7, verified 2026-10). The eager load often sits in another method, so the guard flags every
   `cursor()` that lacks an annotation saying it touches no relations.
 - Route binding without scoping resolves another tenant's record by its valid external ID.
+- `Cache::flexible` refreshes a stale value under a lock, but a missing value is computed by every concurrent
+  request at once. A dashboard right after a deploy or a tag flush is exactly that case.
+- `Cache::lock()->block()` measures its wait with `Carbon::now()`; under `freezeTime()` a held lock never times
+  out and the test hangs.
 - A convention document without a test drifts. Large controllers and inline validation pile up while the doc
   still says "thin controllers". Count before you claim that a codebase follows its convention.
 - Documented examples leak. An example in a project doc that passes `$model->id` into props gets copied into
@@ -225,6 +241,7 @@ ID column.
 - Every write has a FormRequest, and referenced IDs validate against the current tenant.
 - Each new arch or structural guard was seen failing once on a planted violation.
 - Static analysis passes at the fixed level, and the baseline did not grow.
+- A multi-widget page has a cost row per widget (load mode, TTL, cold and warm query count) and the group test.
 - Conflicts between an invariant and a local convention, and drift between docs and code, are reported with
   `path:line`.
 
@@ -242,6 +259,8 @@ ID column.
   `arch()` and needs a token scanner with an allowlist.
 - [references/vendor-boundaries.md](references/vendor-boundaries.md): load when integrating a payment, mail,
   SMS or storage vendor.
+- [references/dashboard-data.md](references/dashboard-data.md): load when building a dashboard or any page with
+  several widgets, KPIs or aggregates: query classes, widget cache, rollups, cold and warm measurement.
 - [references/adr-template.md](references/adr-template.md): load when deviating from a `[default]`.
 - [references/guard-artifacts.md](references/guard-artifacts.md): load when setting up the guard tests in a
   project, or checking which ones exist.
@@ -251,6 +270,9 @@ ID column.
 
 ## Sources
 
+- https://laravel.com/docs/13.x/cache: `Cache::flexible`, atomic locks and the drivers that support them, tags,
+  verified 2026-11-06; https://inertiajs.com/docs/v3/data-props/deferred-props and
+  https://inertiajs.com/docs/v3/advanced/testing: groups, `rescue`, `loadDeferredProps`, verified 2026-11-06.
 - https://www.rfc-editor.org/rfc/rfc9562.html: UUIDv7 carries a 48-bit Unix millisecond timestamp in its most
   significant bits (5.7); time-ordered UUIDs have better index locality and UUIDv4 poor (2.1, 6.11). Verified
   2026-10.
