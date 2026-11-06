@@ -22,12 +22,17 @@ Checks (code, what fails):
   P13  multi-tenant plan: no surface in the Tenant isolation table, or no cross-tenant test
   P14  Status is Approved but Approved-by is empty
   P15  a Data model or Dependencies row has no Evidence of verified, reported or inferred
+  P16  the header has no "Tier:" of short, standard or full, or no "Cost-intensive:" of yes or no
+  P17  cost-intensive plan: Tier is not full, the Cost model section is missing, a cost field is
+       missing or empty, or a numeric cost field holds no number
 
 Without --template, the required sections are the ones in the skill's plan template. With --template,
 they are the "##" headings of that file; headings marked "(optional)" are not required, and checks
 tied to a section run only when the template has that section.
 
 A plan is multi-tenant when --multi-tenant is given or its header says "Multi-tenant: yes".
+A plan is cost-intensive when its header says "Cost-intensive: yes"; then the Cost model section is
+required even when a project template marks it conditional.
 
 Output: one finding per line as "path:line: code message". Exit 0 when clean, 1 with findings,
 2 on a usage error. Python 3.8 or later, standard library only, no network.
@@ -62,6 +67,7 @@ DEFAULT_SECTIONS = [
 
 PROBLEM_FIELDS = [
     "Problem",
+    "Business goal",
     "Personas",
     "Today",
     "Success moment",
@@ -69,6 +75,21 @@ PROBLEM_FIELDS = [
     "Non-goals",
     "Stress moment",
 ]
+
+COST_FIELDS = [
+    "Cost drivers",
+    "Per request or action",
+    "Per tenant per month today",
+    "At 10x",
+    "At 100x",
+    "Cached or precomputed",
+    "Budget",
+    "When exceeded",
+    "Against the price",
+]
+COST_NUMERIC = {"Per request or action", "Per tenant per month today", "At 10x", "At 100x", "Budget",
+                "Against the price"}
+TIERS = ("short", "standard", "full")
 
 PRIVACY_TRIGGERS = [
     "New personal-data category",
@@ -88,11 +109,12 @@ TBD_RE = re.compile(r"\b(?:TBD|TBC|TODO|FIXME)\b")
 LATER_RE = re.compile(r"^(?:[-*]\s+)?(?:[^:|]{0,60}:\s*)?(?:later|follow[- ]?up|to be decided)\.?\s*$", re.I)
 WORD_RE = re.compile(r"[A-Za-z0-9][A-Za-z0-9'-]*")
 EVIDENCE_RE = re.compile(r"^\s*(verified|reported|inferred)\b", re.I)
+CONDITIONAL_RE = re.compile(r"\((?:optional|required when[^)]*)\)", re.I)
 
 
 def norm(heading: str) -> str:
     h = NUM_PREFIX_RE.sub("", heading.strip())
-    h = re.sub(r"\(optional\)", "", h, flags=re.I)
+    h = CONDITIONAL_RE.sub("", h)
     return re.sub(r"\s+", " ", h).strip().lower()
 
 
@@ -177,6 +199,7 @@ class Linter:
         self.p = plan
         self.required = required
         self.multi_tenant = multi_tenant
+        self.cost_intensive = False
         self.findings = []
 
     def add(self, idx: int, code: str, msg: str) -> None:
@@ -187,6 +210,7 @@ class Linter:
 
     def run(self):
         self.status()
+        self.stakes()
         self.sections()
         self.line_checks()
         if self.has("problem"):
@@ -206,6 +230,8 @@ class Linter:
                 self.evidence(name)
         if self.multi_tenant:
             self.tenancy()
+        if self.cost_intensive:
+            self.cost_model()
         return sorted(self.findings)
 
     def status(self) -> None:
@@ -224,6 +250,46 @@ class Linter:
             self.add(status_idx or 0, "P01", "header needs 'Status: Draft', 'Status: Approved' or 'Status: Superseded'")
         elif status.split()[0] == "Approved" and not approved_by:
             self.add(status_idx, "P14", "status is Approved but 'Approved-by:' is empty")
+
+    def header_value(self, label: str):
+        for i in range(self.p.header_end):
+            m = re.match(r"^\s*" + label + r":\s*(.*?)\s*$", self.p.clean[i], re.I)
+            if m:
+                return i, m.group(1)
+        return None, None
+
+    def stakes(self) -> None:
+        ti, tier = self.header_value("Tier")
+        ci, cost = self.header_value("Cost-intensive")
+        tier_word = (tier or "").split()[0].lower() if tier else ""
+        cost_word = (cost or "").split()[0].lower() if cost else ""
+        if tier_word not in TIERS:
+            self.add(ti or 0, "P16", "header needs 'Tier: short', 'Tier: standard' or 'Tier: full'")
+        if cost_word not in ("yes", "no"):
+            self.add(ci or 0, "P16", "header needs 'Cost-intensive: yes' or 'Cost-intensive: no'")
+        self.cost_intensive = cost_word == "yes"
+        if self.cost_intensive and tier_word in ("short", "standard"):
+            self.add(ti, "P17", "a cost-intensive plan is Tier: full")
+
+    def cost_model(self) -> None:
+        body = self.p.body("cost model")
+        if body is None:
+            self.add(0, "P17", "cost-intensive plan: section 'Cost model' is missing")
+            return
+        head = self.p.sections["cost model"][0]
+        found = {}
+        for i, line in body:
+            m = re.match(r"^\s*[-*]\s*([A-Za-z0-9 -]+?)\s*:\s*(.*)$", line)
+            if m:
+                found[m.group(1).strip().lower()] = (i, m.group(2).strip())
+        for field in COST_FIELDS:
+            hit = found.get(field.lower())
+            if hit is None:
+                self.add(head, "P17", f"Cost model field '{field}:' is missing")
+            elif words(hit[1]) < 2 and not re.search(r"\d", hit[1]):
+                self.add(hit[0], "P17", f"Cost model field '{field}:' is empty")
+            elif field in COST_NUMERIC and not re.search(r"\d", hit[1]):
+                self.add(hit[0], "P17", f"Cost model field '{field}:' needs a number with its unit")
 
     def sections(self) -> None:
         for name in self.required:
@@ -411,7 +477,7 @@ def required_from_text(text: str):
             in_fence = not in_fence
             continue
         m = HEADING_RE.match(line)
-        if not m or len(m.group(1)) != 2 or re.search(r"\(optional\)", m.group(2), re.I):
+        if not m or len(m.group(1)) != 2 or CONDITIONAL_RE.search(m.group(2)):
             continue
         (inside if in_fence else outside).append(norm(m.group(2)))
     return inside or outside or DEFAULT_SECTIONS
@@ -435,9 +501,12 @@ Approved-by:
 Date: 2026-03-04
 Issue: none
 Multi-tenant: yes
+Tier: standard
+Cost-intensive: no
 
 ## 1. Problem
 - Problem: finished projects clutter every list and search, so leads lose time finding active work.
+- Business goal: keep agencies renewing; cluttered lists are the top reason given in cancellation surveys.
 - Personas: project leads, team members, the account owner who pays per active project.
 - Today: leads rename finished projects with a "zz-" prefix and ask members to ignore them.
 - Success moment: a lead opens the project list on Monday and sees only work in progress.
@@ -556,14 +625,64 @@ Approved-by:
 - choose the send day
 """
 
-EXPECTED_FAIL = {"P01", "P02", "P03", "P04", "P05", "P06", "P07", "P08", "P10", "P11", "P12", "P13"}
+EXPECTED_FAIL = {"P01", "P02", "P03", "P04", "P05", "P06", "P07", "P08", "P10", "P11", "P12", "P13", "P16"}
+
+COST_SECTION = """
+## 14. Cost model
+- Cost drivers: one aggregate query per widget over 90 days of events, and one paid geo lookup per new visitor.
+- Per request or action: 6 queries and 0.4 s database time per cold dashboard view; 0 queries warm.
+- Per tenant per month today: 2,000 views, 1.20 EUR of database time and lookups for the largest tenant.
+- At 10x: 12 EUR per month; widgets stay inside the 2 s cold budget.
+- At 100x: 120 EUR per month cold; daily rollups keep the warm path at 0 queries.
+- Cached or precomputed: widgets cached per tenant for 5 minutes with stale-while-revalidate; daily rollups.
+- Budget: 5 EUR per tenant per month on the base plan.
+- When exceeded: the plan entitlement caps the date range at 30 days and an operator kill switch stops lookups.
+- Against the price: 1.20 EUR is 2 % of the 59 EUR base plan.
+"""
+COST_PASSING = PASSING.replace("Tier: standard\nCost-intensive: no", "Tier: full\nCost-intensive: yes").replace(
+    "\n## 14. Failure modes", COST_SECTION + "\n## 14. Failure modes")
+COST_FAILING = PASSING.replace("Cost-intensive: no", "Cost-intensive: yes").replace(
+    "\n## 14. Failure modes", COST_SECTION.replace("Budget: 5 EUR per tenant per month on the base plan.",
+                                                    "Budget: whatever the tenant needs.")
+    .replace("- At 100x: 120 EUR per month cold; daily rollups keep the warm path at 0 queries.\n", "")
+    + "\n## 14. Failure modes")
 
 
 def self_test() -> int:
     g = lint_text("pass.md", PASSING, DEFAULT_SECTIONS, False)
     b = lint_text("fail.md", FAILING, DEFAULT_SECTIONS, True)
-    t = required_from_text("## 1. Problem\n## 2. Extra (optional)\n## 3. Rollout and rollback\n")
+    t = required_from_text("## 1. Problem\n## 2. Extra (optional)\n## 3. Cost model (required when Cost-intensive: yes)"
+                           "\n## 4. Rollout and rollback\n")
+    c_ok = lint_text("cost-pass.md", COST_PASSING, DEFAULT_SECTIONS, False)
+    c_bad = [(n, code, msg) for n, code, msg in lint_text("cost-fail.md", COST_FAILING, DEFAULT_SECTIONS, False)]
+    no_model = lint_text("cost-none.md", COST_PASSING.replace(COST_SECTION, "\n"), DEFAULT_SECTIONS, False)
     ok = True
+    if c_ok:
+        ok = False
+        print("self-test: cost-intensive passing fixture has findings:")
+        for n, code, msg in c_ok:
+            print(f"  cost-pass.md:{n}: {code} {msg}")
+    want = {"a cost-intensive plan is Tier: full", "Cost model field 'At 100x:' is missing",
+            "Cost model field 'Budget:' needs a number with its unit"}
+    got = {msg for _, code, msg in c_bad if code == "P17"}
+    if want - got or {code for _, code, _ in c_bad} != {"P17"}:
+        ok = False
+        print("self-test: cost-intensive failing fixture gave " + "; ".join(sorted(f"{c} {m}" for _, c, m in c_bad)))
+    no_tier = lint_text("no-tier.md", PASSING.replace("Tier: standard\n", ""), DEFAULT_SECTIONS, False)
+    if [m for _, c, m in no_tier] != ["header needs 'Tier: short', 'Tier: standard' or 'Tier: full'"]:
+        ok = False
+        print("self-test: a plan without a Tier gave " + "; ".join(m for _, _, m in no_tier))
+    vague = lint_text("vague.md", PASSING.replace("Cost-intensive: no", "Cost-intensive: maybe"), DEFAULT_SECTIONS, False)
+    if [m for _, c, m in vague] != ["header needs 'Cost-intensive: yes' or 'Cost-intensive: no'"]:
+        ok = False
+        print("self-test: 'Cost-intensive: maybe' gave " + "; ".join(m for _, _, m in vague))
+    no_goal = lint_text("no-goal.md", re.sub(r"(?m)^- Business goal:.*\n", "", PASSING), DEFAULT_SECTIONS, False)
+    if not any(code == "P07" and "Business goal" in msg for _, code, msg in no_goal):
+        ok = False
+        print("self-test: a plan without a Business goal passed")
+    if not any(code == "P17" and "section 'Cost model' is missing" in msg for _, code, msg in no_model):
+        ok = False
+        print("self-test: a cost-intensive plan without a Cost model section passed")
     if g:
         ok = False
         print("self-test: passing fixture has findings:")

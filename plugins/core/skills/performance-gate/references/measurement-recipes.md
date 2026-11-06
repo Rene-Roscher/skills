@@ -3,6 +3,17 @@
 Examples use Laravel with Pest and PostgreSQL. The shape carries over to other stacks: count queries per request,
 freeze time, seed volume, read the plan on the production engine.
 
+## Contents
+
+- Query budget with a frozen clock
+- Lazy loading
+- Plans on the real engine
+- Fan-out and paid messages
+- Memory in long-lived code
+- Data-heavy views: cold, warm, failing source, stampede
+- Seeding 100x
+- Monitoring data
+
 ## Query budget with a frozen clock
 
 Put the helper in the shared test setup file so every test uses the same counter.
@@ -81,6 +92,44 @@ expect(memory_get_usage() - $before)->toBeLessThan(256 * 1024);
 ```
 
 Also read the class for `static` properties and singletons that hold request, user or tenant values.
+
+## Data-heavy views: cold, warm, failing source, stampede
+
+Write the widget table first: widget, source, query or call, cost cold, freshness the user needs, cache key scope
+(tenant, permission scope), TTL. Then measure four things at the seeded volume.
+
+```php
+beforeEach(fn () => $this->owner = Tenant::factory()->withSeededVolume()->create()->owner);
+
+it('loads the dashboard frame cheaply and the widgets warm from cache', function () {
+    $this->freezeTime();
+    $owner = $this->owner;
+    [$frame] = queryBudget(fn () => $this->actingAs($owner)->get('/dashboard')->assertOk());
+    expect($frame)->toBeLessThanOrEqual(4);                 // frame only, constant as widgets are added
+
+    Cache::flush();
+    [$cold, $coldMs] = queryBudget(fn () => $this->actingAs($owner)->getJson('/dashboard/widgets/revenue'));
+    [$warm] = queryBudget(fn () => $this->actingAs($owner)->getJson('/dashboard/widgets/revenue'));
+    expect($warm)->toBe(0);                                  // report $cold and $coldMs as the cold cost
+});
+
+it('renders the other widgets when one source fails', function () {
+    $owner = $this->owner;
+    $this->mock(PaymentsApi::class)->shouldReceive('totals')->andThrow(new ConnectionException('down'));
+    $this->actingAs($owner)->getJson('/dashboard/widgets/payments')->assertStatus(503);
+    $this->actingAs($owner)->getJson('/dashboard/widgets/revenue')->assertOk();
+});
+```
+
+- The test cache store must support what production uses (tags, locks); `array` supports locks, `file` and
+  `database` do not support tags.
+- Stampede: in a staging run, let the widget's entry expire, then send 20 concurrent requests (`hey -n 20 -c 20`,
+  `ab`, k6) and count how often the computation ran (a counter or a log line inside the closure). One run is the
+  pass; 20 is the stampede.
+- Cost per view: cold queries and database time times the share of cold views (1 / views per TTL window), plus
+  paid calls per view. Put the number in the report and in the plan's Cost model.
+- With a permission-dependent widget, read it as an admin and then as a member with a warm cache; the member must
+  not get the admin's number.
 
 ## Seeding 100x
 

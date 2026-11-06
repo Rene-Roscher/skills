@@ -10,7 +10,21 @@
 
 Copy the block below into the project's plans folder (default `docs/plans/YYYY-MM-DD-[slug].md`) and replace
 every bracketed placeholder. Keep the section headings: the linter finds sections by name, not by number. A
-section marked "(optional)" may be deleted.
+section marked "(optional)" may be deleted; the Cost model section is required when the header says
+`Cost-intensive: yes` and may be deleted otherwise.
+
+Set the tier before writing (the rule is in SKILL.md):
+
+- `short`: reversible, no new stored data, no new cost, no change to money, auth or tenancy (a label, a layout, a
+  filter over data already loaded). One line per section; N/A with its reason where it does not apply.
+- `standard`: new stored data, endpoints, jobs or integrations without notable running cost.
+- `full`: cost-intensive, money, authentication, tenant isolation, irreversible data changes, or a feature the
+  business model depends on. Numbers measured on representative data where an estimate would decide, alternatives
+  compared by cost, one adversarial review.
+
+`Cost-intensive: yes` when the feature fans out to many sources or recipients, aggregates large data per request,
+calls paid APIs or sends paid messages, stores large volumes, or computes per request in a way that grows with
+tenant size. A cost-intensive plan is always `full`.
 
 Every section gets an answer. "N/A" is allowed with a reason specific to this feature, on the same line. Deferred
 work becomes a tracked issue with a priority, linked on the line that defers it. Label facts in the Evidence
@@ -27,9 +41,12 @@ Approved-by:
 Date: [YYYY-MM-DD]
 Issue: [link, or none]
 Multi-tenant: [yes or no]
+Tier: [short, standard or full]
+Cost-intensive: [yes or no]
 
 ## 1. Problem
 - Problem: [the problem, with no solution in it]
+- Business goal: [why the project needs it: revenue, retention, cost, an obligation; from the brief or model]
 - Personas: [who has it; each expects something different]
 - Today: [what they do instead today]
 - Success moment: [the moment they notice it works, from their view]
@@ -113,7 +130,18 @@ Multi-tenant: [yes or no]
 - Queue load: [jobs per minute at peak]
 - Payload sizes: [ ]
 
-## 14. Failure modes
+## 14. Cost model (required when Cost-intensive: yes)
+- Cost drivers: [queries and scans, paid API calls, messages, storage, compute per request]
+- Per request or action: [number with unit: queries, database time, calls, messages]
+- Per tenant per month today: [number with unit, for the largest tenant]
+- At 10x: [number with unit]
+- At 100x: [number with unit]
+- Cached or precomputed: [which reads, key scope, TTL from the freshness the user needs, rollups]
+- Budget: [ceiling per request and per tenant per month]
+- When exceeded: [limit, plan entitlement, degraded mode, kill switch]
+- Against the price: [cost as a share of what the tenant pays]
+
+## 15. Failure modes
 | Failure | Impact | Detection | Reaction |
 |---|---|---|---|
 | [a dependency is down] | [ ] | [ ] | [ ] |
@@ -123,26 +151,26 @@ Multi-tenant: [yes or no]
 - Irreversible: [ ]
 - Costs money or reaches people if it fires wrongly: [ ]
 
-## 15. Test plan
+## 16. Test plan
 - Unit and feature tests: [ ]
 - Cross-tenant test per new resource: [or N/A for a single-tenant product, with the reason]
 - Failure-mode tests: [ ]
 - Browser check: [ ]
 
-## 16. Rollout and rollback
+## 17. Rollout and rollback
 - Rollout: [order across components, schema before code, flag default]
 - Rollback: [how to roll back two hours after release, including data written since]
 - Irreversible steps: [ ]
 
-## 17. Implementation steps
+## 18. Implementation steps
 | Step | Location | Done criterion | Depends on |
 |---|---|---|---|
 | [ ] | [ ] | [ ] | [ ] |
 
-## 18. Self-review
+## 19. Self-review
 [answers to the self-review questions, with numbers]
 
-## 19. Open decisions
+## 20. Open decisions
 1. [Question]
    - Options: [A], [B]
    - Trade-offs: [cost, reversibility, effort, risk]
@@ -158,12 +186,15 @@ when it finds anything.
 - Every section above except the optional one, none of them empty, no bracketed placeholder left.
 - No bare N/A: at least three words of reason on the same line or in the same table cell.
 - No TBD, TODO or FIXME, and no answer that is only "later" or "follow-up", without an issue link on the same line.
-- The seven Problem fields, each with a value.
+- `Tier:` short, standard or full, and `Cost-intensive:` yes or no in the header.
+- The eight Problem fields, each with a value.
 - Evidence cells of verified, reported or inferred in the Data model and Dependencies tables.
 - The five Data protection triggers answered yes or no.
 - The failure-mode table header and at least three rows.
 - Rollout and Rollback filled.
 - The implementation table header and at least one row.
 - Open decisions as a numbered list, each item with `Recommendation:`, or "None" with a reason.
+- With `Cost-intensive: yes`: `Tier: full`, and the Cost model section with all nine fields; the per-request,
+  per-tenant, 10x, 100x, budget and price fields each hold a number.
 - With `--multi-tenant` or `Multi-tenant: yes`: at least one surface in the isolation table and a cross-tenant entry
   in the test plan.

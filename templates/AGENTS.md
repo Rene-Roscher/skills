@@ -17,6 +17,14 @@
   If you can't find it, say so.
 - Findings from another agent or an earlier session are leads. Re-check them before acting.
 
+### Goal
+- Before working a task on your own, write three lines: the business goal (whose need, why it
+  matters to the project), the feature goal and its checkable success criterion. Weigh each design
+  decision against UX, function, scale and cost, and security, not only against "it runs". The plan
+  is as deep as the feature's cost, risk and business weight. Security counts only when proven by a
+  test, never because a README or vendor says so. See `core:goal-focus`, `core:feature-planning` and
+  `core:security-assurance`.
+
 ### Model tier
 - If this session does not run on the strong or top tier (for Claude: Opus or Fable class), or you
   cannot tell, load `core:know-your-limits` before the first step and follow it for the whole task.
@@ -30,6 +38,9 @@
 - Every text a user sees (UI, validation, API errors, toasts, mails, notifications, exports) goes
   through the i18n layer. Counts use plural forms, never "(s)" or "Server(e)"; numbers and dates use
   Intl in the user's locale. See `saas:localization`.
+- Never write a Unicode emoji or pictographic symbol character yourself, anywhere: code, UI strings,
+  flags, docs, commit messages, comments, logs, CLI output. Visuals come from the project's icon set
+  (for example Lucide) or SVG assets. What a user entered stays as entered.
 
 ### Done means verified
 - A failing check you cannot explain: write `attempt k/10: [symptom]` in each message. Stop after three

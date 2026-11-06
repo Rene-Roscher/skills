@@ -1,6 +1,6 @@
 ---
 name: performance-gate
-description: "Gates a feature with data or traffic impact before handover: query budget per request measured with a frozen clock, N+1, indexes tied to their query, EXPLAIN on the real engine, tagged cache invalidation, queue and broadcast fan-out, paid-message cost, worker memory, load at 100x tenant size, bulk paths. Use when handing over such a feature or asked whether it scales. Not for page-load speed."
+description: "Gates a feature with data or traffic impact before handover: query budget per request measured with a frozen clock, N+1, indexes tied to their query, EXPLAIN on the real engine, tagged cache invalidation, dashboards loaded per widget and cached per tenant, queue and broadcast fan-out, paid-message cost, worker memory, load at 100x tenant size, bulk paths. Use when handing over such a feature or asked whether it scales. Not for page-load speed."
 license: Apache-2.0
 metadata:
   author: "Rene Roscher"
@@ -18,7 +18,8 @@ tenant.
 ## Applies when / does not apply
 
 - Applies: a new or changed list, detail page, API endpoint, export, import, report, scheduled job, queue job,
-  broadcast, notification or webhook fan-out; a new index, cache or query; "is this performant", "will it scale",
+  broadcast, notification or webhook fan-out; a dashboard, report or overview that reads several sources or
+  aggregates; a new index, cache or query; "is this performant", "will it scale",
   "N+1", "this is slow", a slow-transaction or N+1 alert from monitoring; the performance item of a definition of
   done.
 - Does not apply: frontend bundle size and page-load metrics, image optimisation, build speed, choosing a
@@ -65,6 +66,24 @@ Most important first.
   do not exist on some drivers. Test: update the record through its normal write path; the next read returns the
   new value without waiting for the TTL. Source: https://laravel.com/docs/12.x/cache#cache-tags, "Cache tags are
   not supported when using the `file`, `dynamodb`, or `database` cache drivers" (verified 2026-11-03).
+- [invariant] A data-heavy view (dashboard, report, overview with several widgets or sources) never computes every
+  widget inside one synchronous request. The first response carries the frame and the cheap values; each expensive
+  widget loads on its own, grouped by source and cost, with its own loading, error and stale state, so one slow or
+  failed source neither delays nor breaks the others. Each expensive read is cached per tenant (and per permission
+  scope where roles see different numbers) with a TTL taken from the freshness the user needs, served stale while
+  a single refresh runs, and guarded so an expiry triggers one recomputation, not one per waiting request. A read
+  that stays expensive at 100 times today's volume is precomputed (rollups, materialized aggregates, a scheduled
+  job) instead of cached. The gate measures the view cold and warm at the seeded volume and states the cost per
+  view. Why: a view that queries every source per request costs sources times views and is as slow as its
+  slowest source; and when a popular item expires, every request in the recomputation window recomputes it (an
+  item read 10 times per second that takes 3 seconds to compute is computed 30 times). Test: adding a widget does
+  not change the first response's query count; a warm view runs none of the widgets' expensive queries; with one
+  source failing, the other widgets render; 20 concurrent requests at expiry run the widget's computation once.
+  Source: https://www.rfc-editor.org/rfc/rfc5861.html, section 1, stale-while-revalidate "allows a cache to
+  immediately return a stale response while it revalidates it in the background"; Vattani, Chierichetti,
+  Lowenstein, Optimal Probabilistic Cache Stampede Prevention, PVLDB 8(8), 2015,
+  https://www.vldb.org/pvldb/vol8/p886-vattani.pdf, section 1; both verified 2026-11-06. Stack detail:
+  `vue-inertia-frontend` (deferred loading, plugin web) and `laravel-architecture` (cache API, plugin laravel).
 - [invariant] Fan-out per action is a formula with a bound: jobs, broadcasts, notifications and webhooks per
   action as a function of recipients, subscribers or affected records, chunked so one job never holds all
   recipients, with payloads that carry IDs and the fields the receiver renders, not whole models with relations.
@@ -115,6 +134,8 @@ Most important first.
 5. Plans: `EXPLAIN (ANALYZE, BUFFERS)` on the production engine for each new or changed query, writes inside a
    rolled-back transaction. Tie each index to its query.
 6. Cache, fan-out and paid messages: write the invalidation test, the fan-out formula and the cost per action.
+   For a data-heavy view: list each widget with its source, cost and freshness, then measure the view cold
+   (empty cache) and warm, one source failing, and concurrent requests at expiry.
 7. Workers: static state review and the memory loop.
 8. Write findings in the fixed format, sorted by magnitude. Separate what you fixed from what needs a decision.
 9. Re-run the budget tests after each fix. Hand over only with the tests green and the numbers in the report.
@@ -133,12 +154,22 @@ Most important first.
 - A broadcast that serializes a model with loaded relations sends kilobytes per subscriber per event.
 - A job retried after a timeout sends its SMS again unless the send is recorded before the retry can run.
 - A queue worker that runs for days holds the code and the static state from its start.
+- A dashboard cache keyed by tenant only, where admins and members see different numbers, shows a member the
+  admin's figures.
+- A TTL shorter than the computation time, or shorter than the interval between views, means the view is always
+  cold; the cache adds a write and saves nothing.
+- A rollup table that powers a dashboard without a check that its refresh job ran shows yesterday's numbers as
+  current; the widget states the time of its data.
+- "Make it async" that moves the same per-view computation into a queue job still costs the same per view; only
+  caching or precomputing changes the cost.
 
 ## Done when
 
 - Each touched endpoint and page has a green query-budget test with a frozen clock, constant in N.
 - Each new index names its query and has a plan at representative volume on the production engine.
 - Each cache has a tenant-scoped key, TTL, tags and an invalidation test.
+- Each data-heavy view loads its expensive widgets on their own, and the report states its cold and warm query
+  count and time at the seeded volume, the cost per view, and the stampede and failing-source results.
 - Fan-out and paid-message cost are stated as formulas with the 100x volume plugged in, with retry and dedupe
   tests.
 - Worker code has no request state in statics, a flat memory loop and recycle limits.
@@ -149,7 +180,8 @@ Most important first.
 - [references/finding-format.md](references/finding-format.md): load when writing the report, or to see example
   findings for each dimension.
 - [references/measurement-recipes.md](references/measurement-recipes.md): load when writing the budget test, the
-  memory loop, the fan-out assertion or the plan check, with Laravel and PostgreSQL examples.
+  memory loop, the fan-out assertion, the plan check or the cold, warm and stampede measurement of a dashboard,
+  with Laravel and PostgreSQL examples.
 
 ## Sources
 
@@ -165,3 +197,8 @@ Most important first.
 - https://laravel.com/docs/12.x/queues#running-the-queue-worker: long-lived workers keep state, `--max-jobs`,
   `--max-time`, `--memory`, verified 2026-11-03.
 - https://redis.io/docs/latest/commands/keys/: `KEYS` warning, verified 2026-11-03.
+- https://www.rfc-editor.org/rfc/rfc5861.html: stale-while-revalidate, verified 2026-11-06.
+- https://www.vldb.org/pvldb/vol8/p886-vattani.pdf: cache stampede, recomputation during the expiry window,
+  external recomputation and locking as countermeasures, verified 2026-11-06.
+- https://laravel.com/docs/13.x/cache: `Cache::flexible` (fresh and stale windows, refresh in a deferred function
+  after the response), atomic locks, verified 2026-11-06.

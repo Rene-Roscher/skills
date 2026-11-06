@@ -91,7 +91,9 @@ plan whose assumptions were changed without the owner knowing.
   filter, sort and join column, and the duration at the planned peak volume. Trade-off: measurement time on every
   feature. Deviate only with an ADR that names this trade-off. Proof: a query-count test with a frozen clock fails
   when a list adds one query per row; the clock is frozen so an expiring cache cannot change the count between
-  runs.
+  runs. For a plan marked `Cost-intensive: yes`, the measured cost per request and per tenant replaces each
+  estimate in the plan's Cost model, and a measurement above the budget goes back to the owner before handover
+  (`performance-gate`).
 
 ## Procedure
 
@@ -136,6 +138,7 @@ plan whose assumptions were changed without the owner knowing.
 - Every item reported as done was seen working in a running system. The others are "tested, not verified", with
   the reason, and the tracker shows that.
 - The deviation log lists every deviation, and the owner approved each assumption break.
+- A cost-intensive feature reports its measured cost per request and per tenant next to the plan's budget.
 - The report names every failing test or check with its output.
 - Nothing was committed, pushed, tagged or deployed unless the user asked.
 

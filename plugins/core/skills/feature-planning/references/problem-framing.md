@@ -1,7 +1,7 @@
 # Problem framing
 
 Load this when the request names a solution ("add a button", "we need a toggle"), or when the personas and the
-stress moment are unclear. The goal is the seven Problem fields, written without any technology in them.
+stress moment are unclear. The goal is the eight Problem fields, written without any technology in them.
 
 ## From solution to problem
 
@@ -23,6 +23,14 @@ Name each kind of person who touches the feature. They expect different things:
 - the person who pays for the product and judges it (an owner, a finance lead);
 - the person who configures or automates it (an admin, a developer using the API);
 - the person outside the customer who sees the result (an invoice recipient, a guest with a booking).
+
+## Business goal
+
+The persona's need says why someone uses the feature; the business goal says why the project builds it now. Read
+it from the product brief, the business model or the issue, and name the source: more revenue (an upsell, a plan
+axis), retention (a cancellation reason removed), lower cost (support tickets, manual work), or an obligation (a
+law, a contract). If none of these can be named, say so in the plan: the feature may not be worth its cost, and the
+owner decides.
 
 ## Success moment and metric
 

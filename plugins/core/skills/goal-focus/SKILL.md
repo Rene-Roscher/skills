@@ -1,6 +1,6 @@
 ---
 name: goal-focus
-description: "Keeps an agent on the stated goal: restates the goal and its done criterion, keeps a short task list, checks each step against the goal, notes side findings instead of fixing them, timeboxes investigations, stops when an assumption breaks, and leads replies with the result. Use when a task has several steps or work starts to drift. Not for planning a feature or proving done."
+description: "Keeps an agent on the stated goal: restates the goal and its done criterion (for autonomous work also the business and feature goal, weighed against UX, cost and security), keeps a short task list, checks each step against the goal, notes side findings instead of fixing them, timeboxes investigations, stops when an assumption breaks, and leads replies with the result. Use when a task has several steps or work starts to drift. Not for planning a feature or proving done."
 license: Apache-2.0
 metadata:
   author: "Rene Roscher"
@@ -30,6 +30,20 @@ diff three times larger than the task, and a reply that buries the one answer th
   shifts with every file opened, and without a criterion there is no point at which the work stops. Test: give
   the agent "make booking cancellation work for group bookings"; its first message states the goal and a
   criterion it can check, or asks what "work" means. Source: none; design judgment.
+- [invariant] Work done without the owner watching each step starts from three goals, written down: the business
+  goal (whose need it serves and why it matters to the project, from `docs/product/brief.md`,
+  `docs/business/model.md`, the plan or the issue), the feature goal, and its checkable success criterion. Every
+  design decision on the way is then weighed against four questions, and the answer is noted when it changes the
+  decision: UX (what the user sees in every state and at the moment of highest stress), function (correct for
+  every existing data shape), scale and cost (load and cost per request and per tenant at 100 times today's size,
+  `performance-gate`), and security (what an attacker gains, shown by a negative test, never assumed from a
+  library's or a README's claim). A business goal that cannot be found in the docs is asked for, not invented.
+  Why: an agent that only knows the task optimises for "it runs"; a dashboard that works but recomputes every
+  widget per request, or an endpoint that works but trusts a client-sent ID, passes that bar and fails the
+  business. Test: give the agent "build the usage overview page for admins" in a fixture with a product brief;
+  before the first change it states the business goal from the brief, the feature goal and a criterion, and its
+  report names the cost per page view and the authorization check it tested. Source: none; design judgment,
+  consistent with `feature-planning` (planning depth) and `evidence-before-claims`.
 - [default] Keep a short, visible task list, at most about seven items, each tied to a part of the goal.
   Update it when an item is done or dropped, not in bulk at the end. Trade-off: the list costs a few lines of
   output and goes stale if not updated. Deviate only with an ADR that names this trade-off; a one-step task
@@ -97,7 +111,8 @@ diff three times larger than the task, and a reply that buries the one answer th
 
 ## Procedure
 
-1. Write the goal and the done criterion. If either is unclear, ask now.
+1. Write the goal and the done criterion. If either is unclear, ask now. Working on your own: also the business
+   goal and the feature goal, with where you read them.
 2. Write the task list. Mark which items are needed for the criterion.
 3. Work the list. At each checkpoint ask the question; put side findings on a separate list.
 4. If an investigation hits the timebox, stop and write the three lines. If a fix loop reaches the attempt cap,
@@ -114,10 +129,13 @@ diff three times larger than the task, and a reply that buries the one answer th
 - A plan that silently changes from "extend X" to "rewrite X" when X turns out awkward.
 - A reply that opens with the history of the session and states the outcome in the last paragraph.
 - Treating the owner's passing remark as a new task. Ask, or list it as an open point.
+- A feature that meets its criterion on three rows and one tenant, while the business needs it for the largest
+  customer; "it runs" was the only question asked.
 
 ## Done when
 
-- The goal and the done criterion were stated before the first change.
+- The goal and the done criterion were stated before the first change; for autonomous work also the business
+  and feature goal, and the report names the UX, cost and security checks behind the main decisions.
 - Every change in the diff traces back to the goal.
 - Side findings are listed, not fixed, apart from the named exceptions.
 - Every asked item has a status before any extra is mentioned.

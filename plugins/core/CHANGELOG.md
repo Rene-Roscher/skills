@@ -30,3 +30,17 @@ All notable changes to the `core` plugin are recorded here. The format follows
 - `commit-hygiene` keeps a behaviour or design change and its test updates in one commit.
 - `project-scaffold` audits starter leftovers against the approved specs, asks the owner per item and pins the
   allowed tables with a guard test.
+- Skill `security-assurance`: every security property the product relies on or claims gets a row (property,
+  asset, attacker, mechanism, evidence, not covered), each technique is checked for correct use (AEAD and
+  nonces, keys, password hashing, CSPRNG tokens, constant-time compares, token algorithms, TLS verification),
+  and each property has an attack test seen failing; `check_assurance.py` checks the table.
+- `goal-focus`: autonomous work starts from the business goal, the feature goal and its criterion, and weighs each
+  decision against UX, function, scale and cost, and security.
+- `feature-planning`: plan depth follows the stakes (`Tier:` short, standard, full); a plan marked
+  `Cost-intensive: yes` is full and carries a Cost model with cost per request and per tenant today, at 10x and
+  100x, caching or precomputation, budget, overrun behaviour and the share of the price; the Problem section names
+  the business goal; `lint_plan.py` checks both (P16, P17).
+- `feature-delivery` replaces the Cost model's estimates with measurements before handover.
+- `performance-gate`: data-heavy views load expensive widgets independently, cache them per tenant and permission
+  scope with a freshness TTL, stale-while-revalidate and one refresh at a time, or precompute them; the gate
+  measures them cold and warm and states the cost per view.

@@ -1,6 +1,6 @@
 ---
 name: feature-planning
-description: "Plans a feature end to end before any code and stops at a plan gate until the owner approves: problem, UX states, data model, permissions, tenant isolation, legal triggers, performance budget, failure modes, rollout, open decisions. Use when a new feature or product-visible change is requested, even a small one: let's build, add a, plan, design, spec out. Not for bug fixes or approved plans."
+description: "Plans a feature end to end before any code and stops at a plan gate until the owner approves: business goal and problem, depth by stakes, a cost model for cost-intensive features, UX states, data model, permissions, tenant isolation, legal triggers, performance budget, failure modes, rollout, open decisions. Use when a new feature or product-visible change is requested, even a small one: let's build, add a, plan, design, spec out. Not for bug fixes or approved plans."
 license: Apache-2.0
 metadata:
   author: "Rene Roscher"
@@ -39,13 +39,31 @@ the product, price or legal choice that was settled inside an implementation the
   Test: `python3 ${CLAUDE_SKILL_DIR}/scripts/lint_plan.py [plan]` fails on an empty section, a bare N/A, or a TBD
   without an issue link.
 - [invariant] Problem before solution. Before any technology, write the problem with no solution in it, the
-  personas who have it, what they do today, the success moment from their view, a success metric, the non-goals,
+  business goal it serves (revenue, retention, cost or an obligation, with its source), the personas who have it, what they do today, the success moment from their view, a success metric, the non-goals,
   and the moment of highest stress in which the feature is used (for a booking system, the minute a sold-out event
   opens; for an invoicing app, month-end close). Questions that get there:
   [references/problem-framing.md](references/problem-framing.md).
   Why: a plan that covers only the calm path is unfinished, and B2B users judge a product at its moment of highest
   stress.
-  Test: the linter fails when one of the seven fields in the Problem section is missing or empty.
+  Test: the linter fails when one of the eight fields in the Problem section is missing or empty.
+- [invariant] Plan depth follows the stakes. The header sets `Tier:` and `Cost-intensive:` before the sections
+  are written. `short` is for reversible changes with no new stored data, cost, money, auth or tenancy impact; it
+  answers every section in a line. `standard` covers new data, endpoints, jobs or integrations. `full` is for
+  anything cost-intensive, touching money, authentication or tenant isolation, irreversible, or carrying the
+  business model; it measures on representative data where an estimate would decide, compares alternatives by
+  cost, and gets one adversarial review. A feature is cost-intensive when it fans out to many sources or
+  recipients, aggregates large data per request, calls paid APIs or sends paid messages, stores large volumes, or
+  computes per request in a way that grows with tenant size; it is always `full` and carries a Cost model: cost
+  per request and per tenant per month today, at 10x and at 100x, what is cached or precomputed, the budget, what
+  happens when it is exceeded (limit, plan entitlement, degraded mode, kill switch), and the cost against what the
+  tenant pays (`pricing-and-unit-economics` and `plan-entitlements`, plugins business and saas). Tier criteria:
+  [references/plan-template.md](references/plan-template.md).
+  Why: a uniform plan depth either buries a label change in ceremony or waves through a dashboard that queries
+  ten sources per view; the expensive features are the ones whose cost decides whether a plan price holds, and
+  that cost is cheapest to change before code exists.
+  Test: `lint_plan.py` fails (P16) without a tier and a cost flag, and (P17) on a cost-intensive plan that is not
+  `full`, lacks the Cost model or leaves a cost field without a number (eval
+  `output-cost-intensive-dashboard-plan`).
 - [invariant] Decisions belong to the owner: number them and recommend. Product, pricing, legal, scope and
   hard-to-reverse architecture questions are the owner's. Collect them as a numbered list at the end of the plan.
   Each item gives the options, the trade-offs (cost, reversibility, effort, risk) and one recommended default with
@@ -121,6 +139,8 @@ the product, price or legal choice that was settled inside an implementation the
   per second), queries per request with a p95 target, analytical scan scope, queue load and payload sizes. Size
   lists for the large case, a hundred affected items rather than three, and say how lists are capped and totals
   shown.
+  A view that reads many sources (a dashboard, a report) states per widget its source, cost and freshness; the
+  loading and caching rules for such views are in `performance-gate`.
   Trade-off: estimates can be wrong; delivery replaces them with measurements. Deviate only with an ADR that names
   this trade-off.
   Test: every field in the Performance budget section holds a number or N/A with a reason.
@@ -143,7 +163,8 @@ the product, price or legal choice that was settled inside an implementation the
 3. Read the code, schema and configuration the feature touches. Label each fact verified, reported or inferred.
 4. Create the plan file from the project's template, or from
    [references/plan-template.md](references/plan-template.md) if the project has none. The path comes from the
-   project facts file; the default is `docs/plans/YYYY-MM-DD-[slug].md`. Set `Status: Draft`.
+   project facts file; the default is `docs/plans/YYYY-MM-DD-[slug].md`. Set `Status: Draft`, then `Tier:` and
+   `Cost-intensive:` from the criteria in the template.
 5. Fill every section. N/A with a reason; anything deferred becomes a linked issue.
 6. Fill the failure-mode table and the open decisions.
 7. Answer the self-review questions. For a critical plan, get one adversarial review and fold in what holds up.
@@ -161,7 +182,8 @@ the product, price or legal choice that was settled inside an implementation the
 Handover format:
 
 ```text
-Plan: docs/plans/2026-03-04-credit-notes.md (Status: Draft, linter passes)
+Plan: docs/plans/2026-03-04-credit-notes.md (Status: Draft, Tier: full, not cost-intensive, linter passes)
+Business goal: month-end corrections are the second most common support ticket; credit notes remove them.
 Problem: accountants can't correct a sent invoice without cancelling it and losing the payment link.
 Scope: credit notes for sent invoices, full and partial; no changes to tax calculation.
 Biggest risk: a credit note posted twice on retry; covered by an idempotency key (failure modes, row 3).
@@ -184,10 +206,16 @@ Nothing is implemented. Reply with approval, or answer by number ("1 yes, 2 own"
 - Findings from subagents or earlier sessions copied into the plan without checking them.
 - An option list without a recommendation, or a recommendation without the trade-off it accepts.
 - Reopening a topic that was cancelled, instead of linking the earlier decision.
+- A small UI on top of an expensive read: one new dashboard tile can be the most cost-intensive feature of the
+  quarter. Classify by what runs per request, not by the size of the screen.
+- Cost written as "low" or "negligible" without a number, or computed for today's tenants only.
+- A business goal copied from the request ("users want X") instead of read from the brief or model.
 
 ## Done when
 
 - The plan file exists at the project's plans path with `Status: Draft`, and the linter passes.
+- The tier matches the stakes; a cost-intensive plan is `full` and its Cost model has numbers at today's size, 10x
+  and 100x.
 - Every section is answered, N/A has a reason, and every deferred item is a linked issue.
 - Open decisions are numbered, each with options, trade-offs and a recommendation.
 - The reply gives the plan path, the open decisions and a request for approval, and no code, commit or push
