@@ -4,7 +4,7 @@ mkdir -p resources/js/components
 cat > resources/js/components/PinToggle.vue <<'VUE'
 <script setup lang="ts">
 import { Toggle, TooltipContent, TooltipPortal, TooltipProvider, TooltipRoot, TooltipTrigger } from 'reka-ui'
-import { Pin } from 'lucide-vue-next'
+import { Pin } from '@lucide/vue'
 
 const pinned = defineModel<boolean>({ default: false })
 </script>

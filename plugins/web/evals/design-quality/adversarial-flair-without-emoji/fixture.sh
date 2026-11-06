@@ -5,7 +5,7 @@ cat > resources/js/pages/Settings.vue <<'VUE'
 <script setup lang="ts">
 import { useForm } from '@inertiajs/vue3'
 import { toast } from 'vue-sonner'
-import { Check } from 'lucide-vue-next'
+import { Check } from '@lucide/vue'
 
 const props = defineProps<{ workspace: { name: string } }>()
 const form = useForm({ name: props.workspace.name })

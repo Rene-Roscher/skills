@@ -30,3 +30,9 @@ All notable changes to the `web` plugin are recorded here. The format follows
   `dashboard-loading.md`.
 - Eval cases `adversarial-flair-without-emoji` and `output-confirm-above-slideover`; the flag grader matches
   emoji by escaped ranges instead of literal characters.
+- `vue-inertia-frontend`: favorite library per need in `references/libraries.md` (shadcn-vue on Reka UI,
+  `@lucide/vue`, vue-sonner, Inertia forms with built-in Precognition, Pinia, VueUse, `Intl` then date-fns,
+  TanStack Table, Apache ECharts, Wayfinder, vue-i18n, SVG flags or flag-icons), one library per need, and
+  `check_frontend_deps.py` for avoid-list packages, duplicates per need and unrecorded non-favorites.
+- Eval cases `trigger-add-revenue-chart` and `adversarial-quick-fix-second-libraries`; eval fixtures import
+  icons from `@lucide/vue` instead of the deprecated `lucide-vue-next`.

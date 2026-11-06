@@ -1,6 +1,6 @@
 ---
 name: vue-inertia-frontend
-description: "Writes and reviews Vue 3 script-setup TypeScript pages on Inertia: typed props from the backend, forms without double submits, partial reloads, polling, deferred props and dashboards that load each widget on its own, typed routes, vue-i18n message syntax, ref unwrapping, Reka and shadcn-vue dialogs, UI-only client state, accessible controls. Use when editing .vue pages, components or locale files in an Inertia app. Not for public Nuxt sites."
+description: "Writes and reviews Vue 3 script-setup TypeScript pages on Inertia: typed props from the backend, forms without double submits, partial reloads, polling, deferred props and dashboards that load each widget on its own, typed routes, vue-i18n message syntax, ref unwrapping, Reka and shadcn-vue dialogs, UI-only client state, accessible controls, library favorites. Use when editing .vue pages, components or locale files in an Inertia app, or adding a frontend dependency. Not for public Nuxt sites."
 license: Apache-2.0
 compatibility: "Vue 3 with script setup and TypeScript, Inertia 2 or later with @inertiajs/vue3, vue-i18n 9 or later, Reka UI 2. API syntax comes from the vendor docs for the installed versions."
 metadata:
@@ -26,7 +26,8 @@ never reaches the request, or a translation that takes a whole dialog down.
   handling; polling, partial reloads, deferred props, dashboards and KPI pages; locale JSON edits; wrapping a
   Reka UI or shadcn-vue primitive; dialogs, sheets and confirms; toasts and other partly fitting UI libraries;
   Pinia stores; "the form submits twice", "the toggle moves but nothing saves", "the pressed style is gone",
-  "field required although I typed it", "the dashboard is slow".
+  "field required although I typed it", "the dashboard is slow"; adding a frontend dependency or choosing a
+  library for toasts, charts, icons, dates, tables or flags.
 - Does not apply: public marketing or docs sites and SSR caching (`web-architecture`), visual design
   (`design-quality`), headless browser checks and screenshots (`browser-verification`), backend validation and
   authorization, general Vue questions the Vue docs answer.
@@ -134,6 +135,15 @@ Most important first. Examples use a project-management app: projects, tasks, me
   library's internal class names or attributes. Source: vue-sonner README, `toast.custom(markRaw(HeadlessToast))`,
   `unstyled` with `classes`, Toaster props `position`, `closeButton` and `closeButtonPosition`
   (https://github.com/xiaoluoboding/vue-sonner, verified 2026-11-05).
+- [default] Frontend dependencies come from the favorites in `references/libraries.md`: shadcn-vue on Reka UI,
+  Lucide, vue-sonner, Inertia forms and props (TanStack Query only for data outside page props), Pinia for UI
+  state, VueUse, `Intl` then date-fns, TanStack Table, Apache ECharts, Wayfinder, vue-i18n, and SVG flags
+  (`flag-icons` once the product works with many countries). An owner profile, `AGENTS.md` or an ADR that names
+  another library wins; a need the table lacks goes through `build-vs-buy`. One library per need: never a second
+  toast, icon, chart, date, table, i18n, flag or UI-primitive library, and never moment. Trade-off: a specialist
+  library can beat the favorite for one feature. Deviate only with an ADR that names this trade-off. Proof:
+  `scripts/check_frontend_deps.py` reports no error, and each F03 warning names the ADR or profile line behind
+  it. Source: `references/libraries.md` (npm registry metadata and vendor docs, verified 2026-11-06).
 - [default] Client state holds UI state only: sidebar, open dialogs, view preferences. Server data lives in page
   props or a query cache keyed by tenant, and stores that hold tenant data reset on a tenant switch. Trade-off:
   some reloads instead of local caches. Deviate only with an ADR that names this trade-off. Proof: switch tenant in
@@ -144,7 +154,8 @@ Most important first. Examples use a project-management app: projects, tasks, me
 1. Gate: is this an Inertia page, a component used by one, or a locale file? Public Nuxt pages go to
    `web-architecture`.
 2. Read the installed versions of `@inertiajs/vue3`, `vue`, `vue-i18n` and `reka-ui` from the lockfile and check
-   the APIs you use against their docs.
+   the APIs you use against their docs. Before adding a dependency, take the favorite from
+   [references/libraries.md](references/libraries.md) and run `scripts/check_frontend_deps.py`.
 3. Props: type them from the backend contract; add one rendered-DOM assertion for new props.
 4. Forms: one submit path, `type` on every button, in-flight guard, idempotency key for creates that must not
    repeat.
@@ -174,6 +185,9 @@ Most important first. Examples use a project-management app: projects, tasks, me
 - Deferred props without a group share one request, so the slowest source decides when every widget appears.
 - A deferred prop that throws fails its whole group unless it is rescued; the other widgets of that group stay
   on their skeletons.
+- A quick fix that installs moment, a second toast library or a second icon set next to the favorite stays
+  forever; the next feature uses whichever it finds first.
+- `lucide-vue-next` is deprecated on npm; `@lucide/vue` is the current Vue package.
 - A toast library's default close button, position and title layout survive every override in one corner
   (mobile, dark mode, a long title); the custom component does not have that problem.
 
@@ -188,6 +202,7 @@ Most important first. Examples use a project-management app: projects, tasks, me
 - Dialogs have a name, focus moves in and returns.
 - State styles on controls inside trigger wrappers select ARIA attributes, and a test proves the pressed style.
 - Client stores hold no server data that survives a tenant switch.
+- `check_frontend_deps.py` reports no error; every non-favorite library has its ADR or profile line.
 
 ## References
 
@@ -195,6 +210,8 @@ Most important first. Examples use a project-management app: projects, tasks, me
   input, a switch or checkbox wrapper, or a submit-twice bug.
 - [references/dashboard-loading.md](references/dashboard-loading.md): load when building or reviewing a dashboard
   or any page that reads several sources or shows KPIs.
+- [references/libraries.md](references/libraries.md): load before adding a frontend dependency or choosing a
+  library for UI primitives, icons, toasts, forms, state, dates, tables, charts, routes, i18n or flags.
 - [references/i18n-dialogs-ssr.md](references/i18n-dialogs-ssr.md): load when editing locale files, building a
   dialog, or rendering a dialog during SSR or hydration.
 
@@ -220,3 +237,6 @@ Most important first. Examples use a project-management app: projects, tasks, me
 - https://github.com/unovue/reka-ui/tree/v2/packages/core/src: `Toggle.vue` renders `aria-pressed` and
   `data-state`; `TooltipTrigger.vue` sets `data-state` and passes `as-child`, verified 2026-11-05.
 - https://github.com/xiaoluoboding/vue-sonner: `toast.custom`, `unstyled`, Toaster props, verified 2026-11-05.
+- npm registry metadata, https://github.com/laravel/vue-starter-kit, https://inertiajs.com/docs/v3/the-basics/forms
+  and https://github.com/ecomfe/vue-echarts: favorites, versions, built-in Precognition, ECharts setup, verified
+  2026-11-06; details in `references/libraries.md`.

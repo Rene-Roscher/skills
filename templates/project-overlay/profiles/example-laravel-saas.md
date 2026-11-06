@@ -20,6 +20,8 @@ These are `[default]` rules in the skills, listed so nobody reopens them per fea
 
 - Laravel with Inertia and Vue 3 for the product, Nuxt for the public site.
 - Tailwind CSS and shadcn-vue for components, Laravel Wayfinder for typed routes.
+- Frontend libraries as in the favorites table of `web:vue-inertia-frontend` (Lucide, vue-sonner, ECharts,
+  date-fns, TanStack Table, flag-icons once countries matter); a change to a row is recorded here.
 - Laravel Fortify for headless authentication.
 - PostgreSQL for transactional data, Valkey through the PhpRedis extension for cache, queues and sessions.
 - Sessions in Valkey with a device list through `rene-roscher/user-sessions-laravel`.
