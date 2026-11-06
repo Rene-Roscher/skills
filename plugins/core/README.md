@@ -32,6 +32,7 @@ attempt cap of `goal-focus` and the ban on skipped checks with hooks.
 | `project-scaffold` | the approved docs are in place and the app, site or worker they name has to be created: official starter, pinned version, only the approved components |
 | `stack-bootstrap` | a repository needs its agent plugins and curated third-party skills set up per project, or its stack changed |
 | `performance-gate` | a feature with data or traffic impact is about to be handed over, or someone asks whether it scales |
+| `security-assurance` | a feature adds or changes auth, tokens, encryption, keys, signed links or TLS settings, or a text claims a security property: threat model, correct use of each technique, attack tests that must fail |
 
 Claude Code loads a skill when the task matches its description. You can also call one directly, for example
 `/core:evidence-before-claims`.

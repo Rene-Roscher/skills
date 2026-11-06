@@ -12,7 +12,7 @@
     {
       "name": "core",
       "source": "./plugins/core",
-      "description": "Goal focus, work on smaller models, a glossary of EU and German ecosystem terms, subagent delegation, evidence before claims, verification, safe actions, project inception, scaffolding from official starters, planning, delivery, tests, maintainable code, lessons, tooling, commits, stack bootstrap, performance. Stack-agnostic.",
+      "description": "Goal focus, work on smaller models, a glossary of EU and German ecosystem terms, subagent delegation, evidence before claims, verification, safe actions, project inception, scaffolding from official starters, planning, delivery, tests, maintainable code, lessons, tooling, commits, stack bootstrap, performance, security assurance. Stack-agnostic.",
       "category": "engineering",
       "tags": [
         "evidence",

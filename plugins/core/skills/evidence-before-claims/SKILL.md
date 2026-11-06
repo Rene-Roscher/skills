@@ -20,7 +20,8 @@ citation that sounds right, passes review because it looks authoritative, and br
   README or instruction file disagrees with the code; a subagent, tool or ticket reports a fact you are about
   to act on; a README, spec, ADR or changelog is about to be pushed or published.
 - Does not apply: pure refactoring, style review, general programming concepts, or logic bugs that touch no
-  dependency. Completion claims about your own work belong to `verify-before-done`.
+  dependency. Completion claims about your own work belong to `verify-before-done`; whether a security
+  property actually holds belongs to `security-assurance`.
 
 ## Rules
 
@@ -110,7 +111,8 @@ citation that sounds right, passes review because it looks authoritative, and br
   owner accepted it, the text says exactly that, and neither turns an accepted recommendation into the owner's
   own design nor hides the owner's decision. A security claim names what is guaranteed, against which
   attacker, and what is not claimed (for example "no claim about forward secrecy"); "secure" or
-  "military-grade" alone is not a claim. `scripts/claim_scan.py` lists the candidates. Why: these are the
+  "military-grade" alone is not a claim; proving the property itself is `security-assurance`.
+  `scripts/claim_scan.py` lists the candidates. Why: these are the
   lines readers check first, and they go stale without anyone touching them: a status line written before the
   first CI run outlives the green run, and a decision record that overstates one side's share discredits the
   rest of the document. Test: a README says CI never ran and the maintainer decided every protocol detail,
