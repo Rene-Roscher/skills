@@ -23,7 +23,7 @@ What it checks (code, meaning):
   DSH03  paired dash insertion (house style, German)
   TTL01  title-case heading (EN) or capitalised function word in a heading (DE)
   RES01  chat residue or placeholder          EXC01  more than one exclamation mark
-  EMO01  emoji at the start of a line         LEN01  more than 15 % of sentences over 25 words
+  EMO01  emoji or pictographic symbol        LEN01  more than 15 % of sentences over 25 words
   CTA01  generic link or button label         TST01  testimonial that needs a source record
   CNT01  customer or user count ("trusted by over N teams") that needs a dated source record
   CAL01  calque or unidiomatic combination, with the corpus ratio against the natural form (EN and DE)
@@ -245,7 +245,7 @@ RESIDUE = rx(
     r"|\b20\d\d-XX-XX\b|utm_source=(?:chatgpt\.com|openai|copilot\.com)|referrer=grok\.com"
 )
 CTA = rx(r"^\s*\[?(?:learn more|read more|click here|get started|submit|more|mehr erfahren|hier klicken|klicke hier|jetzt starten|los geht'?s|weiterlesen|mehr)\]?\s*$")
-EMOJI = re.compile(r"^\s*(?:[-*•]\s*|#+\s*|\d+\.\s*)?[\U0001F300-\U0001FAFF\u2600-\u27BF\u2B50\u2705]")
+EMOJI = re.compile(r"[\U0001F000-\U0001FAFF\u2600-\u27BF\u2B50\u2B55\u2705\uFE0F]")
 TESTI = re.compile(r"^\s*>.*\s[—–]\s*[A-ZÄÖÜ][\w.]+(?: [A-ZÄÖÜ][\w.]+)*,?[^.!?]*$|[“\"„][^”\"“]{20,}[”\"“]\s*(?:[—–]\s*)?[A-ZÄÖÜ][\w.]+ [A-ZÄÖÜ][\w.]+,")
 
 COUNT_EN = rx(r"\b(?:trusted|used|loved|chosen|relied on) by (?:over |more than |about |nearly )?\d[\d,.]*\+?\s*(?:k\b|[a-z]+)?|\b\d[\d,.]*\+? (?:teams|customers|companies|businesses|users|agencies) (?:trust|use|rely|choose)")
@@ -473,8 +473,8 @@ def lint_text(text: str, lang: str, glossary=None):
         m = RESIDUE.search(line)
         if m:
             add(n, "RES01", f"chat residue or placeholder '{m.group(0)}'")
-        if EMOJI.match(line):
-            add(n, "EMO01", "emoji at the start of a heading, list item or paragraph")
+        if EMOJI.search(line):
+            add(n, "EMO01", "emoji or pictographic symbol: use an icon from the product's set or an SVG")
         cm = (COUNT_DE if de else COUNT_EN).search(line)
         if cm:
             add(n, "CNT01", f"customer or user count '{cm.group(0).strip()}': needs a dated source record")
@@ -698,6 +698,12 @@ def self_test() -> int:
         fails.append("sourced DE superlative flagged")
     if "SUP01" in codes("Follow best practices and read the first step.", "en"):
         fails.append("false positive on 'best practices' or 'first step'")
+    for text in ("Ship faster \U0001F680 with one click.", "Status: \u2705 all systems running.",
+                 "Deutsch \U0001F1E9\U0001F1EA", "Rated \u2605\u2605\u2605\u2605\u2605 by teams."):
+        if "EMO01" not in codes(text, "en"):
+            fails.append(f"emoji or symbol inside a line not flagged: {text!r}")
+    if "EMO01" in codes("Acme\u2122 moves data from A \u2192 B in 30 seconds.", "en"):
+        fails.append("trademark sign or arrow in a sentence flagged as emoji")
     if "DSH02" not in codes("Wer PHP nutzt — etwa für Kunden —, braucht kein JSON.", "de"):
         fails.append("dash plus comma not flagged")
     # calques: real ones flagged, established ones left alone
@@ -751,7 +757,7 @@ def self_test() -> int:
     if fails:
         return 1
     print("copy_lint self-test: ok (good EN/DE clean, bad EN/DE flagged, calques, glossary, voice files, "
-          "32 spot checks)")
+          "37 spot checks)")
     return 0
 
 
