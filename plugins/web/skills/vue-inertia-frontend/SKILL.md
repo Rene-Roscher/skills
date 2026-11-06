@@ -1,6 +1,6 @@
 ---
 name: vue-inertia-frontend
-description: "Writes and reviews Vue 3 script-setup TypeScript pages on Inertia: typed props from the backend, forms without double submits, partial reloads, polling, deferred props, typed routes, vue-i18n message syntax, ref unwrapping, Reka and shadcn-vue dialogs, UI-only client state, accessible controls. Use when editing .vue pages, components or locale files in an Inertia app. Not for public Nuxt sites."
+description: "Writes and reviews Vue 3 script-setup TypeScript pages on Inertia: typed props from the backend, forms without double submits, partial reloads, polling, deferred props and dashboards that load each widget on its own, typed routes, vue-i18n message syntax, ref unwrapping, Reka and shadcn-vue dialogs, UI-only client state, accessible controls. Use when editing .vue pages, components or locale files in an Inertia app. Not for public Nuxt sites."
 license: Apache-2.0
 compatibility: "Vue 3 with script setup and TypeScript, Inertia 2 or later with @inertiajs/vue3, vue-i18n 9 or later, Reka UI 2. API syntax comes from the vendor docs for the installed versions."
 metadata:
@@ -23,10 +23,10 @@ never reaches the request, or a translation that takes a whole dialog down.
 ## Applies when / does not apply
 
 - Applies: writing or reviewing a `.vue` page or component in an Inertia app; forms, buttons and submit
-  handling; polling, partial reloads, deferred props; locale JSON edits; wrapping a Reka UI or shadcn-vue
-  primitive; dialogs, sheets and confirms; toasts and other partly fitting UI libraries; Pinia stores; "the form
-  submits twice", "the toggle moves but nothing saves", "the pressed style is gone", "field required although I
-  typed it".
+  handling; polling, partial reloads, deferred props, dashboards and KPI pages; locale JSON edits; wrapping a
+  Reka UI or shadcn-vue primitive; dialogs, sheets and confirms; toasts and other partly fitting UI libraries;
+  Pinia stores; "the form submits twice", "the toggle moves but nothing saves", "the pressed style is gone",
+  "field required although I typed it", "the dashboard is slow".
 - Does not apply: public marketing or docs sites and SSR caching (`web-architecture`), visual design
   (`design-quality`), headless browser checks and screenshots (`browser-verification`), backend validation and
   authorization, general Vue questions the Vue docs answer.
@@ -110,9 +110,20 @@ Most important first. Examples use a project-management app: projects, tasks, me
   behind them. Trade-off: a forgotten prop stays stale until the next visit. Deviate only with an ADR that names
   this trade-off. Source: https://inertiajs.com/docs/v2/data-props/polling, `usePoll` stops on unmount and throttles
   background tabs by 90 % unless `keepAlive` (verified 2026-11-03).
-- [default] Expensive props are deferred on the server and rendered with Inertia's `<Deferred>` and a fallback
-  that keeps the layout's size. Trade-off: one extra request after the page loads. Deviate only with an ADR that
-  names this trade-off. Source: https://inertiajs.com/docs/v2/data-props/deferred-props (verified 2026-11-03).
+- [default] A page that reads several sources loads each widget by its cost, never all in one request: cheap,
+  critical data (titles, counts the layout needs) in the first response; each expensive widget as a deferred
+  prop in its own group, so one slow source does not hold the others; widgets below the fold as optional props
+  behind `<WhenVisible>`; every widget renders its own size-keeping skeleton, an error state with a retry that
+  reloads only its prop, and its data; no page-wide spinner. Each widget polls at the interval its freshness
+  needs, only its own props, and not while the tab is hidden. Trade-off: more requests and one component per
+  widget. Deviate only with an ADR that names this trade-off. Proof: a backend test asserts the deferred props
+  are `missing` from the first response and loads each group on its own (`loadDeferredProps`); a browser test
+  blocks one group's request and sees the other widgets render and the blocked one show its error and retry.
+  Source: Inertia 3 deferred props (groups "fetch props in parallel", `rescue`), load when visible, partial
+  reloads (`Inertia::optional`) and testing (https://inertiajs.com/docs/v3/data-props/deferred-props,
+  https://inertiajs.com/docs/v3/data-props/load-when-visible,
+  https://inertiajs.com/docs/v3/data-props/partial-reloads, https://inertiajs.com/docs/v3/advanced/testing),
+  verified 2026-11-06; the backend side is in `laravel-architecture`.
 - [default] A UI library that fits only in part supplies the mechanics, and the product renders its own
   component; decide this before the first override. For toasts: keep the library's queue, placement, timers,
   swipe and live region, and render the product's toast component through its custom-render API (`toast.custom`
@@ -139,9 +150,12 @@ Most important first. Examples use a project-management app: projects, tasks, me
    repeat.
 5. Inputs: handlers take `$event`; wrappers bind the primitive's declared prop and event; state styles select
    ARIA attributes where a trigger wrapper shares the element.
-6. Data refresh: `only` on every reload and poll; defer expensive props.
+6. Data refresh: `only` on every reload and poll; on a page with several sources, plan each widget's loading
+   (first response, deferred group, when visible), its states and its poll interval with
+   [references/dashboard-loading.md](references/dashboard-loading.md).
 7. Text: run the locale compile test after each locale edit.
-8. Dialogs: title, description, id, focus on open and close.
+8. Dialogs: title, description, id, focus on open and close; place each overlay on `design-quality`'s layer
+   hierarchy.
 9. Prove behaviour with `browser-verification`: request counts, focus, the prop on screen.
 
 ## Traps
@@ -157,6 +171,9 @@ Most important first. Examples use a project-management app: projects, tasks, me
   the page stops reacting to clicks. More SSR dialog traps in the reference.
 - Teleported dialog content sits under `<body>`, so a text color set only on the layout wrapper does not reach it.
 - A pressed-state class written as `data-[state=on]:` stops working the day a tooltip trigger wraps the toggle.
+- Deferred props without a group share one request, so the slowest source decides when every widget appears.
+- A deferred prop that throws fails its whole group unless it is rescued; the other widgets of that group stay
+  on their skeletons.
 - A toast library's default close button, position and title layout survive every override in one corner
   (mobile, dark mode, a long title); the custom component does not have that problem.
 
@@ -165,7 +182,8 @@ Most important first. Examples use a project-management app: projects, tasks, me
 - No `@submit` on Inertia's `<Form>`; every button in a form has a `type`; a browser test counts one request per
   submit.
 - Typed props, with a rendered-DOM assertion for new ones.
-- Every reload and poll names its props.
+- Every reload and poll names its props; on a multi-source page every expensive widget is deferred in its own
+  group or loaded when visible, with its own skeleton, error and retry.
 - The locale compile test is green.
 - Dialogs have a name, focus moves in and returns.
 - State styles on controls inside trigger wrappers select ARIA attributes, and a test proves the pressed style.
@@ -175,6 +193,8 @@ Most important first. Examples use a project-management app: projects, tasks, me
 
 - [references/forms-and-inputs.md](references/forms-and-inputs.md): load when building or fixing a form, a custom
   input, a switch or checkbox wrapper, or a submit-twice bug.
+- [references/dashboard-loading.md](references/dashboard-loading.md): load when building or reviewing a dashboard
+  or any page that reads several sources or shows KPIs.
 - [references/i18n-dialogs-ssr.md](references/i18n-dialogs-ssr.md): load when editing locale files, building a
   dialog, or rendering a dialog during SSR or hydration.
 
@@ -186,6 +206,9 @@ Most important first. Examples use a project-management app: projects, tasks, me
 - https://inertiajs.com/docs/v2/the-basics/forms: `useForm`, `<Form>`, `processing`, verified 2026-11-03.
 - https://inertiajs.com/docs/v2/data-props/polling: `usePoll`, unmount, background throttling, verified 2026-11-03.
 - https://inertiajs.com/docs/v2/data-props/deferred-props: deferred props and `<Deferred>`, verified 2026-11-03.
+- https://inertiajs.com/docs/v3/data-props/deferred-props, `.../load-when-visible`, `.../partial-reloads` and
+  https://inertiajs.com/docs/v3/advanced/testing: groups, `rescue`, `WhenVisible`, `Inertia::optional`,
+  `loadDeferredProps`, verified 2026-11-06.
 - https://vue-i18n.intlify.dev/guide/essentials/syntax: special characters, literal interpolation, verified
   2026-11-03.
 - https://github.com/unovue/reka-ui/blob/v2/docs/content/meta/SwitchRoot.md: `modelValue` and

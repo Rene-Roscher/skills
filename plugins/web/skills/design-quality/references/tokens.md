@@ -132,11 +132,9 @@ screenshots of the same component in light and dark next to the reference.
 
 ### Stacking scale
 
-One scale, one file, in this order from low to high: base content, raised (sticky headers, floating action),
-dropdown and select menus, overlay (sheet, slideover, drawer), modal dialog, popover opened inside a dialog, toast,
-tooltip. Components reference the step by name (`z-[var(--z-modal)]`, `z-modal`), never a number. A layer opened
-from another layer takes a higher step and is portalled to `<body>`; inside one stacking context a higher number
-cannot lift an element above a sibling context.
+One scale, one file, in the order of the layer hierarchy in the app UI reference: page, raised, sheet, modal,
+confirm, anchored popover and menu, toast, tooltip. Components reference the step by name (`z-[var(--z-modal)]`,
+`z-modal`), never a number, and the audit's `zIndex` list holds exactly these steps.
 
 Rules of thumb: text in two or three neutral steps; one accent hue; status hues only for state; status colour as
 text is computed per theme (the dark-theme step usually needs to be lighter than the light-theme step).

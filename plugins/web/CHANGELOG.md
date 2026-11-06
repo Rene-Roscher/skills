@@ -21,3 +21,12 @@ All notable changes to the `web` plugin are recorded here. The format follows
   changes and their tests change in the same commit.
 - Eval cases for flag emoji, unlayered focus styles, an isolated end-to-end setup and the pressed style under a
   tooltip trigger.
+- `design-quality`: the emoji rule covers everything the agent writes (UI, docs, comments, mails, CLI output,
+  invented data), with real icon or SVG assets instead and user input kept as entered, plus a codepoint scan for
+  changed files; the z-index scale became a layer hierarchy invariant (which layer opens which, child above
+  opener, Escape and focus on the topmost only); the SKILL.md body is back to 300 lines.
+- `vue-inertia-frontend`: pages with several sources load each widget by cost (first response, own deferred
+  group with rescue, when visible), with per-widget skeleton, error, retry and poll interval; reference
+  `dashboard-loading.md`.
+- Eval cases `adversarial-flair-without-emoji` and `output-confirm-above-slideover`; the flag grader matches
+  emoji by escaped ranges instead of literal characters.

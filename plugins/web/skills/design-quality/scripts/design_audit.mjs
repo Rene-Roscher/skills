@@ -312,7 +312,7 @@ export function lintTells(records, ctx = {}) {
     if (PLACEHOLDER.test(r.text)) warn('tell-placeholder-data', r.sel, `placeholder text "${r.text.slice(0, 40)}" (T18)`);
   });
   const targets = texty.filter((r) => r.tag === 'a' || r.tag === 'button');
-  const arrows = targets.filter((r) => /(→|->|›|»)\s*$/.test(r.text));
+  const arrows = targets.filter((r) => /(\u2192|->|\u203A|\u00BB)\s*$/.test(r.text));
   if (arrows.length >= 3 && arrows.length / targets.length >= 0.5) warn('tell-arrow-links', arrows[0].sel, `${arrows.length} of ${targets.length} links and buttons end in an arrow (T8)`);
   const dots = texty.filter((r) => r.text.split(' · ').length >= 3);
   if (dots.length >= 2) warn('tell-middle-dot-meta', dots[0].sel, `${dots.length} meta strings joined with middle dots (T8)`);

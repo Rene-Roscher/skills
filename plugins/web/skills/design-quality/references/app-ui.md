@@ -109,7 +109,20 @@ or justify it.
 - No emoji and no character drawn as an icon: check marks, crosses, stars, warning signs, arrows on buttons, a
   multiplication sign as the close button, bullets as status dots. The audit fails on `emoji-glyph` and
   `symbol-icon`.
-- Exempt: what users wrote (mark the container `data-user-content`) and code samples.
+- Exempt: what users entered (mark the container `data-user-content`) and quoted user input in tests. Everything
+  the agent writes is not exempt: docs, comments, mails, CLI output, seeds and fixtures it invents.
+- Codepoint scan over changed files (prints file, line and codepoint; empty output passes):
+
+  ```bash
+  git diff --name-only HEAD | xargs -r python3 -c 'import re,sys
+  rx=re.compile("[\U0001F000-\U0001FAFF\u2600-\u27BF\u2B00-\u2BFF\uFE0F]")
+  for f in sys.argv[1:]:
+      try: lines=open(f,encoding="utf-8").read().splitlines()
+      except (OSError,UnicodeDecodeError): continue
+      for i,l in enumerate(lines,1):
+          for c in rx.findall(l): print(f"{f}:{i}: U+{ord(c):04X}")'
+  ```
+
 - Windows' emoji font has no flag glyphs and shows the two letters instead
   (https://bugzilla.mozilla.org/show_bug.cgi?id=1970980 comment 6, verified 2026-11-05). Emoji in general come
   from each platform's colour font, ignore the theme and `currentColor`, and differ between systems (Unicode
@@ -144,11 +157,28 @@ or justify it.
   touch-only devices, keyboard users, and assistive technology users
   (https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Global_attributes/title, verified 2026-11-01).
 - Delay the first tooltip in a group; peers open without delay (guidelines).
-- One modal at a time. A confirmation that follows a dialog replaces it or follows after it closes; stacked
-  overlays compete for focus traps. Source: none; design judgment. Where a confirm has to open from a sheet or
-  slideover, it takes the higher step of the stacking scale (tokens reference, "Stacking scale") and is
-  portalled to `<body>`; a browser test asserts the confirm is the topmost element at its centre
-  (`document.elementFromPoint`).
+- Layer hierarchy, low to high. Each step is one named z-index token (tokens reference, "Stacking scale"):
+
+  | Step | Layer | May open | Never opens |
+  |---|---|---|---|
+  | 1 | page content | everything below | |
+  | 2 | raised: sticky header and footer, floating action | menu, popover | |
+  | 3 | sheet: slideover, drawer, side panel | modal, confirm, menu, popover, toast | a second sheet |
+  | 4 | modal dialog | confirm, menu, popover, toast | a second content modal |
+  | 5 | confirm (`alertdialog`) opened from a sheet or modal | tooltip | anything else |
+  | 6 | anchored popover, menu, select list, combobox list | tooltip | a sheet or modal |
+  | 7 | toast | nothing | |
+  | 8 | tooltip | nothing | |
+
+- A child always sits above its opener and is portalled to `<body>`; inside one stacking context a higher number
+  cannot lift an element above a sibling context. Menus and popovers sit above the modal step because they open
+  from inside dialogs.
+- Only the topmost modal layer traps focus and reacts to Escape; closing it returns focus to its opener in the
+  layer below. A modal that needs a different content replaces its content or becomes a step inside itself.
+- Proof per chain the product uses (sheet then confirm, modal then menu): the child is
+  `document.elementFromPoint` at its centre, one Escape closes only the child, and `document.activeElement` is
+  the opener afterwards. Focus handling follows the APG dialog pattern
+  (https://www.w3.org/WAI/ARIA/apg/patterns/dialog-modal/, verified 2026-11-06); the order is design judgment.
 - Sticky headers, footers and banners never cover the focused element (WCAG 2.2, 2.4.11).
 
 ## Charts and data visualisation
