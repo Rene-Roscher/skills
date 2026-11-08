@@ -118,6 +118,8 @@ agent. The tiers are the ones in `agent-delegation`. Facts about dependencies an
 ## References
 
 - `agent-delegation`: the tier table this skill uses, and how to brief a stronger agent.
+- `executor-spec`: when the task arrives as a SPEC.md, its Executor rules come first and this skill applies
+  alongside them.
 - `evidence-before-claims`, `verify-before-done`, `goal-focus`, `safe-actions`: the detailed rules this skill
   applies in short form.
 

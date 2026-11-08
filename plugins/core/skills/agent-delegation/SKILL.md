@@ -18,7 +18,8 @@ most expensive model to grep a repository, while the one change that touches ref
 - Applies: a task could be split across subagents; you are about to spawn one; you choose or override a
   subagent's model; several agents are already running and you decide whether to keep them.
 - Does not apply: which tool to use inside one context, and the brief template (`agent-toolbelt`); whether a
-  claim from a subagent is verified (`evidence-before-claims`); staying on the goal (`goal-focus`).
+  claim from a subagent is verified (`evidence-before-claims`); staying on the goal (`goal-focus`); handing a
+  planned task to a model outside the session, such as an open-weight executor (`executor-spec`).
 
 ## Rules
 
@@ -42,8 +43,9 @@ most expensive model to grep a repository, while the one change that touches ref
   standing does not go below the strong tier, and the orchestrator re-checks the decisive part itself. Why:
   these are the paths where a plausible but wrong change passes review and the damage shows up later, at the
   customer. Test: ask the orchestrator to delegate a fix to refund rounding in an invoicing app; the spawn
-  names the strong tier or above, and the reply shows the orchestrator ran the refund tests itself. Source:
-  none; design judgment, consistent with `test-strategy` (critical paths).
+  names the strong tier or above, and the reply shows the orchestrator ran the refund tests itself. A hand-off
+  through `executor-spec` keeps this when the strong tier writes such code verbatim into the spec and its tests
+  are protected. Source: none; design judgment, consistent with `test-strategy` (critical paths).
 - [default] Use the top tier only for the problems in its row of the table, or after the strong tier failed
   on a good brief. Say why when you pick it. Trade-off: on the API price list (verified 2026-11-03), Fable 5.1
   costs 10 and 50 USD per million input and output tokens against 4 and 20 for Opus 5.5, and it can bill to

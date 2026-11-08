@@ -17,6 +17,7 @@ attempt cap of `goal-focus` and the ban on skipped checks with hooks.
 | `glossary` | a request uses a short name or abbreviation from the EU and German software and business world (R2, ptero, AVV, OSS, XRechnung) or a project term: resolve it from `docs/GLOSSARY.md` and the references, never guess, record new terms |
 | `know-your-limits` | the session runs on a small or balanced model, or `AGENTS.md` asks for a cautious run: look up instead of recall, small checked steps, shipped checkers decide, hand off judgement calls |
 | `agent-delegation` | deciding whether to hand work to subagents, how many, and which model tier each one runs on |
+| `executor-spec` | a task is planned by a strong model and handed to a cheaper or open-weight executor: a self-contained spec with every decision made, protected acceptance tests, a stop-and-ask protocol, a lint, a cold read and a review with a verdict; also when you are that executor |
 | `evidence-before-claims` | an answer or a change depends on how a library, framework, API, CLI flag, config key or standard behaves in the installed version |
 | `verify-before-done` | you are about to report something as done, fixed or working |
 | `safe-actions` | an action has effects outside the working tree: push, deploy, migrate a shared database, send mail or SMS, touch payments, secrets or infrastructure |

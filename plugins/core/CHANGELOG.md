@@ -7,6 +7,9 @@ All notable changes to the `core` plugin are recorded here. The format follows
 
 ### Added
 
+- Skill `executor-spec`: a strong model plans and a cheaper or open-weight model executes from a
+  self-contained spec with protected acceptance tests, a file allowlist and a stop-and-ask protocol;
+  `check_handoff.py` lints the spec and verifies the result.
 - Skills `evidence-before-claims`, `verify-before-done`, `safe-actions`, `feature-planning`, `feature-delivery` and `bug-investigation`.
 - Skill `commit-hygiene` with a commit-msg hook, a CI range check and a pull request body check.
 - Skills `project-inception`, `learning-loop`, `test-strategy`, `maintainable-code` and `agent-toolbelt`.

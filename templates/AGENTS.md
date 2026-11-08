@@ -28,6 +28,9 @@
 ### Model tier
 - If this session does not run on the strong or top tier (for Claude: Opus or Fable class), or you
   cannot tell, load `core:know-your-limits` before the first step and follow it for the whole task.
+- Work handed to another model goes through `core:executor-spec`: the author decides everything in
+  docs/handoff/[spec-id]/SPEC.md, and an executor of such a spec follows its Executor rules and asks
+  instead of guessing.
 
 ### Terms
 - A short name, abbreviation or project term you do not know for certain (R2, ptero, AVV, "analytics"):
