@@ -82,13 +82,8 @@ queues (`safe-actions`).
   Source: laravel/octane v2.17.5 `src/Listeners/FlushTemporaryContainerInstances.php`,
   `GiveNewApplicationInstanceTo*Manager` and `PrepareSocialiteForNextOperation` (read 2026-10).
 
-What each runtime resets, as read in the versions above:
-
-| Runtime | Route's controller instance | Scoped instances | `instance()` bindings, singletons, statics |
-|---|---|---|---|
-| Octane | dropped after a normally terminated request; kept when a Throwable escapes the gateway, because `terminate()` is skipped (`src/Worker.php`) | flushed | kept, except keys in `octane.flush` and what Octane's listeners reset; an `instance()` written through `app()` during a request lands on the per-request clone and is dropped with it |
-| HTTP test client | one instance serves every request in a test; the framework never calls `flushController()` | kept within a test | kept within a test |
-| `queue:work` | not applicable | reset before each job | kept; `octane.flush` does not apply |
+What Octane, the HTTP test client and `queue:work` each reset (controller instance, scoped instances,
+`instance()` bindings, singletons, statics) is tabled in [references/long-lived-workers.md](references/long-lived-workers.md).
 
 ### Test parity
 
@@ -315,36 +310,17 @@ What each runtime resets, as read in the versions above:
 - [references/mail-and-time.md](references/mail-and-time.md): load when writing mailables, choosing mailers,
   handling datetime input, time zones or poolers.
 - [references/verification-log.md](references/verification-log.md): load before relying on a version-bound
-  fact; it lists each fact with its file and the version it was checked at.
+  fact; it lists each fact with its file and the version it was checked at, and each documentation page cited.
 - [references/guard-artifacts.md](references/guard-artifacts.md): load when setting up the guard tests in a
   project, or checking which exist, including the scheduler heartbeat and the schema guard.
 
 ## Sources
 
-- https://www.postgresql.org/docs/current/tutorial-transactions.html, https://www.postgresql.org/docs/current/sql-savepoint.html:
-  an aborted transaction block regains control only with `ROLLBACK` or `ROLLBACK TO`. Verified 2026-10.
-- https://www.postgresql.org/docs/current/datatype-json.html: jsonb keeps neither key order nor duplicate keys.
-  Verified 2026-10.
-- https://www.postgresql.org/docs/current/datatype-datetime.html: input without a zone is read in the
-  `TimeZone` setting; values are stored as UTC. Verified 2026-10.
-- https://www.postgresql.org/docs/current/sql-alterrole.html: `ALTER ROLE ... SET` sets the session default
-  at login. Verified 2026-10.
-- https://www.pgbouncer.org/features.html: `SET`/`RESET` never compatible with transaction pooling. Verified
-  2026-10.
-- https://github.com/php/php-src/blob/PHP-8.4/UPGRADING: round() pre-rounding removed in PHP 8.4. Verified
-  2026-10.
-- https://docs.phpunit.de/en/12.5/xml-configuration-file.html: `<env>` sets `$_ENV`; `force` overwrites
-  existing values. Verified 2026-10.
-- https://laravel.com/docs/12.x/redis, https://laravel.com/docs/12.x/cache, https://laravel.com/docs/12.x/horizon
-  and https://valkey.io/topics/migration/: PhpRedis recommendation, tag support per driver, Horizon's Redis
-  requirement, Valkey compatibility with Redis OSS 7.2 and earlier. Verified 2026-10.
-- https://github.com/Rene-Roscher/conditional-cache-laravel and
-  https://github.com/Rene-Roscher/user-sessions-laravel: package behaviour and requirements. Verified 2026-10.
-- https://laravel.com/docs/12.x/boost: installing Laravel Boost. Verified 2026-10.
-- https://laravel.com/docs/13.x/scheduling: `schedule:run` from a per-minute cron entry, `schedule:work` for local
-  development, `onOneServer()` cache requirement and unnamed closures, `schedule:interrupt`. Verified 2026-11-05.
-- https://github.com/laravel/vue-starter-kit: `.env.example` defaults, starter migrations and seeder, `laravel/tinker`
-  under `require` in `composer.json`. Read on `main`, 2026-11-05.
+Each rule cites its pages inline; what every page says and when it was verified is under "Documentation pages"
+in [references/verification-log.md](references/verification-log.md). Pages no rule cites:
+
+- https://www.postgresql.org/docs/current/sql-savepoint.html: `ROLLBACK TO` recovers an aborted transaction block;
+  https://www.postgresql.org/docs/current/sql-alterrole.html: `ALTER ROLE ... SET` sets the session default at login.
+- https://laravel.com/docs/12.x/horizon: Horizon requires Redis; https://laravel.com/docs/12.x/boost: installing Boost.
 - https://laravel.com/docs/12.x/octane#dependency-injection-and-octane: do not inject the container, request or
   configuration repository into singleton constructors; a resolver closure or per-call argument is the fix.
-  Verified 2026-11.

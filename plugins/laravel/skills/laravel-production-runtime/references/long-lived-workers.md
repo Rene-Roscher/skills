@@ -51,6 +51,14 @@ same AuthManager and `FlushSessionState` flushes and regenerates the same sessio
 holds a manager therefore reads current state; one that holds a resolved guard, the user, the request or the
 route keeps the first request's.
 
+What each runtime resets, as read in the versions above:
+
+| Runtime | Route's controller instance | Scoped instances | `instance()` bindings, singletons, statics |
+|---|---|---|---|
+| Octane | dropped after a normally terminated request; kept when a Throwable escapes the gateway, because `terminate()` is skipped (`src/Worker.php`) | flushed | kept, except keys in `octane.flush` and what Octane's listeners reset; an `instance()` written through `app()` during a request lands on the per-request clone and is dropped with it |
+| HTTP test client | one instance serves every request in a test; the framework never calls `flushController()` | kept within a test | kept within a test |
+| `queue:work` | not applicable | reset before each job | kept; `octane.flush` does not apply |
+
 ## State that bleeds
 
 | Pattern | Why it leaks | Fix |

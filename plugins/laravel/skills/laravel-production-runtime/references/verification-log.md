@@ -2,7 +2,16 @@
 
 Load before relying on a version-bound fact. Each line names the file it was read in and the version. If the
 target lockfile has another version, re-read that file there before stating the fact; if it moved or changed,
-say so instead of repeating this log. Checked 2026-10-31.
+say so instead of repeating this log. Checked 2026-10-31. The last section lists the documentation pages
+behind the rules, with what each says and the date it was verified.
+
+## Contents
+
+- laravel/octane v2.17.5
+- laravel/framework v12.53.0
+- phpunit/phpunit 12.5.8 and vlucas/phpdotenv v5.6.3
+- Reproduced
+- Documentation pages
 
 ## laravel/octane v2.17.5
 
@@ -75,3 +84,33 @@ say so instead of repeating this log. Checked 2026-10-31.
 - laravel/framework v12.53.0 container on PHP 8.3.10: on a clone of a container, `instance()` through
   `Container::getInstance()` is gone in the next clone; `instance()` through a reference to the original
   container, held by a singleton resolved before cloning, is still bound in the next clone. Checked 2026-11-04.
+
+## Documentation pages
+
+- https://www.postgresql.org/docs/current/tutorial-transactions.html, https://www.postgresql.org/docs/current/sql-savepoint.html:
+  an aborted transaction block regains control only with `ROLLBACK` or `ROLLBACK TO`. Verified 2026-10.
+- https://www.postgresql.org/docs/current/datatype-json.html: jsonb keeps neither key order nor duplicate keys.
+  Verified 2026-10.
+- https://www.postgresql.org/docs/current/datatype-datetime.html: input without a zone is read in the
+  `TimeZone` setting; values are stored as UTC. Verified 2026-10.
+- https://www.postgresql.org/docs/current/sql-alterrole.html: `ALTER ROLE ... SET` sets the session default
+  at login. Verified 2026-10.
+- https://www.pgbouncer.org/features.html: `SET`/`RESET` never compatible with transaction pooling. Verified
+  2026-10.
+- https://github.com/php/php-src/blob/PHP-8.4/UPGRADING: round() pre-rounding removed in PHP 8.4. Verified
+  2026-10.
+- https://docs.phpunit.de/en/12.5/xml-configuration-file.html: `<env>` sets `$_ENV`; `force` overwrites
+  existing values. Verified 2026-10.
+- https://laravel.com/docs/12.x/redis, https://laravel.com/docs/12.x/cache, https://laravel.com/docs/12.x/horizon
+  and https://valkey.io/topics/migration/: PhpRedis recommendation, tag support per driver, Horizon's Redis
+  requirement, Valkey compatibility with Redis OSS 7.2 and earlier. Verified 2026-10.
+- https://github.com/Rene-Roscher/conditional-cache-laravel and
+  https://github.com/Rene-Roscher/user-sessions-laravel: package behaviour and requirements. Verified 2026-10.
+- https://laravel.com/docs/12.x/boost: installing Laravel Boost. Verified 2026-10.
+- https://laravel.com/docs/13.x/scheduling: `schedule:run` from a per-minute cron entry, `schedule:work` for local
+  development, `onOneServer()` cache requirement and unnamed closures, `schedule:interrupt`. Verified 2026-11-05.
+- https://github.com/laravel/vue-starter-kit: `.env.example` defaults, starter migrations and seeder, `laravel/tinker`
+  under `require` in `composer.json`. Read on `main`, 2026-11-05.
+- https://laravel.com/docs/12.x/octane#dependency-injection-and-octane: do not inject the container, request or
+  configuration repository into singleton constructors; a resolver closure or per-call argument is the fix.
+  Verified 2026-11.
