@@ -13,6 +13,7 @@ with measured results instead of a look at a screenshot.
 | `design-quality` | building or reviewing app screens and marketing pages so they match the product and measure up, not just look generated |
 | `vue-inertia-frontend` | writing or reviewing Vue pages and components on Inertia: forms, reloads, locale messages, dialogs |
 | `browser-verification` | asked to verify, screenshot or measure a page, or to confirm a frontend fix works before calling it done |
+| `interface-motion` | adding or tuning transitions, springs, drags, toasts or sheets, or when motion feels slow, cheap or jumpy; measured per frame in three engines |
 
 The skills load automatically when Claude Code works with matching front-end files. You can also call one
 directly, for example `/web:browser-verification`.

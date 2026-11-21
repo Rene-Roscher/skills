@@ -185,7 +185,7 @@ Most important first. Examples use an invoicing app, a project tool and a bookin
   tabular-nums`. Source: Web Interface Guidelines, "Tabular numbers for comparisons" (verified 2026-11-01).
 - [default] Motion explains cause and effect: animate `transform` and `opacity`, list transition properties and
   never use `transition: all`, provide a reduced-motion variant, keep animations interruptible, and do not
-  animate every section in. Trade-off: fewer showcase moments. Deviate only with an ADR that names this
+  animate every section in; springs, gestures and their measurement follow `interface-motion`. Trade-off: fewer showcase moments. Deviate only with an ADR that names this
   trade-off. Proof: zero `transition-all` findings; with `--reduced-motion` the audit counts no running
   animations. Source: Web Interface Guidelines, "Never `transition: all`.", "Honor `prefers-reduced-motion`.";
   frontend-design skill lists "fade-and-slide-up entrances on each section"; verified 2026-11-01.

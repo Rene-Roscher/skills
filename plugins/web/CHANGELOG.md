@@ -7,6 +7,9 @@ All notable changes to the `web` plugin are recorded here. The format follows
 
 ### Added
 
+- Skill `interface-motion`: springs as CSS `linear()` with a generator, motion that can be caught mid-flight
+  with dependent elements on the same curve, per-frame measurement in Chromium, Firefox and WebKit with a catch
+  test, and notes for Vue, Reka UI and Tailwind CSS. `design-quality` points to it from its motion rule.
 - Skills `web-architecture`, `browser-verification` and `design-quality`.
 - Skill `vue-inertia-frontend`.
 - Dependency on `core`.

@@ -50,7 +50,7 @@
     {
       "name": "web",
       "source": "./plugins/web",
-      "description": "Public pages as their own deployment, client-rendered dashboards, Vue and Inertia, premium design quality and headless browser verification.",
+      "description": "Public pages as their own deployment, client-rendered dashboards, Vue and Inertia, premium design quality, interface motion and headless browser verification.",
       "category": "frontend",
       "tags": [
         "nuxt",
