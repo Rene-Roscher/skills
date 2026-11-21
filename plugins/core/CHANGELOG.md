@@ -7,6 +7,8 @@ All notable changes to the `core` plugin are recorded here. The format follows
 
 ### Added
 
+- `stack-bootstrap`: six motion skills from `emilkowalski/skills` in the curated list, selected by the browser UI
+  signal.
 - Skill `executor-spec`: a strong model plans and a cheaper or open-weight model executes from a
   self-contained spec with protected acceptance tests, a file allowlist and a stop-and-ask protocol;
   `check_handoff.py` lints the spec and verifies the result.

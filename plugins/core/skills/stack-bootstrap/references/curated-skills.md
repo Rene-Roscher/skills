@@ -14,6 +14,7 @@ on the verified date. Re-check a row when its command fails or the upstream rena
 | `supabase-postgres-best-practices` (repository `supabase/agent-skills`) | Postgres guidance in eight categories: query performance, connection management, schema design, concurrency and locking, security and RLS, data access patterns, monitoring, advanced features | PostgreSQL signal | After a yes: `DISABLE_TELEMETRY=1 npx skills add supabase/agent-skills --skill supabase-postgres-best-practices -a claude-code` | 2026-11-03 |
 | `frontend-design` (marketplace `claude-plugins-official`, same skill as `anthropics/skills`) | Anthropic's guidance for a deliberate visual direction instead of template defaults: typography, colour, motion, composition | a browser UI: the `web` signal, or `package.json` depends on `react`, `svelte` or `@angular/core` | `claude plugin install frontend-design@claude-plugins-official --scope project` | 2026-11-03 |
 | `web-design-guidelines` (repository `vercel-labs/agent-skills`) | Vercel's review of UI code against its Web Interface Guidelines (accessibility, focus, forms, motion, typography, URL state), findings as `file:line` | same as above | After a yes: `DISABLE_TELEMETRY=1 npx skills add vercel-labs/agent-skills --skill web-design-guidelines -a claude-code` | 2026-11-03 |
+| Six skills from `emilkowalski/skills` (MIT): `emil-design-eng`, `apple-design`, `gestures`, `animation-performance`, `remove-animations`, `review-animations` | Emil Kowalski's motion rules: whether to animate by how often a surface is seen, easing and duration, springs and interruption, drag and sheet gestures, the frame budget, removing motion that slows an app, and a strict review | a browser UI: the `web` signal, or `package.json` depends on `react`, `svelte` or `@angular/core` | After a yes: `DISABLE_TELEMETRY=1 npx skills add emilkowalski/skills --skill emil-design-eng --skill apple-design --skill gestures --skill animation-performance --skill remove-animations --skill review-animations -a claude-code` | 2026-11-21 |
 | `kumo-design` (repository `cloudflare/kumo`) | Cloudflare's product design rules for Kumo interfaces: text size, heading case, weights, spacing, borders and shadows, radii, dialogs | `package.json` depends on `@cloudflare/kumo` | After a yes: `DISABLE_TELEMETRY=1 npx skills add cloudflare/kumo --skill kumo-design -a claude-code` | 2026-11-03 |
 | `web-quality-skills` (repository `addyosmani/web-quality-skills`, MIT) | Six skills: `seo`, `core-web-vitals`, `performance`, `accessibility`, `best-practices`, `web-quality-audit`. Treats field data as the proof for Core Web Vitals and does not count `llms.txt` as evidence | a public marketing or docs site | After a yes: `DISABLE_TELEMETRY=1 npx skills add addyosmani/web-quality-skills -a claude-code` | 2026-11-03 |
 | Eight skills from `coreyhaines31/marketingskills` (MIT): `cro`, `signup`, `onboarding`, `ab-testing`, `churn-prevention`, `referrals`, `sales-enablement`, `competitors` | Depth for conversion, sign-up and onboarding flows, experiment design, churn, referral programmes, sales material and competitor pages | same as above, offered, the owner decides | After a yes: `DISABLE_TELEMETRY=1 npx skills add coreyhaines31/marketingskills --skill cro --skill signup --skill onboarding --skill ab-testing --skill churn-prevention --skill referrals --skill sales-enablement --skill competitors -a claude-code` | 2026-11-03 |
@@ -40,6 +41,12 @@ on the verified date. Re-check a row when its command fails or the upstream rena
 - `web-design-guidelines`: the installed skill is a short wrapper. At each review it downloads the current
   guideline list from the upstream repository, so it needs network access and its rules can change between runs
   without a change in the committed copy. Vercel's own guidelines page names this install command.
+- `emilkowalski/skills`: install the six one by one, not the whole set. They decide, build, review and remove motion
+  in app screens; the repository's other skills add motion, target other platforms or recommend libraries, and
+  library questions go through `build-vs-buy` here. `review-animations` sets `disable-model-invocation`, so it runs
+  only when called by hand; its `STANDARDS.md` can be read directly. The `web` plugin's `interface-motion` builds
+  on these six with springs as CSS, catching motion mid-flight and measuring it in three engines. The skills are
+  Markdown files; `skills-lock.json` records the upstream commit, and `npx skills update` moves it on purpose.
 - `kumo-design`: its rules use Kumo components in the examples. Without `@cloudflare/kumo` the skill would
   steer code toward a library the project does not use, so it is selected only by that dependency.
 - `marketingskills`: install the eight skills one by one, not the whole set. Its other 45 skills overlap with
@@ -67,6 +74,7 @@ date in the last column.
   https://github.com/anthropics/skills (`skills/frontend-design`), verified 2026-11-03.
 - https://github.com/vercel-labs/agent-skills (`skills/web-design-guidelines`) and https://vercel.com/design/guidelines,
   verified 2026-11-03.
+- https://github.com/emilkowalski/skills (README install line and `skills/`), verified 2026-11-21.
 - https://github.com/cloudflare/kumo (`skills/kumo-design`) and https://kumo-ui.com/skill, verified 2026-11-03.
 - https://code.claude.com/docs/en/discover-plugins, verified 2026-11-03.
 - The `claude-plugins-official` marketplace manifest (`.claude-plugin/marketplace.json`) and the `laravel-boost`

@@ -36,7 +36,7 @@ Read only the files below. Each enabled plugin is backed by at least one path.
 | `composer.json` requires `laravel/framework` | `laravel`, plus `laravel-boost` from `claude-plugins-official` |
 | `go.mod` | `go` |
 | `package.json` depends on `vue`, `nuxt`, `@inertiajs/vue3` or `reka-ui` | `web` |
-| a browser UI: the `web` signal, or `package.json` depends on `react`, `svelte` or `@angular/core` | `frontend-design` from `claude-plugins-official`, plus `web-design-guidelines` |
+| a browser UI: the `web` signal, or `package.json` depends on `react`, `svelte` or `@angular/core` | `frontend-design` from `claude-plugins-official`, plus `web-design-guidelines` and six motion skills from `emilkowalski/skills` |
 | `package.json` depends on `@cloudflare/kumo` | `kumo-design` |
 | `Dockerfile`, `Containerfile`, `compose*.yaml`, `.github/workflows/*.yml` | `delivery` |
 | `*.tf`, `*.tofu`, `Chart.yaml`, `kustomization.yaml`, `ansible.cfg`, `playbooks/`, `roles/*/tasks/` | `infra` |
