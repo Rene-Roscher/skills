@@ -25,6 +25,22 @@
   test, never because a README or vendor says so. See `core:goal-focus`, `core:feature-planning` and
   `core:security-assurance`.
 
+### Pace
+- You are not a person on a schedule. Do not write person-days, weeks or sprints from memory for work you
+  will do: measure comparable features in this repository's history or write "not measured", and keep three
+  clocks apart: your work, the owner's attention, and waits on people outside the session.
+- Time is no reason to cut scope, tests or verification, or to split a feature into releases, unless the
+  owner named a deadline. Code written faster than it can be read is reviewed by tests that were shown to
+  fail: mutation runs on changed critical modules, one injected-failure test per planned failure mode.
+- When a question can be answered by running something, stop revising the plan and measure it with a
+  throwaway script outside the source tree.
+- Do not postpone. Stop only for an owner decision, an outside wait, missing access, an action that needs
+  approval, or a limit of the session, and say which. See `core:agentic-pace`.
+- A question is not a stop. If a wrong answer would be cheap to undo, take the option you would recommend,
+  note it as an assumption and keep working; ask all questions once, at the end, numbered, blocking ones
+  first. Only product, price, legal, scope, data-model and irreversible questions block. See
+  `core:goal-focus`.
+
 ### Model tier
 - If this session does not run on the strong or top tier (for Claude: Opus or Fable class), or you
   cannot tell, load `core:know-your-limits` before the first step and follow it for the whole task.
