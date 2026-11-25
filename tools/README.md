@@ -31,7 +31,7 @@ Each finding prints as `path:line: error|warning ID message`. The run exits 1 wh
 | L17 | No AI attribution in files or commit messages |
 | L18 | Marketplace entries match plugin manifests, semver versions, CHANGELOG headings, install line in each README, cross-marketplace dependencies allowlisted |
 | L19 | No hooks, `bin/`, `.mcp.json` or `CLAUDE.md` in plugins |
-| L20 | Eval cases have a prompt, a grader and valid tags |
+| L20 | Eval cases have a prompt, a grader, valid tags and frontmatter the eval runner can parse |
 | L21 | Skill listing text (`description` plus `when_to_use`) over 500 characters (warning); aim for 400 |
 | W01 | Filler words (warning) |
 

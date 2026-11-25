@@ -596,6 +596,26 @@ class Linter:
                         tags.append(mm.group(1).strip().strip("\"'"))
         return tags
 
+    def check_eval_frontmatter(self, path: Path) -> None:
+        """L20: a plain (unquoted) frontmatter value that contains ': ' or ' #', or ends with ':',
+        is not the string it looks like. The eval runner rejects the file and skips the case
+        without failing the run, so the case silently never runs."""
+        lines = (self.read_text(path) or "").splitlines()
+        if not lines or lines[0].strip() != "---":
+            return
+        for n, line in enumerate(lines[1:], start=2):
+            if line.strip() == "---":
+                break
+            m = re.match(r"^[A-Za-z_][\w-]*:\s+(.*)$", line)
+            if not m:
+                continue
+            val = m.group(1).strip()
+            if not val or val[0] in "\"'[{|>":
+                continue
+            if ": " in val or " #" in val or val.endswith(":"):
+                self.err(self.rel(path), n, "L20", "unquoted frontmatter value with ': ', ' #' or a trailing ':'; "
+                                                    "the eval runner skips the case, quote the value")
+
     def check_evals(self, plugin_dir: Path, skills: set[str]) -> None:
         evals = plugin_dir / "evals"
         plugin = plugin_dir.name
@@ -626,6 +646,10 @@ class Linter:
                 yaml_text = self.read_text(caseyaml) or "" if caseyaml.exists() else ""
                 if not graders and not re.search(r"^graders:", yaml_text, re.M):
                     self.err(crel, 0, "L20", "case has no grader")
+                if prompt.exists():
+                    self.check_eval_frontmatter(prompt)
+                for g in graders:
+                    self.check_eval_frontmatter(g)
                 tags = self.frontmatter_tags(self.read_text(prompt) or "") if prompt.exists() else None
                 if tags is None:
                     m = re.search(r"^tags:\s*(.*)$", yaml_text, re.M)
