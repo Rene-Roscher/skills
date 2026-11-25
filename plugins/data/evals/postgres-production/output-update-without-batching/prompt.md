@@ -1,5 +1,5 @@
 ---
-description: A migration that adds a column and backfills every row with one UPDATE in the same transaction must be split: DDL separate, backfill in batches with WHERE, one commit per batch. Needs --scaffold and --allow-tools Bash Edit Write.
+description: "A migration that adds a column and backfills every row with one UPDATE in the same transaction must be split: DDL separate, backfill in batches with WHERE, one commit per batch. Needs --scaffold and --allow-tools Bash Edit Write."
 expected_outcome: The agent flags the UPDATE without WHERE and the DDL plus data change in one transaction, and proposes or writes a batched backfill by key range with one commit per batch as a separate step, and keeps the ALTER short under lock_timeout.
 tags: [postgres-production, output]
 runs: 3

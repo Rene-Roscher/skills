@@ -9,3 +9,8 @@ All notable changes to the `data` plugin are recorded here. The format follows
 
 - Skill `postgres-production`.
 - Dependency on `core`.
+
+### Fixed
+
+- One `postgres-production` eval case had frontmatter the eval runner rejected, so it never ran; the value is
+  quoted now.

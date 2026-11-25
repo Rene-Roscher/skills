@@ -60,3 +60,8 @@ All notable changes to the `core` plugin are recorded here. The format follows
 - `performance-gate`: data-heavy views load expensive widgets independently, cache them per tenant and permission
   scope with a freshness TTL, stale-while-revalidate and one refresh at a time, or precompute them; the gate
   measures them cold and warm and states the cost per view.
+
+### Fixed
+
+- Three eval cases (`agent-toolbelt`, `commit-hygiene`, `maintainable-code`) had frontmatter the eval runner
+  rejected, so they never ran; the values are quoted now.

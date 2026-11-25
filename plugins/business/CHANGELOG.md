@@ -13,3 +13,8 @@ All notable changes to the `business` plugin are recorded here. The format follo
 - `human-copy`: voice files that learn from owner corrections, few-shot from approved texts, a separate native-language pass, corpus-backed calque checks with `collocation_check.py`, per-surface rules for UI and transactional mail, and du as the German default.
 - `human-copy`: the writer adds no Unicode emoji or pictographic symbol anywhere in a text; `copy_lint.py` EMO01
   now reports them anywhere in a line, not only at its start.
+
+### Fixed
+
+- Two `human-copy` eval cases had frontmatter the eval runner rejected, so they never ran; the values are
+  quoted now.

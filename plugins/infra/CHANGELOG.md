@@ -12,3 +12,8 @@ All notable changes to the `infra` plugin are recorded here. The format follows
 - Dependency on `core`.
 - `edge-proxy-tls`: every config edit is validated by the shipped proxy binary (`caddy validate`, `nginx -t`)
   before it is called done, and the edge is started with its production settings before testing.
+
+### Fixed
+
+- One `high-availability` eval case had frontmatter the eval runner rejected, so it never ran; the value is
+  quoted now.
