@@ -11,6 +11,8 @@ All notable changes to the `core` plugin are recorded here. The format follows
   durations measured with `cycle_time.py` from the repository's history instead of recalled person-days, no
   scope or test cuts for invented time pressure, a planning stop in favour of a measured throwaway probe, and no
   deferral without a named blocker.
+- `test-strategy` asks for one injected-failure test per planned failure mode and for a mutation run on changed
+  critical code before handover.
 - `stack-bootstrap`: six motion skills from `emilkowalski/skills` in the curated list, selected by the browser UI
   signal.
 - Skill `executor-spec`: a strong model plans and a cheaper or open-weight model executes from a

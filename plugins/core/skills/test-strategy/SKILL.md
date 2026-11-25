@@ -135,11 +135,24 @@ number that still let a broken refund, a leaked tenant row or a missing permissi
   ADR that names this trade-off. Source: https://hypothesis.readthedocs.io/en/latest/ (tests that should pass
   for all inputs in a described range, random inputs including edge cases, verified 2026-11-01).
 - [default] Run mutation testing on the critical modules, on a schedule rather than on every commit, and treat
-  surviving mutants as missing assertions. Trade-off: it multiplies test run time, so it is scoped to the few
+  surviving mutants as missing assertions. When a change to a critical module was written faster than a person
+  can review it line by line, also run it on the changed code before handover; tools with an incremental mode
+  limit the run to that code. Trade-off: it multiplies test run time, so it is scoped to the few
   modules where an unchecked line is expensive. Deviate only with an ADR that names this trade-off. Source:
   https://stryker-mutator.io/docs/ (mutants inserted into production code; a mutant that survives means the
   tests did not fail), https://testing.googleblog.com/2020/08/code-coverage-best-practices.html (mutation
-  testing as the better check that covered lines are asserted), verified 2026-11-01.
+  testing as the better check that covered lines are asserted), verified 2026-11-01;
+  https://stryker-mutator.io/docs/stryker-js/incremental/ (mutation testing only on the changed code),
+  verified 2026-11-25. When to require the run: `agentic-pace`.
+- [default] Test each planned failure mode by injecting it. For every row of the plan's failure-mode table (a
+  dependency times out or answers with an error, a queue delivers a message twice, a process dies between two
+  writes, a disk or quota is full), write a test that makes that failure happen through a fake, a fault hook or
+  a killed worker and asserts the behaviour the plan promises: what is kept, what is retried, what the user and
+  the operator see. Run these in the test environment, one failure at a time, and never against a shared or
+  production system. Trade-off: fault hooks and fakes add seams to the code, and a failure nobody listed stays
+  untested. Deviate only with an ADR that names this trade-off. Source: https://principlesofchaos.org/
+  (experiments that introduce "real world events like servers that crash", with the blast radius kept small),
+  verified 2026-11-25.
 - [default] Build test data with builders or factories: one function returns a valid default object and the
   test overrides only the fields it is about. Do not copy large literals between tests or depend on a shared
   seeded database that every test mutates. Trade-off: builders are code to maintain and can hide what makes a
@@ -174,7 +187,8 @@ number that still let a broken refund, a leaked tenant row or a missing permissi
    proof for a regression test itself belongs to `verify-before-done`.
 5. Add contract tests at each boundary that has a fake. Add or update the few browser journeys last.
 6. Set the gates: coverage on critical modules and changed lines, a quarantine suite with a count limit and a
-   deadline per test, mutation runs on the critical modules.
+   deadline per test, mutation runs on the critical modules. Write one injected-failure test per failure mode
+   in the plan.
 7. If traffic spikes matter, plan the load and spike tests. Read
    [references/load-and-spike.md](references/load-and-spike.md) for the questions and the design.
 8. For an intermittent failure, read [references/flaky-and-determinism.md](references/flaky-and-determinism.md)
@@ -210,6 +224,7 @@ number that still let a broken refund, a leaked tenant row or a missing permissi
 - Intermittent tests are fixed, or quarantined with an owner and a date.
 - The coverage gate names critical modules and changed lines, and any global number is informational.
 - Boundaries with fakes have contract tests, and the browser journeys are few and named.
+- Every failure mode in the plan has a test that injects it and asserts the promised behaviour.
 - For spike-prone services a spike test question and its limits are written down.
 
 ## References
@@ -240,3 +255,7 @@ number that still let a broken refund, a leaked tenant row or a missing permissi
 - https://jestjs.io/docs/snapshot-testing: focused, short snapshots reviewed as code, verified 2026-11-03.
 - https://grafana.com/docs/k6/latest/testing-guides/test-types/: load test types and what each one answers,
   verified 2026-11-01.
+- https://stryker-mutator.io/docs/stryker-js/incremental/: mutation testing limited to changed code, verified
+  2026-11-25.
+- https://principlesofchaos.org/: experiments that introduce real-world failure events with a small blast
+  radius, verified 2026-11-25.
