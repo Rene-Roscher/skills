@@ -14,6 +14,8 @@ All notable changes to the `core` plugin are recorded here. The format follows
 - `test-strategy` asks for one injected-failure test per planned failure mode and for a mutation run on changed
   critical code before handover.
 - `feature-planning` keeps recalled effort figures out of plans and ends a revision loop with a measured probe.
+- `goal-focus`: a question that does not block is covered by a recorded assumption and asked once at the end;
+  only questions whose wrong answer is expensive or impossible to undo stop the work.
 - `stack-bootstrap`: six motion skills from `emilkowalski/skills` in the curated list, selected by the browser UI
   signal.
 - Skill `executor-spec`: a strong model plans and a cheaper or open-weight model executes from a

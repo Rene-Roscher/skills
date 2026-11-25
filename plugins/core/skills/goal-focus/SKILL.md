@@ -89,6 +89,24 @@ diff three times larger than the task, and a reply that buries the one answer th
   plan approved on a false premise was not approved; the owner may prefer another route or no change at all.
   Test: the task says "add the field to the existing export endpoint"; the fixture has no export endpoint. The
   agent reports that and asks, instead of building a new endpoint.
+- [invariant] A question is not a stop. When a question comes up during the work, classify it before asking.
+  It blocks when a wrong answer is expensive or impossible to undo: the done criterion itself is unclear; a
+  product, price, legal or scope decision (`feature-planning`); a data model or public contract that other work
+  builds on; an action with effects outside the working tree (`safe-actions`); a broken premise (the rule
+  above). Every other question does not block: take the option you would recommend, write it down as an
+  assumption with its reason and the place in the change where it lives, build it so that changing it is one
+  small edit, and continue. Work that a blocking question does not touch continues too. Ask once, at the end:
+  one numbered list, blocking questions first, each with the assumption taken or the options, your
+  recommendation, and what changing it costs now. Do not interrupt for an answer you would have recommended
+  anyway, and do not bury a blocking question in that list after building on a guess. A session under
+  `know-your-limits` or an executor working from an `executor-spec` keeps to those stricter rules. Why: each
+  question asked on the way stops the work for as long as the answer takes and costs the owner a switch of
+  attention, usually over something a default covers; a guess on a point that cannot be undone costs a
+  rebuild. Test: a reminder setting for a booking tool leaves the label wording and the default lead time
+  open, and whether reminders are a paid add-on is undecided; the agent builds the setting on a stated label
+  and default, builds no gating or billing for the price question, asks nothing on the way, and ends with the
+  three points listed, the price question as the owner's decision. Source: none; design judgment, consistent with `feature-delivery`
+  (a small deviation is logged and work continues) and `agentic-pace` (no deferral without a blocker).
 - [invariant] Finish what was asked, completely, before any extra. Extras are offered in one line at the end,
   not done. Why: half of the asked work plus an unrequested improvement leaves the owner with two things to
   review and the original need unmet. Test: ask for three changes; the reply reports a status for each of the
@@ -114,7 +132,8 @@ diff three times larger than the task, and a reply that buries the one answer th
 1. Write the goal and the done criterion. If either is unclear, ask now. Working on your own: also the business
    goal and the feature goal, with where you read them.
 2. Write the task list. Mark which items are needed for the criterion.
-3. Work the list. At each checkpoint ask the question; put side findings on a separate list.
+3. Work the list. At each checkpoint ask the question; put side findings on a separate list, and questions
+   that do not block on another, each with the assumption you took.
 4. If an investigation hits the timebox, stop and write the three lines. If a fix loop reaches the attempt cap,
    undo the unexplained attempts and write the stop report. If a premise breaks, stop and report.
 5. Check the criterion. Verification follows `verify-before-done`.
@@ -129,6 +148,8 @@ diff three times larger than the task, and a reply that buries the one answer th
 - A plan that silently changes from "extend X" to "rewrite X" when X turns out awkward.
 - A reply that opens with the history of the session and states the outcome in the last paragraph.
 - Treating the owner's passing remark as a new task. Ask, or list it as an open point.
+- Stopping to ask which of two labels to use, and waiting an afternoon for the answer; or the opposite,
+  choosing a price rule alone and mentioning it in the last line.
 - A feature that meets its criterion on three rows and one tenant, while the business needs it for the largest
   customer; "it runs" was the only question asked.
 
@@ -139,6 +160,8 @@ diff three times larger than the task, and a reply that buries the one answer th
 - Every change in the diff traces back to the goal.
 - Side findings are listed, not fixed, apart from the named exceptions.
 - Every asked item has a status before any extra is mentioned.
+- Questions that did not block were covered by a recorded assumption and asked once, at the end; no blocking
+  question was answered by a guess.
 - The reply starts with the result and names what was not verified and what needs a decision.
 
 ## Sources
