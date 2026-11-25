@@ -154,6 +154,15 @@ the product, price or legal choice that was settled inside an implementation the
   same type.
   Trade-off: more design work for small features. Deviate only with an ADR that names this trade-off.
   Test: the UX and states table has a line per state.
+- [default] A plan carries no effort recalled from memory, and it stops growing when a probe is cheaper. Do not
+  write "about five days" or a week-by-week schedule into the implementation steps for work an agent will do;
+  a duration is measured or marked "not measured", and the plan names the owner's decisions and the waits on
+  outside parties apart from the build. When the same unknown has caused two revisions and running something
+  could settle it, stop revising: measure it with a throwaway probe outside the source tree and write the
+  numbers into the plan. The method is in `agentic-pace`.
+  Trade-off: a plan without calendar figures is harder to place in a roadmap, and a probe can answer the wrong
+  question. Deviate only with an ADR that names this trade-off.
+  Source: none; design judgment.
 
 ## Procedure
 
@@ -210,6 +219,8 @@ Nothing is implemented. Reply with approval, or answer by number ("1 yes, 2 own"
   quarter. Classify by what runs per request, not by the size of the screen.
 - Cost written as "low" or "negligible" without a number, or computed for today's tenants only.
 - A business goal copied from the request ("users want X") instead of read from the brief or model.
+- A plan on its fifth revision for a question a short script would answer, or an effort line in days that
+  nobody measured.
 
 ## Done when
 
