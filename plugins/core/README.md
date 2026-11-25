@@ -14,6 +14,7 @@ attempt cap of `goal-focus` and the ban on skipped checks with hooks.
 | Skill | Use it when |
 |---|---|
 | `goal-focus` | starting a multi-step task, an investigation that keeps branching, or writing a reply or report to the owner |
+| `agentic-pace` | estimating, phasing or dating work an agent will do, a cut or a postponement is proposed "to save time", or a plan is revised again for a question a short script would answer |
 | `glossary` | a request uses a short name or abbreviation from the EU and German software and business world (R2, ptero, AVV, OSS, XRechnung) or a project term: resolve it from `docs/GLOSSARY.md` and the references, never guess, record new terms |
 | `know-your-limits` | the session runs on a small or balanced model, or `AGENTS.md` asks for a cautious run: look up instead of recall, small checked steps, shipped checkers decide, hand off judgement calls |
 | `agent-delegation` | deciding whether to hand work to subagents, how many, and which model tier each one runs on |

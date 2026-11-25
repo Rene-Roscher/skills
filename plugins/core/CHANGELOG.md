@@ -7,6 +7,10 @@ All notable changes to the `core` plugin are recorded here. The format follows
 
 ### Added
 
+- Skill `agentic-pace`: time for agent-built work on three clocks (agent work, owner attention, outside waits),
+  durations measured with `cycle_time.py` from the repository's history instead of recalled person-days, no
+  scope or test cuts for invented time pressure, a planning stop in favour of a measured throwaway probe, and no
+  deferral without a named blocker.
 - `stack-bootstrap`: six motion skills from `emilkowalski/skills` in the curated list, selected by the browser UI
   signal.
 - Skill `executor-spec`: a strong model plans and a cheaper or open-weight model executes from a
