@@ -7,6 +7,10 @@ All notable changes to the `core` plugin are recorded here. The format follows
 
 ### Added
 
+- Skill `audience-gate`: keeps team-facing text out of what customers read (provenance notes, internal names,
+  roadmap and release history, placeholders, unrendered keys, build leftovers), checked on the rendered output
+  with `audience_scan.py` and a full read, and gated in CI. `verify-before-done` names it for releases that
+  change reader text.
 - Skill `agentic-pace`: time for agent-built work on three clocks (agent work, owner attention, outside waits),
   durations measured with `cycle_time.py` from the repository's history instead of recalled person-days, no
   scope or test cuts for invented time pressure, a planning stop in favour of a measured throwaway probe, and no
