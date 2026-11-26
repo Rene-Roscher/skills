@@ -1,6 +1,6 @@
 ---
 name: audience-gate
-description: "Keeps team-facing text out of what customers read: provenance notes (according to the code), roadmap talk (coming in phase 3, in a later version), internal names, placeholders, unrendered keys and build leftovers, checked on the rendered output with a scanner and a full read. Use when writing or reviewing UI strings, locale files, landing or docs pages, mails, before a launch or deploy, or after a release. Not for tone or grammar."
+description: "Keeps team-facing text out of what customers read: provenance notes (according to the code), roadmap talk (coming in phase 3, in a later version), internal names and flags, placeholders, unrendered keys and build leftovers, checked on the rendered output with a scanner and a full read. Use when writing or reviewing UI strings, locale files, FAQ or help answers, landing or docs pages, mails, before a launch or deploy, or after a release. Not for tone or grammar."
 license: Apache-2.0
 metadata:
   author: "Rene Roscher"
