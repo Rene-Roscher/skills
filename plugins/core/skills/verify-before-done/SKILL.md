@@ -159,6 +159,7 @@ because the tests ran against something other than what production runs.
 - Failing checks are listed with their output.
 - CI results are quoted with the run ID for the pushed commit; long-lived processes survived a kill test.
 - Items that are not verified sit in the tracker's review or needs-verification state.
+- A release that changes reader text passed `audience-gate` on the production build and on the live site.
 
 ## References
 
