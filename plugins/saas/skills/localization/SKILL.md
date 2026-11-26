@@ -171,6 +171,7 @@ Most important first. Examples use a hosting panel that lists servers and certif
    for unexpected exceptions (`references/backend-feedback.md`).
 7. Pass the recipient locale into queued mail, notifications, exports and PDFs, and test the rendered output.
 8. Draft the text with `human-copy` and the glossary; then run `i18n_check.py` and the framework compile test.
+   Notes on where a value comes from go into a comment next to the key, never into the value (`audience-gate`).
 9. Check the layout in the longest language and in the pseudo-locale.
 
 ## Traps
