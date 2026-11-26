@@ -8,8 +8,9 @@ placeholders such as [Version] in angle brackets, and TODO markers. Findings com
 so the agent sees them before review. The hook never blocks: code comments and tests use the same words.
 
 Locale and content files: .json, .yml, .yaml, .po under a folder named i18n, locales, locale, lang, langs,
-translations or messages; .md and .mdx under content, docs, pages, blog or help; and any file whose name is a
-locale code (de.json, en-US.yml).
+translations or messages; .md and .mdx under content, docs, pages, blog or help; any file whose name is a
+locale code (de.json, en-US.yml); and page data in code (.ts, .tsx, .js, .jsx, .mjs under a folder named data,
+content, copy or texts), where only the prose inside string literals is checked, never comments or code.
 
 The rule list is a deliberate subset of audience_scan.py in the core plugin; the full scan runs on the build.
 
@@ -28,6 +29,9 @@ I = re.I
 LOCALE_DIRS = {"i18n", "locales", "locale", "lang", "langs", "translations", "messages"}
 CONTENT_DIRS = {"content", "docs", "pages", "blog", "help"}
 LOCALE_NAME = re.compile(r"^[a-z]{2}([-_][A-Za-z]{2})?\.(json|ya?ml|po)$")
+DATA_DIRS = {"data", "content", "copy", "texts"}
+CODE_SUFFIXES = (".ts", ".tsx", ".js", ".jsx", ".mjs")
+STRING = re.compile(r"'((?:[^'\\\n]|\\.)*)'|\"((?:[^\"\\\n]|\\.)*)\"|`((?:[^`\\]|\\.)*)`", re.S)
 
 RULES = [
     ("roadmap or plan", [
@@ -64,6 +68,8 @@ def is_reader_file(path: str) -> bool:
     suffix = p.suffix.lower()
     if suffix in (".json", ".yml", ".yaml", ".po") and (dirs & LOCALE_DIRS or LOCALE_NAME.match(p.name)):
         return True
+    if suffix in CODE_SUFFIXES:
+        return bool(dirs & DATA_DIRS) and not re.search(r"\.(test|spec)\.", p.name)
     return suffix in (".md", ".mdx") and bool(dirs & CONTENT_DIRS)
 
 
@@ -77,7 +83,17 @@ def added_text(tool: str, tin: dict) -> str:
     return ""
 
 
+def prose_strings(text: str) -> str:
+    """Keep only string literals that read like sentences: comments and identifiers are written for the team."""
+    text = re.sub(r"(?s)/\*.*?\*/", " ", text)
+    text = re.sub(r"(?m)(^|[^:'\"`])//.*$", r"\1", text)
+    parts = (next(g for g in m.groups() if g is not None) for m in STRING.finditer(text))
+    return "\n".join(p for p in parts if len(p.split()) >= 3)
+
+
 def strip_code(text: str, path: str) -> str:
+    if PurePath(path).suffix.lower() in CODE_SUFFIXES:
+        return prose_strings(text)
     if PurePath(path).suffix.lower() in (".md", ".mdx"):
         text = re.sub(r"(?ms)^\s*(```|~~~).*?^\s*\1", " ", text)
         text = re.sub(r"`[^`\n]*`", " ", text)
@@ -138,6 +154,15 @@ def self_test() -> int:
     check("todo", warned(ev("MultiEdit", "i18n/en.json", edits=[{"new_string": '"t": "TODO wording"'}])), True)
     check("flag", warned(ev("Edit", "messages/de.json", new_string='"x": "behind a feature flag"')), True)
     check("soon available", warned(ev("Edit", "locales/de/integrations.json", new_string='"x": "Bald verfügbar"')), True)
+    check("page data string", warned(ev("Edit", "data/solutions/pricing.de.ts",
+                                        new_string="body: ['Diese Seite listet den Tarif so, wie er im Code steht.'],")),
+          True)
+    check("page data comment ignored", ev("Edit", "data/tools/agent.ts",
+                                          new_string="// TODO: coming in phase 3\nexport const NAME = 'agent'"), None)
+    check("page data identifier ignored", ev("Write", "data/plans.ts",
+                                             content="export const flags = { featureFlag: true, phase: 3 }"), None)
+    check("component file ignored", ev("Edit", "app/components/Pricing.ts",
+                                       new_string="const label = 'coming in phase 3 for sure'"), None)
     check("code file ignored", ev("Edit", "src/billing.py", new_string="# TODO: coming in phase 3"), None)
     check("test ignored", ev("Edit", "tests/test_copy.py", new_string="assert 'phase 3' not in page"), None)
     check("clean locale", ev("Edit", "i18n/de.json", new_string='"ok": "Deine Buchung ist bestätigt."'), None)

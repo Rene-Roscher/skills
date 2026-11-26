@@ -14,7 +14,8 @@ guarantee, because a model under pressure can talk itself out of them, and warns
   `LEFTHOOK=0`, `SKIP=…` before a commit, and a check runner followed by `|| true`, `|| :` or `|| exit 0`.
 - **Audience check** (`audience-gate`). After an edit to a locale or content file (JSON, YAML or PO under
   `i18n`, `locales`, `lang`, `translations` or `messages`; Markdown under `content`, `docs`, `pages`, `blog` or
-  `help`; files named like `de.json`), the text the edit added is checked for roadmap talk ("coming in phase
+  `help`; files named like `de.json`; and the prose inside string literals of `.ts`, `.js` and similar files
+  under `data`, `content`, `copy` or `texts`, never their comments or code), the text the edit added is checked for roadmap talk ("coming in phase
   3", "in a later version", "not built yet"), provenance notes ("according to the code"), feature flags,
   placeholders such as `[Version]` in angle brackets, and TODO. Findings come back to the agent as context. It
   only warns, because comments and tests use the same words; the full scan runs on the build.

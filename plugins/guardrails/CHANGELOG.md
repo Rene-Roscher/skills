@@ -14,3 +14,4 @@ All notable changes to the `guardrails` plugin are recorded here. The format fol
 - An offline `--self-test`.
 - Hook `audience.py`: after an edit to a locale or content file, warns when the added text reads as written for
   the team (roadmap talk, provenance notes, feature flags, placeholders, TODO), with its own `--self-test`.
+  Page data in code counts too: prose inside string literals under `data`, `content`, `copy` or `texts`.
