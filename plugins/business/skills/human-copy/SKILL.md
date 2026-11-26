@@ -55,6 +55,8 @@ Examples come from an invoicing app, a booking system and a project tool.
   offers to help, `[Company]`, `{TODO}`, "lorem ipsum". Why: they show nobody read the text before publishing.
   Test: a draft that opens with "Of course! Here is the updated page:" loses that line, and `copy_lint.py`
   reports no RES01. Source: https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing (verified 2026-11-01).
+  Notes written for the team (how a text was sourced, internal names, phases and later versions) are a separate
+  gate on the rendered output: `audience-gate`.
 - [invariant] The writer adds no Unicode emoji or pictographic symbol (check marks, stars, flags, arrows as
   bullets) to any text, wherever it sits in a line; a visual cue is an icon from the product's set or an SVG,
   placed by the component, not by the copy. Quoted user content keeps what the user typed. Why: emoji render
