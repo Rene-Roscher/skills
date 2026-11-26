@@ -12,3 +12,5 @@ All notable changes to the `guardrails` plugin are recorded here. The format fol
 - A block on commands that skip or silence checks: `--no-verify`, `git commit -n`, `core.hooksPath`,
   `HUSKY=0`, `LEFTHOOK=0`, `SKIP=`, and `check || true`.
 - An offline `--self-test`.
+- Hook `audience.py`: after an edit to a locale or content file, warns when the added text reads as written for
+  the team (roadmap talk, provenance notes, feature flags, placeholders, TODO), with its own `--self-test`.

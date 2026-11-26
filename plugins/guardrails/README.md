@@ -1,7 +1,7 @@
 # guardrails
 
 An optional plugin with no skills, only hooks. It enforces two rules from `core` that a prompt alone cannot
-guarantee, because a model under pressure can talk itself out of them:
+guarantee, because a model under pressure can talk itself out of them, and warns on a third:
 
 - **Attempt cap** (`goal-focus`, `know-your-limits`). Every failed shell command that is not a read-only probe
   counts as one attempt. After each failure the agent sees `attempt k/10`; from the third attempt it is
@@ -12,6 +12,12 @@ guarantee, because a model under pressure can talk itself out of them:
 - **No bypassed checks** (`verify-before-done`, `know-your-limits`). Commands that skip or silence a check are
   denied: `git commit --no-verify`, `git commit -n`, `git push --no-verify`, `-c core.hooksPath=…`, `HUSKY=0`,
   `LEFTHOOK=0`, `SKIP=…` before a commit, and a check runner followed by `|| true`, `|| :` or `|| exit 0`.
+- **Audience check** (`audience-gate`). After an edit to a locale or content file (JSON, YAML or PO under
+  `i18n`, `locales`, `lang`, `translations` or `messages`; Markdown under `content`, `docs`, `pages`, `blog` or
+  `help`; files named like `de.json`), the text the edit added is checked for roadmap talk ("coming in phase
+  3", "in a later version", "not built yet"), provenance notes ("according to the code"), feature flags,
+  placeholders such as `[Version]` in angle brackets, and TODO. Findings come back to the agent as context. It
+  only warns, because comments and tests use the same words; the full scan runs on the build.
 
 ## Install
 
@@ -44,6 +50,7 @@ session, with a separate count for each subagent. Files older than seven days ar
 
 ```bash
 python3 plugins/guardrails/hooks/guard.py --self-test
+python3 plugins/guardrails/hooks/audience.py --self-test
 ```
 
 The self-test runs offline: it replays a fix loop to the cap, the reset by a passing check and by your reply,
