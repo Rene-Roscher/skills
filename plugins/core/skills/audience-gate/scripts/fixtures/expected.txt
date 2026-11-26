@@ -1,0 +1,29 @@
+# One seeded leak per line: FILE | CODE | text that must appear in the reported snippet
+pricing-de.html | P01 | laut Tarifkonfiguration
+pricing-de.html | P01 | wie er im Code steht
+pricing-de.html | P01 | Quelle ist die Tarifkonfiguration
+pricing-de.html | M01 | Diese Seite listet
+pricing-de.html | D01 | zur zweiten Gruppe
+pricing-de.html | I03 | intern ein Kontakt
+pricing-de.html | R02 | derzeit noch
+pricing-de.html | S01 | 0,00 %
+roadmap-en.html | R01 | coming in phase 3
+roadmap-en.html | R01 | in a later release
+roadmap-en.html | I01 | behind a feature flag
+roadmap-en.html | I02 | BookingExportService
+roadmap-en.html | X01 | <Version>
+roadmap-en.html | X01 | {count}
+roadmap-en.html | X01 | undefined
+roadmap-en.html | V01 | Since version 0.1.5
+roadmap-en.html | X02 | TODO
+roadmap-en.html | K01 | nav.pricing
+roadmap-en.html | L01 | Buchungen ohne Telefon
+roadmap-en.html | C01 | Internal note
+roadmap-en.html | B01 | closing html tags
+faq-de.json | R01 | kommt mit Phase 3
+faq-de.json | R01 | folgt in einer späteren Version
+faq-de.json | R01 | noch nicht gebaut
+notes-en.md | R01 | goes into the backlog
+notes-en.md | N01 | quasar-core
+faq-de.json | R01 | Bald verfügbar
+roadmap-en.html | R01 | available soon

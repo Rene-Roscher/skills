@@ -1,0 +1,8 @@
+{
+  "faq": {
+    "sso": "Die Anmeldung per SSO kommt mit Phase 3.",
+    "oauth": "Diese Anbindung folgt in einer späteren Version.",
+    "export": "Der Export ist noch nicht gebaut.",
+    "badge": "Bald verfügbar"
+  }
+}
