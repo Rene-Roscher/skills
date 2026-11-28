@@ -4,7 +4,7 @@
 
 - How to use this list
 - Why the clusters move
-- The tells (T1 to T19)
+- The tells (T1 to T20)
 - What the audit detects and what a person decides
 - Replacing a tell
 
@@ -34,7 +34,7 @@ own words always win, including when the brief asks for one of these looks
 Banning one cluster moves output to the next one, so a ban list is never complete. For an existing product the
 stable answer is to match the product's own artifact, not to be distinctive.
 
-## The tells (T1 to T19)
+## The tells (T1 to T20)
 
 Source column: FD is the frontend-design skill above; AB is the Anthropic post above; "design judgment" means no
 published source, and the item is a review heuristic.
@@ -60,6 +60,7 @@ published source, and the item is a review heuristic.
 | T17 | A generic browser frame with grey bars as the product mock-up | the mock-up holds no real component or data | reuse the site's richest existing mock-up language | design judgment |
 | T18 | Placeholder data: lorem ipsum, "John Doe", "Acme", round numbers | audit: `tell-placeholder-data` | realistic IDs, durations, amounts and log lines read as real | design judgment |
 | T19 | Grey text that "looks fine" | audit: `contrast` in light and dark | one grey judged by eye measured 2.56:1; another passed in light and measured 4.14:1 in dark | design judgment, WCAG 1.4.3 |
+| T20 | Tinted surface with a border in the same hue: callouts, alerts, badges, plan tags | a non-neutral background tint plus a border whose hue matches it | a neutral hairline around a neutral card is structure, not this tell; the tinted fill alone already separates | design judgment |
 
 Notes on a few rows:
 
@@ -92,5 +93,6 @@ closed token set.
 | numbered markers | a list, or real step numbers on real steps |
 | grey-bar mock-up | the product's components with realistic data |
 | glow card | a plain surface showing the real content |
+| tinted box with matching border | the tint alone, or a neutral surface with a coloured icon |
 | entrance animations | one orchestrated moment, or none |
 | purple gradient | the product's accent on a neutral surface |
