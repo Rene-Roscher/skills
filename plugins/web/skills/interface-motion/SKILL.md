@@ -137,6 +137,8 @@ Where this skill and one of those disagree, this skill's measured rules win. If 
   transform on the moving element itself.
 - A library that measures an element only when it mounts keeps a stale height after the content grows. Set the
   start size without a transition before the library measures, and keep the line count stable.
+- A marker that jumps or slides straight between items on a curved guide line reads as broken. Draw it as a dash
+  of the same path and move the dash (references/path-indicator.md).
 - The CSS duration of a generated curve is the settle time the generator prints, not the spring's perceptual
   duration.
 
@@ -156,6 +158,8 @@ Where this skill and one of those disagree, this skill's measured rules win. If 
   elements move with a gesture.
 - [references/measurement.md](references/measurement.md): load before measuring motion or writing the report.
 - [references/vue-reka-tailwind.md](references/vue-reka-tailwind.md): load when the project uses Vue, Reka UI or Tailwind CSS.
+- [references/path-indicator.md](references/path-indicator.md): load when an active marker should travel along a guide line, a
+  stepper or any curved path instead of jumping.
 
 ## Sources
 
