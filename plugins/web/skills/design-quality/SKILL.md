@@ -1,6 +1,6 @@
 ---
 name: design-quality
-description: "Makes product and marketing UI look made with care, not generated: match the existing artifact first, closed token sets for type, spacing, radius and colour, one accent, WCAG contrast, every state designed, real icons instead of emoji, no template tells, all measured in a browser. Use when designing, restyling or reviewing a page, dashboard, table, form, empty state or landing hero. Not for test mechanics or copywriting."
+description: "Makes product, docs and marketing UI look made with care, not generated: match the existing artifact first, closed tokens, one accent, WCAG contrast, every state designed, real icons, no template tells, measured in a browser. Use when designing, restyling or reviewing a page, dashboard, form, empty state or hero, and after any edit to a rendered surface, docs and Markdown content included. Not for test mechanics or copywriting."
 license: Apache-2.0
 compatibility: "Any web frontend. The bundled audit needs Node 18 or later and Playwright already installed in the project with its Chromium build; tested with Playwright 1.64.1."
 metadata:
@@ -19,7 +19,8 @@ or that was approved by eye and fails contrast, overflows with real data, or ign
 
 - Applies: designing or restyling a page, dashboard, table, form, settings screen, empty, loading or error state,
   command palette, chart, dialog or landing section; reviewing a design for a generic look; choosing type,
-  spacing, radius, shadow or colour tokens; a hero, pricing or feature page; dark mode.
+  spacing, radius, shadow or colour tokens; a hero, pricing or feature page; dark mode; any edit that renders,
+  docs content and mail templates included.
 - Does not apply: browser test mechanics, waits, fixtures and the measurement collector (`browser-verification`),
   rendering strategy and CSP (`web-architecture`), marketing copy and headlines as words, performance budgets,
   and brand identity work (logo, naming).
@@ -34,6 +35,12 @@ Most important first. Examples use an invoicing app, a project tool and a bookin
   2.56:1. Test: the review holds the audit JSON, the `browser-verification` measurement and element screenshots,
   and `node "${CLAUDE_SKILL_DIR}/scripts/design_audit.mjs" --self-test` passes. Source: WCAG 2.2, 1.4.3
   (https://www.w3.org/TR/WCAG22/, verified 2026-11-01).
+- [invariant] Audit what you touch, unasked: any change to something that renders (component, stylesheet,
+  Markdown or MDC content, mail template) ends with an audit of the rendered page in light, dark and at 390 px
+  before it is reported; findings in the touched surface are corrected in the same change, others reported with
+  before and after screenshots. Why: on one docs site every defect was visible within minutes, yet found only
+  when the owner asked, because the work felt like text editing. Test: the report on a content-only change holds
+  the page's audit numbers, and a source with seven `##` headings renders seven `h2`. Source: reproducible.
 - [invariant] Meet the WCAG 2.2 AA floor in every theme: text at least 4.5:1, large text (at least 24 px, or
   about 18.5 px bold) at least 3:1, component boundaries, focus indicators and chart marks at least 3:1 against
   adjacent colours, pointer targets at least 24 × 24 CSS px unless an exception applies, a visible focus
@@ -267,6 +274,8 @@ Most important first. Examples use an invoicing app, a project tool and a bookin
   `unlayered-css` finding without a written reason.
 - Every interactive control type has a filled state matrix and element screenshots per state in both themes.
 - Every overlay chain the change opens passes the topmost, Escape and focus-return test.
+- Every rendered surface the change touched, content included, was audited in light, dark and at 390 px, and
+  the report says what was fixed and what is proposed.
 
 ## References
 
