@@ -155,6 +155,13 @@ reported as done that never changed what the user sees.
   then the test instead of changing the test. Trade-off: a rerun after every edit batch. Deviate only with an
   ADR that names this trade-off. Proof: the preflight checks for an overlay before the first interaction.
 
+- [default] After a change to content or to a layout that all pages share, crawl every route of the site instead
+  of opening the edited page only: status, source headings against rendered headings, raw directive text,
+  overflow at 390 px, page errors and broken images, per [references/content-crawl.md](references/content-crawl.md).
+  Trade-off: a minute of run time per hundred pages. Deviate only with an ADR that names this trade-off. Proof:
+  the crawl's summary line (pages, failures) is in the report. Source: reproducible; an unclosed block directive
+  hid the rest of two live pages while the build and the edited page looked fine.
+
 - [default] Cover the engines and viewports your users have: public pages in Chromium, Firefox and WebKit plus
   one mobile emulation; dashboards in Chromium at the project's viewport set and in dark mode if the app offers
   it. Trade-off: CI time per engine. Deviate only with an ADR that names this trade-off. Proof: the CI matrix
@@ -225,6 +232,8 @@ reported as done that never changed what the user sees.
 - [references/harness-differences.md](references/harness-differences.md): load for scrollbars, media, GPU,
   WebKit and Safari, hover and pointer media queries.
 - [references/evidence-format.md](references/evidence-format.md): load when writing the verification report.
+- [references/content-crawl.md](references/content-crawl.md): load after a content change or a change to a shared
+  layout of a docs, help or marketing site.
 - [references/guard-artifacts.md](references/guard-artifacts.md): load when adding the shared setup, lint
   guards and CI job that enforce these rules.
 - [scripts/measure-check.py](scripts/measure-check.py): run with `check`, `contrast` or `self-test`; `--help`
