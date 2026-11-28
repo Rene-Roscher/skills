@@ -186,6 +186,11 @@ Most important first. Examples use an invoicing app, a project tool and a bookin
   ADR that names this trade-off. Proof: the audit's type histogram and a separator count before and after.
   Source: https://vercel.com/geist/typography (label-14, label-12); Linear, sidebar "a few notches dimmer"
   (https://linear.app/now/behind-the-latest-design-refresh); verified 2026-11-01.
+- [default] Prose runs 45 to 80 characters per line, measured on rendered lines of real copy, set with a
+  `max-width` on text blocks; tables, code and images may run wider. Trade-off: empty space on wide screens.
+  Deviate only with an ADR that names this trade-off. Proof: median characters on full `p` and `li` lines.
+  Source: WCAG 2.2 Understanding 1.4.8 (AAA), "Width is no more than 80 characters or glyphs (40 if CJK)."
+  (https://www.w3.org/WAI/WCAG22/Understanding/visual-presentation.html, verified 2026-11).
 - [default] Numbers line up: compared figures use tabular numerals, a non-breaking space joins number and unit,
   and one context shows currency with either 0 or 2 decimals. Trade-off: wider figures, so only where compared.
   Deviate only with an ADR that names this trade-off. Proof: compared cells compute `font-variant-numeric:
@@ -204,7 +209,7 @@ Most important first. Examples use an invoicing app, a project tool and a bookin
   default font, tracked all-caps eyebrows everywhere, one accented headline word, identical soft-shadow cards, an
   arrow character on every link, middle-dot meta strings, mono for non-code labels, 01 / 02 / 03 on non-steps, a
   big-number hero without the product, entrance animations on every section, glowing dark cards, grey-bar browser
-  frames, placeholder data. Trade-off: a kept tell needs a written reason. Deviate only with an ADR that names
+  frames, placeholder data, tinted boxes with a border in the same hue. Trade-off: a kept tell needs a written reason. Deviate only with an ADR that names
   this trade-off. Proof: the audit's tell warnings, each fixed or justified (references/tells.md). Source:
   https://www.claude.com/blog/improving-frontend-design-through-skills and the frontend-design skill's pattern
   list, verified 2026-11-01.
@@ -286,9 +291,12 @@ Most important first. Examples use an invoicing app, a project tool and a bookin
 - [references/tells.md](references/tells.md): load when reviewing a design for a generic look or when the audit
   reports tell warnings.
 - [references/app-ui.md](references/app-ui.md): load when building or reviewing tables, forms, interactive states,
-  icons, overlays, command palettes, shortcuts, charts or dark mode, or when a utility class has no effect.
+  icons, overlays (dialogs, lightboxes, menus and their traps), command palettes, shortcuts, charts or dark mode,
+  or when a utility class has no effect.
 - [references/marketing-pages.md](references/marketing-pages.md): load when building a landing, pricing or
   feature page, a hero, a product mock-up, or a claims file.
+- [references/docs-sites.md](references/docs-sites.md): load when building or editing a docs or help site: its
+  navigation, content directives, screenshots, the content check in CI and moved URLs.
 - [references/measurement.md](references/measurement.md): load before running the audit, when reading its
   output, or when Playwright is not installed and the procedure has to run by hand.
 - [scripts/design_audit.mjs](scripts/design_audit.mjs): run from the project directory with `--url`, `--tokens`,
