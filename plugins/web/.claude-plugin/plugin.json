@@ -1,7 +1,7 @@
 {
   "name": "web",
   "displayName": "Web: public pages, dashboards and browser checks",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Public pages as their own deployment, client-rendered dashboards, Vue and Inertia, premium design quality, interface motion and headless browser verification.",
   "author": {
     "name": "Rene Roscher",

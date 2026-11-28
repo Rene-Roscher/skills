@@ -3,13 +3,10 @@
 All notable changes to the `web` plugin are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
-## 0.1.0 - Unreleased
+## 0.2.0 - 2026-11-28
 
 ### Added
 
-- Skill `interface-motion`: springs as CSS `linear()` with a generator, motion that can be caught mid-flight
-  with dependent elements on the same curve, per-frame measurement in Chromium, Firefox and WebKit with a catch
-  test, and notes for Vue, Reka UI and Tailwind CSS. `design-quality` points to it from its motion rule.
 - `design-quality`: audit what you touch, unasked, content edits included (rendered headings against the
   source); prose at 45 to 80 characters per line, measured on rendered lines; traps for dialogs after a reset,
   native dialogs that do not lock scrolling, modal-by-default menus, 1 px SVG lines at 1×, overlays sized from
@@ -19,6 +16,14 @@ All notable changes to the `web` plugin are recorded here. The format follows
   `content-crawl.md`.
 - `interface-motion`: reference `path-indicator.md`, a marker that travels along a curved guide line as a dash
   of the same path.
+
+## 0.1.0 - Unreleased
+
+### Added
+
+- Skill `interface-motion`: springs as CSS `linear()` with a generator, motion that can be caught mid-flight
+  with dependent elements on the same curve, per-frame measurement in Chromium, Firefox and WebKit with a catch
+  test, and notes for Vue, Reka UI and Tailwind CSS. `design-quality` points to it from its motion rule.
 - Skills `web-architecture`, `browser-verification` and `design-quality`.
 - Skill `vue-inertia-frontend`.
 - Dependency on `core`.
