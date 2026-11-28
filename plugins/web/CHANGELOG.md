@@ -10,6 +10,15 @@ All notable changes to the `web` plugin are recorded here. The format follows
 - Skill `interface-motion`: springs as CSS `linear()` with a generator, motion that can be caught mid-flight
   with dependent elements on the same curve, per-frame measurement in Chromium, Firefox and WebKit with a catch
   test, and notes for Vue, Reka UI and Tailwind CSS. `design-quality` points to it from its motion rule.
+- `design-quality`: audit what you touch, unasked, content edits included (rendered headings against the
+  source); prose at 45 to 80 characters per line, measured on rendered lines; traps for dialogs after a reset,
+  native dialogs that do not lock scrolling, modal-by-default menus, 1 px SVG lines at 1×, overlays sized from
+  `scrollHeight`; tell T20 (tinted box with a border in the same hue); new reference `docs-sites.md` for docs
+  and help sites. The description now names edits to rendered content.
+- `browser-verification`: crawl every route after a content or shared-layout change, with reference
+  `content-crawl.md`.
+- `interface-motion`: reference `path-indicator.md`, a marker that travels along a curved guide line as a dash
+  of the same path.
 - Skills `web-architecture`, `browser-verification` and `design-quality`.
 - Skill `vue-inertia-frontend`.
 - Dependency on `core`.
