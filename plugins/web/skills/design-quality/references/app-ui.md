@@ -181,6 +181,25 @@ or justify it.
   (https://www.w3.org/WAI/ARIA/apg/patterns/dialog-modal/, verified 2026-11-06); the order is design judgment.
 - Sticky headers, footers and banners never cover the focused element (WCAG 2.2, 2.4.11).
 
+### Overlay and rendering traps
+
+- A reset that zeroes `margin` on every element also zeroes it on `<dialog>`, whose user-agent centring depends
+  on `margin: auto`; the lightbox opened stuck in the top-left corner. Restore `margin: auto` on dialogs.
+- A native modal dialog does not stop the page behind it from scrolling. Set a class with `overflow: hidden` on
+  the root while it is open, keep `scrollbar-gutter: stable` so nothing shifts, and clear the class on every
+  `close` event, which also fires for Escape.
+- Headless menu components (Radix, Reka) are modal by default: they lock body scroll and block pointer events, so
+  the page scrollbar vanishes and the layout flickers on every open. A menu inside navigation sets `modal` to
+  false; Escape, outside click and focus return still work. Reka documents `modal` with default `true`:
+  "interaction with outside elements will be disabled"
+  (https://reka-ui.com/docs/components/dropdown-menu.md, verified 2026-11); `scrollbar-gutter`
+  (https://developer.mozilla.org/en-US/docs/Web/CSS/scrollbar-gutter, verified 2026-11).
+- A 1 px SVG line on a whole-pixel coordinate renders as two half-covered columns at 1×, lighter than a 1 px CSS
+  border beside it. Put the line on `.5` and compare sampled pixel colours, not screenshots by eye.
+- An overlay (an SVG guide line, a highlight layer) sized from its container's `scrollHeight` counts its own
+  height, so a long page leaves a short one scrollable into nothing after navigation. Size it from the content it
+  draws.
+
 ## Charts and data visualisation
 
 - Colour is never the only cue (WCAG 1.4.1): add labels, patterns or direct annotation. Lines, bars and focus
