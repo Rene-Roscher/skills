@@ -19,6 +19,13 @@ guarantee, because a model under pressure can talk itself out of them, and warns
   3", "in a later version", "not built yet"), provenance notes ("according to the code"), feature flags,
   placeholders such as `[Version]` in angle brackets, and TODO. Findings come back to the agent as context. It
   only warns, because comments and tests use the same words; the full scan runs on the build.
+- **Design-audit reminder** (`design-quality`). After an edit to a file that renders for a person (`.vue`,
+  `.svelte`, `.astro`, stylesheets, `.html`, `.mjml`; `.tsx` and `.jsx` under `components`, `pages`, `layouts`,
+  `views`, `app` or `src`; Markdown under a content folder; Blade, Twig and Handlebars templates under `views`,
+  `templates` or a mail folder), the agent is reminded to open the rendered page and audit it in light, dark and
+  at 390 px before reporting. Content edits are included on purpose: they feel like text work, and their
+  visual defects are the ones nobody looks at. The full checklist comes once per session, then one short line
+  per newly touched file. It never blocks.
 
 ## Install
 
@@ -52,6 +59,7 @@ session, with a separate count for each subagent. Files older than seven days ar
 ```bash
 python3 plugins/guardrails/hooks/guard.py --self-test
 python3 plugins/guardrails/hooks/audience.py --self-test
+python3 plugins/guardrails/hooks/surface.py --self-test
 ```
 
 The self-test runs offline: it replays a fix loop to the cap, the reset by a passing check and by your reply,

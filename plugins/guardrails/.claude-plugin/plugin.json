@@ -2,7 +2,7 @@
   "name": "guardrails",
   "displayName": "Guardrails: attempt cap and check bypass block",
   "version": "0.1.0",
-  "description": "Optional hooks that enforce two core rules a prompt cannot guarantee: stop after ten failed fix attempts and ask, and never skip or silence a check (--no-verify, HUSKY=0, check || true). A third hook warns when an edit puts team-facing text into a locale or content file.",
+  "description": "Optional hooks that enforce two core rules a prompt cannot guarantee: stop after ten failed fix attempts and ask, and never skip or silence a check (--no-verify, HUSKY=0, check || true). Two more hooks warn: when an edit puts team-facing text into a locale or content file, and when an edited file renders, as a reminder to audit the rendered page.",
   "author": {
     "name": "Rene Roscher",
     "url": "https://github.com/Rene-Roscher"

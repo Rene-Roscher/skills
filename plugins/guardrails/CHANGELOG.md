@@ -15,3 +15,6 @@ All notable changes to the `guardrails` plugin are recorded here. The format fol
 - Hook `audience.py`: after an edit to a locale or content file, warns when the added text reads as written for
   the team (roadmap talk, provenance notes, feature flags, placeholders, TODO), with its own `--self-test`.
   Page data in code counts too: prose inside string literals under `data`, `content`, `copy` or `texts`.
+- Hook `surface.py`: after an edit to a file that renders (component, stylesheet, page or mail template, Markdown
+  under a content folder), reminds the agent once per file and session to audit the rendered page before
+  reporting (skill `design-quality`), with its own `--self-test`.

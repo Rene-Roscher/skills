@@ -1,5 +1,5 @@
 {
-  "description": "Attempt cap, check-bypass block and audience check for coding agents",
+  "description": "Attempt cap, check-bypass block, audience check and design-audit reminder for coding agents",
   "hooks": {
     "UserPromptSubmit": [
       { "hooks": [ { "type": "command", "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/guard.py\"", "timeout": 10 } ] }
@@ -12,7 +12,10 @@
       { "matcher": "Bash",
         "hooks": [ { "type": "command", "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/guard.py\"", "timeout": 10 } ] },
       { "matcher": "Edit|Write|MultiEdit",
-        "hooks": [ { "type": "command", "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/audience.py\"", "timeout": 10 } ] }
+        "hooks": [
+          { "type": "command", "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/audience.py\"", "timeout": 10 },
+          { "type": "command", "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/surface.py\"", "timeout": 10 }
+        ] }
     ],
     "PostToolUseFailure": [
       { "matcher": "Bash",
